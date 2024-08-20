@@ -15,7 +15,7 @@ export default function DetailedWacc({
   handlePageInputChange,
   industryOptions,
   countryOptions,
-}) {
+}: any) {
   // Get QueryClient from the context
   const queryClient = useQueryClient();
   const [syntheticRatingOptions, setSyntheticRatingOptions] = useState("Aaa/AAA");

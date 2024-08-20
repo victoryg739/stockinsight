@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function SaveValuationButton({ setSavePopup }) {
+export default function SaveValuationButton({ setSavePopup }: any) {
   return (
     <div className="flex justify-center">
       <button

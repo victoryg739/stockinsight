@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { FaChevronDown } from "react-icons/fa";
 
-const Dropdown = ({ options, value, onChange, defaultOption, label }: any) => {
+interface DropdownProps {
+  options: string[];
+  value?: string;
+  onChange: (option: string) => void;
+  defaultOption?: string;
+  label: string;
+}
+const Dropdown = ({ options, value, onChange, defaultOption, label }: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState(value || defaultOption);
 
@@ -41,7 +48,7 @@ const Dropdown = ({ options, value, onChange, defaultOption, label }: any) => {
         {isOpen && (
           <ul
             className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-            tabIndex="-1"
+            tabIndex={-1}
             role="listbox"
           >
             {options.map((option) => (

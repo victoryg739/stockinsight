@@ -12,7 +12,7 @@ export default function SaveValuationPopoutPage({
   valuationOutput,
   impliedSharePrice,
   mutation,
-}) {
+}: any) {
   const [description, setDescription] = useState("");
 
   const handleSave = () => {

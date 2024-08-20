@@ -1,13 +1,13 @@
-export function getLatestQuarter(statement: Record<string, any>): any {
-    const dates = Object.keys(statement).sort((a, b) => {
-        return new Date(b).getTime() - new Date(a).getTime();
-    });
+export function extractLatestQuarterValues(data: any): Record<string, number> | null {
+    if (data.length === 0) return null;
 
-    // Get the latest date
-    const latestDate: string = dates[0];
+    // Sort data by date in descending order
+    const sortedData = data.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    // Extract data for the latest date
-    return statement[latestDate];
+    // Get the latest quarter data
+    const latestQuarter = sortedData[0];
+
+    return latestQuarter.values;
 }
 
 export const encodeParams = (industry: string) => {

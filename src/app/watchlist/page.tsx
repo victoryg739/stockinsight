@@ -12,13 +12,13 @@ import Image from "next/image";
 import { FaArrowUp } from "react-icons/fa";
 import { FaArrowDown } from "react-icons/fa";
 
-export default function page() {
+export default function Page() {
   const router = useRouter();
   const [symbol, setSymbol] = useState("");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [deletePage, setDeletePage] = useState(false);
   const queryClient = useQueryClient();
-  const valuationCalcuation = (marketPrice, impliedPrice) => {
+  const valuationCalcuation = (marketPrice: any, impliedPrice: any) => {
     return Math.abs((impliedPrice / marketPrice - 1) * 100).toFixed(2);
   };
 
@@ -30,7 +30,7 @@ export default function page() {
   });
 
   const marketPriceQueries = useQueries({
-    queries: (valuationQuery || []).map((item) => ({
+    queries: (valuationQuery || []).map((item: any) => ({
       queryKey: ["marketPrice", item.symbol],
       queryFn: () => fetchMarketPrice(item.symbol),
       enabled: !!item.symbol,
@@ -72,7 +72,7 @@ export default function page() {
     setDeletePage(false);
   };
 
-  const handleMoreDetails = (e, id: string) => {
+  const handleMoreDetails = (e: any, id: string) => {
     e.preventDefault();
     router.push(`/watchlist/${id}`);
   };
@@ -158,7 +158,7 @@ export default function page() {
               </tr>
             </thead>
             <tbody>
-              {valuationQuery.map((item, index) => (
+              {valuationQuery.map((item: any, index: number) => (
                 <tr key={index} className="bg-white border-b hover:bg-gray-50">
                   <td className="w-4 px-3 py-6">
                     <div className="flex items-center">
@@ -178,7 +178,7 @@ export default function page() {
                   <td className="px-6 py-4">${marketPriceQueries[index].data}</td>
                   <td className="px-6 py-4">
                     ${item.implied_share_price}
-                    {item.implied_share_price > marketPriceQueries[index].data ? (
+                    {marketPriceQueries[index].data && item.implied_share_price > marketPriceQueries[index].data ? (
                       <div className="bg-green-300 text-green-800 text-center rounded-lg flex items-center justify-center p-1 mt-1">
                         <FaArrowUp className="mr-1" />
                         {valuationCalcuation(marketPriceQueries[index].data, item.implied_share_price)}%

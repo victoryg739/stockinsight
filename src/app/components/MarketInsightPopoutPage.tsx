@@ -15,7 +15,7 @@ const MarketInsightPopoutPage = ({
   pageFetchedInputs,
   getPageInputValue,
   symbol,
-}) => {
+}: any) => {
   const revenueGrowthRef = useRef(States.INPUT_STATS_REVENUE_GROWTH);
   const operatingMarginRef = useRef(States.INPUT_STATS_OPERATING_MARGIN);
   const salesToCapRef = useRef(States.INPUT_STATS_SALES_TO_CAP);

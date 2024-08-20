@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as FetchInputHelper from "./helper";
 import { GiConsoleController } from 'react-icons/gi';
-import { convRound2Dp } from './helper';
+import { convRound2Dp, extractLatestQuarterValues } from './helper';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -48,7 +48,7 @@ export const fetchIncomeStatement = async (symbol: string,
         const { data } = await axios.get(`${BASE_URL}/api/quarterly/income-statement?symbol=${symbol}`);
 
         const incomeStatement = sumAllTTM(data);
-
+        console.log(incomeStatement)
         const baseEbitMargin = (incomeStatement["EBIT"] / incomeStatement["Total Revenue"]) * 100;
         const effectiveTaxRate = (incomeStatement["Tax Provision"] / incomeStatement["Pretax Income"]) * 100
         handleInputChange("baseRevenue", incomeStatement["Total Revenue"], "fetchedInputs");
@@ -71,11 +71,14 @@ export const fetchBalanceSheetQuarterly = async (
 ) => {
     try {
         const { data } = await axios.get(`${BASE_URL}/api/quarterly/balance-sheet?symbol=${symbol}`);
-        const balanceSheet = sumAllTTM(data);
+        const latestQtr = extractLatestQuarterValues(data);
+        if (latestQtr === null) {
+            throw ("cannot get latest quarter of balance sheet")
+        }
 
-        handleInputChange("cash", balanceSheet["Cash And Cash Equivalents"], "fetchedInputs");
-        handleInputChange("totalEquity", balanceSheet["Total Equity Gross Minority Interest"], "fetchedInputs");
-        handleInputChange("totalDebt", balanceSheet["Total Debt"], "fetchedInputs");
+        handleInputChange("cash", latestQtr["Cash Cash Equivalents And Short Term Investments"], "fetchedInputs");
+        handleInputChange("totalEquity", latestQtr["Total Equity Gross Minority Interest"], "fetchedInputs");
+        handleInputChange("totalDebt", latestQtr["Total Debt"], "fetchedInputs");
     } catch (error) {
         console.error('Error fetching balance sheet quarterly:', error);
         throw error;
@@ -305,7 +308,7 @@ export const fetchDCFHistoricalRev = async (
 ) => {
     try {
         const { data } = await axios.get(`${BASE_URL}/api/discounting-cash-flows/income-statement?symbol=${symbol}`);
-        const revenue = data.report.slice(0, 10).map(item => {
+        const revenue = data.report.slice(0, 10).map((item: any) => {
             return { date: item.date, revenue: item.revenue }
         });
         return revenue
@@ -322,7 +325,7 @@ export const fetchDCFHistoricalInvestedCap = async (
 ) => {
     try {
         const { data } = await axios.get(`${BASE_URL}/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
-        const investedCapital = data.report.slice(0, 10).map(item => {
+        const investedCapital = data.report.slice(0, 10).map((item: any) => {
             const itemInvestedCap = item.totalEquity + item.totalDebt - item.cashAndCashEquivalents
             return { date: item.date, investedCapital: itemInvestedCap }
         });

@@ -3,8 +3,8 @@ import { FaRegQuestionCircle } from "react-icons/fa";
 import Tooltip from "rc-tooltip";
 import "rc-tooltip/assets/bootstrap.css"; // Keep this for basic tooltip styling
 
-const InputBox = ({ id, label, value, question, unit, onChange, firstElement }) => {
-  const isValidNumber = (val) => {
+const InputBox = ({ id, label, value, question, unit, onChange, firstElement }: any) => {
+  const isValidNumber = (val: any) => {
     return !isNaN(parseFloat(val)) && isFinite(val);
   };
 

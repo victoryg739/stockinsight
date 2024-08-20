@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const sliceTextByWords = (text, maxLength) => {
+const sliceTextByWords = (text: string, maxLength: number) => {
   const words = text.split(" ");
   let result = "";
   let length = 0;
@@ -14,7 +14,7 @@ const sliceTextByWords = (text, maxLength) => {
   return result;
 };
 
-export default function ReadMoreText({ text, maxLength = 200 }) {
+export default function ReadMoreText({ text, maxLength = 200 }: any) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleReadMore = () => {

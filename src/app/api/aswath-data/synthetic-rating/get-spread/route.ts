@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
             where: { rating: rating },
         });
     
-        if (!data && !data["spread"]) {
+        if (!data || !data.spread) {
             return NextResponse.json({ error: 'No data/spread found for the provided rating' }, { status: 404 });
         }
         return NextResponse.json(data["spread"]);

@@ -1,7 +1,7 @@
 import React from "react";
 import { convRound2Dp } from "../utils/helper";
 
-const ImpliedValue = ({ title, value, currentPrice }) => {
+const ImpliedValue = ({ title, value, currentPrice }: any) => {
   // Calculate the valuation difference using the new formula
   const valuationDiff = (value / currentPrice - 1) * 100;
   const isOvervalued = valuationDiff < 0; // Negative value indicates overvaluation

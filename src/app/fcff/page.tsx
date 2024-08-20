@@ -35,7 +35,7 @@ interface InputField {
   unit: string;
 }
 
-export default function page() {
+export default function Page() {
   const [symbol, setSymbol] = useState("MHO");
   const [symbolBtn, setSymbolBtn] = useState(false);
   const [showMoreInputs, setShowMoreInputs] = useState(false);
@@ -88,8 +88,8 @@ export default function page() {
   };
 
   // Financial calculations state
-  const valuationModelRef = useRef(States.VALUATION_MODEL);
-  const valuationOutputRef = useRef(States.VALUATION_OUTPUT);
+  const valuationModelRef: any = useRef(States.VALUATION_MODEL);
+  const valuationOutputRef: any = useRef(States.VALUATION_OUTPUT);
 
   const { refetch: riskFreeRateRefetch } = useQuery({
     queryKey: ["riskFreeRate"],
@@ -154,7 +154,7 @@ export default function page() {
     equityRiskPremiumRefectch();
   }, [countryOptions]);
 
-  const salesToCapAutoFill = () => {
+  const SalesToCapAutoFill = () => {
     const totalEquity = getInputValue("totalEquity", fetchedInputs);
     const totalDebt = getInputValue("totalDebt", fetchedInputs);
     const cash = getInputValue("cash", fetchedInputs);
@@ -168,7 +168,7 @@ export default function page() {
       handleInputChange("salesToCapYr6to10", salesToCap, "inputs");
     }, [salesToCap]);
   };
-  salesToCapAutoFill();
+  SalesToCapAutoFill();
 
   const growthY1 = getInputValue("revGrowthYr1", "inputs");
   const growthY2to5 = getInputValue("revGrowthYr2to5", "inputs");
@@ -386,7 +386,7 @@ export default function page() {
                   value={input.value}
                   question={input.question}
                   unit={input.unit}
-                  onChange={(e) => handleInputChange(input.id, e.target.value, "inputs")}
+                  onChange={(e: any) => handleInputChange(input.id, e.target.value, "inputs")}
                   firstElement={index === 0}
                 />
               ))}
@@ -415,7 +415,7 @@ export default function page() {
                     value={input.value}
                     question={input.question}
                     unit={input.unit}
-                    onChange={(e) => handleInputChange(input.id, e.target.value, "fetchedInputs")}
+                    onChange={(e: any) => handleInputChange(input.id, e.target.value, "fetchedInputs")}
                   />
                 ))}
               </div>

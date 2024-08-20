@@ -27,7 +27,7 @@ export const FETCHED_INPUT_FIELDS = [
     { id: "baseEbitMargin", label: "Base EBIT Margin", question: "TTM Ebit Margin", value: 0, unit: "%" },
     { id: "totalEquity", label: "Total Equity", question: "TTM Total Equity/Book Value of Equity", value: 0, unit: "$" },
     { id: "totalDebt", label: "Total Debt", question: "TTM Total Debt/Book Value of Debt", value: 0, unit: "$" },
-    { id: "cash", label: "Cash And Cash Equivalents", question: "TTM Cash And Cash Equivalents", value: 0, unit: "$" },
+    { id: "cash", label: "Cash and Short Term Investments", question: "TTM Cash and Short Term Investments", value: 0, unit: "$" },
     { id: "minorityInterest", label: "Minority Interest", question: "This is a uniquely accounting item and will be on the liability side of your company's balance sheet. It reflects the requirement that if you own more than 50% of another company or have effective control of it, you have to consolidate that company's statements with yours. Thus, you count 100% of that subsidiaries assets, revenues and operating income with your company, even if you own only 60%. The minority interest reflects the book value of the 40% of the equity in the subsidiary that does not belong to you. Again, it is best if you can convert the book value to a market value by applying the price to book ratio for the sector in which the subsidiary operates", value: 0, unit: "$" },
     { id: "interestExpense", label: "Interest Expense", question: "Interest expense relates to the cost of borrowing money. It is the price that a lender charges a borrower for the use of the lender's money. On the income statement, interest expense can represent the cost of borrowing money from banks, bond investors, and other sources.", value: 0, unit: "$" },
     {

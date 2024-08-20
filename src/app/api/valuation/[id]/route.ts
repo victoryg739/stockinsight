@@ -42,10 +42,6 @@ export async function DELETE(
     } catch (error) {
         console.error(error);
 
-        if (error.code === 'P2025') { // Prisma's record not found error code
-            return NextResponse.json({ error: 'Valuation not found' }, { status: 404 });
-        }
-
         return NextResponse.json({ error: 'Failed to delete valuation' }, { status: 500 });
     }
 }

@@ -16,12 +16,12 @@ const PresentValueTable = ({ data }: any) => {
           </tr>
         </thead>
         <tbody>
-          {data.map((row, rowIndex) => (
+          {data.map((row: any, rowIndex: number) => (
             <tr key={rowIndex} className="bg-white border-b hover:bg-gray-50">
               <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                 {row.label}
               </th>
-              {(Array.isArray(row.value) ? row.value : [row.value]).map((col, colIndex) => (
+              {(Array.isArray(row.value) ? row.value : [row.value]).map((col: any, colIndex: number) => (
                 <>
                   {(row.value.length === 11 || row.value.length === 10) && colIndex === 0 && (
                     <td key={`empty-${colIndex}`} className="px-6 py-4">

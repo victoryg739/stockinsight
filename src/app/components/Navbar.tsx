@@ -11,7 +11,7 @@ const Navbar = () => {
 
   const toggleNav = () => setNavOpen(!isNavOpen);
 
-  const isActive = (path) => pathname === path;
+  const isActive = (path: any) => pathname === path;
 
   return (
     <nav className="bg-gray-800 border-b-2">

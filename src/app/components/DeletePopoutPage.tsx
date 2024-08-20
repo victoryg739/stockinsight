@@ -1,7 +1,12 @@
 import React from "react";
 import { RxCross1 } from "react-icons/rx";
 
-export default function DeletePopoutPage({ setIsPopoutOpen, handleDelete }) {
+type DeletePopoutPageProps = {
+  setIsPopoutOpen: (isOpen: boolean) => void;
+  handleDelete: () => void;
+};
+
+export default function DeletePopoutPage({ setIsPopoutOpen, handleDelete }: DeletePopoutPageProps) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg shadow-xl w-[550px] h-[200px] overflow-auto relative">

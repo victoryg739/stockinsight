@@ -13,7 +13,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { epochToDateTime } from "@/app/utils/helper";
 import Image from "next/image";
 
-export default function page({ params }) {
+export default function Page({ params }: any) {
   const [showMoreInputs, setShowMoreInputs] = useState(false);
 
   const {
@@ -90,7 +90,7 @@ export default function page({ params }) {
            border"
       >
         <div className="grid grid-cols-3 place-items-center gap-y-10 ">
-          {valuationQuery.inputs.map((input, index) => (
+          {valuationQuery.inputs.map((input: any, index: number) => (
             <InputBox
               key={input.id}
               id={input.id}
@@ -119,7 +119,7 @@ export default function page({ params }) {
         {/* Fetched Inputs */}
         {showMoreInputs && (
           <div className="grid grid-cols-3 place-items-center gap-y-10 mt-10">
-            {valuationQuery.inputs.map((input: InputField) => (
+            {valuationQuery.inputs.map((input: any) => (
               <InputBox
                 key={input.id}
                 id={input.id}
