@@ -16,9 +16,10 @@ export default function Home() {
               <span className="text-4xl mt-2">The True Value</span>
             </h1>
             <p className="mt-8 text-sm text-gray-700 sm:text-base">
-              Don't leave your investments to chance. Our DCF valuation tool gives you the edge in today's market. Start
-              making data-driven decisions now.
+              Don&apos;t leave your investments to chance. Our DCF valuation tool gives you the edge in today&apos;s
+              market. Start making data-driven decisions now.
             </p>
+
             <div className="flex mt-8">
               <button
                 type="button"
