@@ -1,8 +1,8 @@
 import React from "react";
+import * as conv from "../utils/helper";
 
 const PresentValueTable = ({ data }: any) => {
   const years = ["", "Base year", ...Array.from({ length: 10 }, (_, i) => `Year ${i + 1}`), "Terminal Year"];
-  console.log(data);
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full text-sm text-left rtl:text-right text-gray-500">
@@ -16,16 +16,6 @@ const PresentValueTable = ({ data }: any) => {
           </tr>
         </thead>
         <tbody>
-          {/* {products.map((product, index) => (
-            <tr key={index} className="bg-white border-b  hover:bg-gray-50">
-              <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
-                {product.name}
-              </th>
-              <td className="px-6 py-4">{product.color}</td>
-              <td className="px-6 py-4">{product.category}</td>
-              <td className="px-6 py-4">{product.price}</td>
-            </tr>
-          ))} */}
           {data.map((row, rowIndex) => (
             <tr key={rowIndex} className="bg-white border-b hover:bg-gray-50">
               <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
@@ -39,7 +29,18 @@ const PresentValueTable = ({ data }: any) => {
                     </td>
                   )}
                   <td key={colIndex} className="px-6 py-4">
-                    {typeof col === "number" ? col.toFixed(2) : col}
+                    {row.id === "revenue" ||
+                    row.id === "ebit" ||
+                    row.id === "ebitAfterTax" ||
+                    row.id === "reinvestment" ||
+                    row.id === "fcff" ||
+                    row.id === "pvFcff"
+                      ? conv.convToMillion(col)
+                      : row.id === "cumulatedDiscountFactor"
+                      ? conv.convRound2Dp(col)
+                      : row.id === "ebitMargin" || row.id === "taxRate" || row.id === "wacc" || row.id === "growthRates"
+                      ? conv.convRound2Dp(col) + "%"
+                      : col}
                   </td>
                 </>
               ))}

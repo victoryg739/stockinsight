@@ -60,8 +60,9 @@ export function calcTaxRate(effectiveTaxRate: number, marginalTaxRate: number) {
     }
     var curTaxRate = effectiveTaxRate;
     for (var i = 6; i <= 10; i++) {
-        taxRate.push(curTaxRate);
         curTaxRate = curTaxRate + (marginalTaxRate - effectiveTaxRate) / 5;
+        taxRate.push(curTaxRate);
+
     }
     taxRate.push(marginalTaxRate);
     return (taxRate);
@@ -70,7 +71,17 @@ export function calcTaxRate(effectiveTaxRate: number, marginalTaxRate: number) {
 export function calcEbitAfterTax(ebit: number[], tax: number[]): number[] {
     const ebitAfterTax = []
     for (let i = 0; i < ebit.length; i++) {
-        ebitAfterTax.push(ebit[i] * ((100 - tax[i]) / 100));
+        //terminal year
+        if (i === ebit.length - 1) {
+            ebitAfterTax.push(ebit[i] * ((100 - tax[i]) / 100));
+        }
+        //if operating income is 0 or less it cant be tax
+        else if (ebit[i] <= 0) {
+            ebitAfterTax.push(ebit[i])
+
+        } else {
+            ebitAfterTax.push(ebit[i] * ((100 - tax[i]) / 100));
+        }
     }
     return ebitAfterTax;
 }
@@ -81,7 +92,7 @@ export function calcTerminalWACC(countryEquityPremium: number, riskFreeRate: num
 }
 
 
-export function calcReinvestment(revenue: number[], salesToCapY1: number, salesToCapY2To5: number, salesToCapY6To10: number, revGrowthTerminalYr: number, wacc: number, ebitAfterTaxTerminalYr: number): number[] {
+export function calcReinvestment(revenue: number[], salesToCapY1: number, salesToCapY2To5: number, salesToCapY6To10: number, revGrowthTerminalYr: number, terminalWacc: number, ebitAfterTaxTerminalYr: number): number[] {
     const reinvestment = []
     //yr1
     reinvestment.push((revenue[1] - revenue[0]) / salesToCapY1);
@@ -95,8 +106,9 @@ export function calcReinvestment(revenue: number[], salesToCapY1: number, salesT
     for (let i = 6; i <= 10; i++) {
         reinvestment.push((revenue[i] - revenue[i - 1]) / salesToCapY6To10);
     }
+
     //terminal year
-    reinvestment.push(ebitAfterTaxTerminalYr * (revGrowthTerminalYr / wacc))
+    reinvestment.push(ebitAfterTaxTerminalYr * (revGrowthTerminalYr / terminalWacc))
 
     return reinvestment;
 }
@@ -174,4 +186,52 @@ export function calcEquityValueCommonStock(equityValue: number, valueOfOptions: 
 
 export function calcImpliedSharePrice(calcEquityValueCommonStock: number, sharesOutstanding: number): number {
     return calcEquityValueCommonStock / sharesOutstanding;
+}
+
+//Section: Calculate WACC
+
+export function calcLeveredBeta(unleveredBeta: number, marginalTaxRate: number, marketEquity: number, marketDebt: number) {
+    return unleveredBeta * (1 + (1 - marginalTaxRate / 100) * (marketDebt / marketEquity));
+}
+
+export function calcCostOfEquity(riskFreeRate: number, leveredBeta: number, equityRiskPremium: number) {
+    return (riskFreeRate + leveredBeta * equityRiskPremium)
+}
+
+export function calcMarketValueDebt(interestExpense: number, preTaxCostOfDebt: number, averageMaturity: number, totalDebt: number) {
+    // Convert pre-tax cost of debt from percentage to decimal
+    const costDecimal = preTaxCostOfDebt / 100;
+
+    // Calculate discount factor
+    const discountFactor = (1 + costDecimal) ** -averageMaturity;
+
+    // Calculate market value of debt
+    const marketValueOfDebt = (
+        (interestExpense / costDecimal) * (1 - discountFactor) +
+        (totalDebt / (1 + costDecimal) ** averageMaturity)
+    );
+
+    return marketValueOfDebt;
+}
+
+export function calcWaccEquityWeight(marketEquity: number, marketDebt: number) {
+    return (marketEquity / (marketEquity + marketDebt))
+}
+
+export function calcWaccDebtWeight(marketEquity: number, marketDebt: number) {
+    return (marketDebt / (marketEquity + marketDebt))
+}
+
+export function calcInitialWacc(equityWeight: number, debtWeight: number, costOfEquity: number, costOfDebt: number) {
+    return (costOfEquity * equityWeight + costOfDebt * debtWeight)
+}
+
+
+//Section: Calculate sales to capital ratio
+export function calcInvestedCapital(totalEquity: number, totalDebt: number, cash: number) {
+    return totalEquity + totalDebt - cash;
+}
+
+export function calcSalesToCap(baseRevenue: number, investedCapital: number) {
+    return Number((baseRevenue / investedCapital).toFixed(2));
 }

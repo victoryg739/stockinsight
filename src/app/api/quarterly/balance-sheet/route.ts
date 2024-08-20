@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
     try {
         const response = await fetch(url);
         const data = await response.json();
+        console.log(data)
 
         if (!data || Object.keys(data).length === 0) {
             return NextResponse.json({ error: 'No data found' }, { status: 404 });

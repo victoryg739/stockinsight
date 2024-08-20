@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
 
     try {
         const response = await fetch(url);
-        console.log(response);
         const data = await response.json();
 
         if (!data || Object.keys(data).length === 0) {
@@ -21,8 +20,6 @@ export async function GET(req: NextRequest) {
 
         // Get the Total Debt from the latest date
         const latestTotalDebt = data[latestDate]["Total Debt"];
-
-        console.log(`Latest Total Debt (${latestDate}): ${latestTotalDebt}`);
 
         return NextResponse.json({ [latestDate]: latestTotalDebt });
     } catch (error) {

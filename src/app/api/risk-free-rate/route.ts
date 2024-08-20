@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-export const fetchCache = 'auto'
 
 export async function GET(req: NextRequest) {
     const url = `https://valuation-yfinance.vercel.app/stock_info/^TNX`;
@@ -7,6 +6,7 @@ export async function GET(req: NextRequest) {
     try {
         const response = await fetch(url);
         const data = await response.json();
+        console.log(data)
 
         if (!data || Object.keys(data).length === 0) {
             return NextResponse.json({ error: 'No data found' }, { status: 404 });

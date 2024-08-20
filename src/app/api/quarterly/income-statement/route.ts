@@ -15,10 +15,6 @@ export async function GET(req: NextRequest) {
         if (!data || Object.keys(data).length === 0) {
             return NextResponse.json({ error: 'No data found' }, { status: 404 });
         }
-          // Check if "Information" key exists
-          if (data.Information) {
-            return NextResponse.json({ error: 'API rate limit exceeded' }, { status: 429 });
-        }
 
         return NextResponse.json(data);
     } catch (error) {
