@@ -299,7 +299,7 @@ export default function Page() {
   });
 
   if (status === "unauthenticated") {
-    router.push("/"); // Redirect to homepage
+    return(router.push("/")); // Redirect to homepage
   }
   return (
     <div>

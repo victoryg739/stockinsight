@@ -3,6 +3,7 @@ import React from "react";
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { fetchValuations, deleteValuationById, fetchMarketPrice } from "../utils/queryAPIFunctions";
 import { epochToDateTime } from "../utils/helper";
 import { useRouter } from "next/navigation";
@@ -13,6 +14,7 @@ import { FaArrowUp } from "react-icons/fa";
 import { FaArrowDown } from "react-icons/fa";
 
 export default function Page() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [symbol, setSymbol] = useState("");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -76,6 +78,23 @@ export default function Page() {
     e.preventDefault();
     router.push(`/watchlist/${id}`);
   };
+
+  if (status === "unauthenticated") {
+    return router.push("/"); // Redirect to homepage
+  } else if (status === "loading") {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen">
+        <Image
+          src="/loading.svg"
+          alt="Loading icon"
+          height={400}
+          width={400}
+          className="object-contain mb-4" // Added margin-bottom for spacing
+        />
+        <p className="font-semibold text-lg text-center mt-5">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div>

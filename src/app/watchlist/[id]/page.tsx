@@ -2,6 +2,7 @@
 import React from "react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { fetchMarketPrice, fetchValuationById } from "@/app/utils/queryAPIFunctions";
 import StockInfo from "@/app/components/StockInfo";
 import Navbar from "@/app/components/Navbar";
@@ -12,8 +13,11 @@ import ImpliedValue from "@/app/components/ImpliedValue";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { epochToDateTime } from "@/app/utils/helper";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 export default function Page({ params }: any) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [showMoreInputs, setShowMoreInputs] = useState(false);
 
   const {
@@ -33,8 +37,9 @@ export default function Page({ params }: any) {
       return fetchMarketPrice(valuationQuery.symbol);
     },
   });
-
-  if (valuationIsFetching)
+  if (status === "unauthenticated") {
+    return router.push("/"); // Redirect to homepage
+  } else if (status === "loading" || valuationIsFetching) {
     return (
       <div className="flex flex-col justify-center items-center h-screen">
         <Image
@@ -47,8 +52,7 @@ export default function Page({ params }: any) {
         <p className="font-semibold text-lg text-center mt-5">Loading...</p>
       </div>
     );
-
-  if (error)
+  } else if (error) {
     return (
       <div className="flex flex-col justify-center items-center h-screen">
         <Image
@@ -63,7 +67,7 @@ export default function Page({ params }: any) {
         </p>
       </div>
     );
-
+  }
   return (
     <div>
       <Navbar />
