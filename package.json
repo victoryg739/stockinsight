@@ -1,9 +1,10 @@
 {
-  "name": "valuation",
+  "name": "stockinsight",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "postinstall": "prisma generate",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint"
