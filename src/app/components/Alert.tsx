@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 type AlertProps = {
   message: string;
 };
+
 export default function Alert({ message }: AlertProps) {
   const [isVisible, setIsVisible] = useState(true);
   useEffect(() => {
