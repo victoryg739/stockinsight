@@ -36,7 +36,7 @@ interface InputField {
 }
 
 export default function Page() {
-  const [symbol, setSymbol] = useState("MHO");
+  const [symbol, setSymbol] = useState("");
   const [symbolBtn, setSymbolBtn] = useState(false);
   const [showMoreInputs, setShowMoreInputs] = useState(false);
   const impliedSharePriceRef = useRef(0);
@@ -299,7 +299,7 @@ export default function Page() {
   });
 
   if (status === "unauthenticated") {
-    return(router.push("/")); // Redirect to homepage
+    return router.push("/"); // Redirect to homepage
   }
   return (
     <div>

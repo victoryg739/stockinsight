@@ -1,10 +1,10 @@
 export const INPUT_FIELDS = [
-    { id: "revGrowthYr1", label: "Rev Growth Yr 1", question: "Revenue Growth next year in %", value: 4.2, unit: "%" },
+    { id: "revGrowthYr1", label: "Rev Growth Yr 1", question: "Revenue Growth next year in %", value: 15, unit: "%" },
     {
         id: "revGrowthYr2to5",
         label: "Rev Growth (Yrs 2-5)",
         question: "Annual Compounded Revenue Growth in year 1 in %",
-        value: 5,
+        value: 12,
         unit: "%"
     },
     {
@@ -14,8 +14,8 @@ export const INPUT_FIELDS = [
         value: 0,
         unit: "%"
     },
-    { id: "opMarginYr1", label: "Operating Margin Yr 1", question: "Operating Margin next year in %", value: 14, unit: "%" },
-    { id: "opMarginYr10", label: "Operating Margin In Yr 10", question: "Operating Margin in year 10 in %", value: 15, unit: "%" },
+    { id: "opMarginYr1", label: "Operating Margin Yr 1", question: "Operating Margin next year in %", value: 10, unit: "%" },
+    { id: "opMarginYr10", label: "Operating Margin In Yr 10", question: "Operating Margin in year 10 in %", value: 10, unit: "%" },
     { id: "yrsConvergence", label: "Years of Convergence", question: "How many years to converge on operating margin in Year 10?", value: 5, unit: "Yrs" },
     { id: "salesToCapYr1", label: "Sales to Capital Yr 1", question: "This metric evaluates how effectively a company can convert $1 of capital into $1 of revenue. A higher sales-to-capital ratio indicates greater efficiency. Sales to Capital Ratio = Sales/Invested Capital. Invested Capital = Total Debt + Total Equity - Cash and Cash Equivalents", value: 0, unit: "" },
     { id: "salesToCapYr2to5", label: "Sales to Capital Yr 2 to 5", question: "This metric evaluates how effectively a company can convert $1 of capital into $1 of revenue. A higher sales-to-capital ratio indicates greater efficiency. Sales to Capital Ratio = Sales/Invested Capital. Invested Capital = Total Debt + Total Equity - Cash and Cash Equivalents", value: 0, unit: "" },
