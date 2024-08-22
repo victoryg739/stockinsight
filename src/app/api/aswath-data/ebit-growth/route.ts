@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+    log: ['query', 'info', 'warn', 'error'],
+});
+console.log("Prisma Client Initialized");
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;

@@ -3,7 +3,10 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+    log: ['query', 'info', 'warn', 'error'],
+});
+console.log("Prisma Client Initialized");
 
 export async function POST(req: NextRequest) {
     if (req.method === 'POST') {
