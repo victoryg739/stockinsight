@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model beta_us {
+  industry                 String  @id @db.VarChar(255)
+  no_of_firms              String? @db.VarChar(255)
+  avg_unlevered_beta       String? @db.VarChar(255)
+  avg_levered_beta         String? @db.VarChar(255)
+  avg_correlation_with_mkt String? @db.VarChar(255)
+  total_unlevered_beta     String? @db.VarChar(255)
+  total_levered_beta       String? @db.VarChar(255)
+}
+
+model country_risk_premium {
+  country              String  @id(map: "country_equity_risk_premium_pk") @db.VarChar
+  adj_default_spread   String? @db.VarChar
+  equity_risk_premium  String? @db.VarChar
+  country_risk_premium String? @db.VarChar
+  corporate_tax_rate   String? @db.VarChar
+  moody_rating         String? @db.VarChar
+  soverign_cds_spread  String? @db.VarChar
+}
+
+model data_last_update {
+  data_name   String    @id @db.VarChar(255)
+  last_update DateTime? @db.Date
+}
+
+model ebit_growth {
+  industry             String  @id @db.VarChar(255)
+  no_of_firms          String? @db.VarChar(255)
+  roc                  String? @db.VarChar(255)
+  reinvestment_rate    String? @db.VarChar(255)
+  expected_growth_ebit String? @db.VarChar(255)
+}
+
+model pe_ratio_us {
+  industry                                           String  @id @db.VarChar(255)
+  no_of_firms                                        String? @db.VarChar(255)
+  perc_money_losing_firms_trailing                   String? @db.VarChar(255)
+  current_pe                                         String? @db.VarChar(255)
+  trailing_pe                                        String? @db.VarChar(255)
+  forward_pe                                         String? @db.VarChar(255)
+  agg_mkt_cap_net_income                             String? @db.VarChar(255)
+  agg_mkt_cap_trailing_net_income_money_making_firms String? @db.VarChar(255)
+  expected_growth_next_5_yrs                         String? @db.VarChar(255)
+  peg_ratio                                          String? @db.VarChar(255)
+}
+
+model rev_growth_rate {
+  industry                         String  @id @db.VarChar(255)
+  no_of_firms                      String? @db.VarChar(255)
+  cagr_net_income_last_5_years     String? @db.VarChar(255)
+  cagr_net_rev_last_5_years        String? @db.VarChar(255)
+  expected_growth_rev_next_2_years String? @db.VarChar(255)
+  expected_growth_rev_next_5_years String? @db.VarChar(255)
+  expected_growth_eps_next_5_years String? @db.VarChar(255)
+}
+
+model sales_to_cap_us {
+  industry                String  @id @db.VarChar(255)
+  no_of_firms             String? @db.VarChar(255)
+  capex                   String? @db.VarChar(255)
+  depre_amort             String? @db.VarChar(255)
+  capex_depre             String? @db.VarChar(255)
+  acquisitions            String? @db.VarChar(255)
+  net_r_and_d             String? @db.VarChar(255)
+  net_capex_sales         String? @db.VarChar(255)
+  net_capex_ebit_aftertax String? @db.VarChar(255)
+  sales_invested_capital  String? @db.VarChar(255)
+}
+
+model effective_tax_rate {
+  industry                                 String  @id @db.VarChar(255)
+  no_of_firms                              String? @db.VarChar(255)
+  total_taxable_income                     String? @db.VarChar(255)
+  total_taxes_paid_accrual                 String? @db.VarChar(255)
+  total_cash_taxes_paid                    String? @db.VarChar(255)
+  cash_taxes_accrual_taxes                 String? @db.VarChar(255)
+  effectivetr_avg_across_all_comp          String? @db.VarChar(255)
+  effectivetr_avg_across_money_making_comp String? @db.VarChar(255)
+  effectivetr_agg_tax_rate                 String? @db.VarChar(255)
+  cashtr_avg_across_money_making_comp      String? @db.VarChar(255)
+  cashtr_agg_tax_rate                      String? @db.VarChar(255)
+}
+
+model default_spread_large_firm {
+  min    String? @db.VarChar(255)
+  max    String? @db.VarChar(255)
+  rating String  @id @db.VarChar(255)
+  spread String? @db.VarChar(255)
+}
+
+model default_spread_small_firm {
+  min    String? @db.VarChar(255)
+  max    String? @db.VarChar(255)
+  rating String  @id @db.VarChar(255)
+  spread String? @db.VarChar(255)
+}
+
+model input_stats {
+  industry                                 String @id
+  count                                    Int?
+  revenue_growth_rate_first_quartile       Float? @db.Real
+  revenue_growth_rate_median               Float? @db.Real
+  revenue_growth_rate_third_quartile       Float? @db.Real
+  pre_tax_operating_margin_first_quartile  Float? @db.Real
+  pre_tax_operating_margin_median          Float? @db.Real
+  pre_tax_operating_margin_third_quartile  Float? @db.Real
+  sales_to_invested_capital_first_quartile Float? @db.Real
+  sales_to_invested_capital_median         Float? @db.Real
+  sales_to_invested_capital_third_quartile Float? @db.Real
+  cost_of_capital_first_quartile           Float? @db.Real
+  cost_of_capital_median                   Float? @db.Real
+  cost_of_capital_third_quartile           Float? @db.Real
+  beta_first_quartile                      Float? @db.Real
+  beta_median                              Float? @db.Real
+  beta_third_quartile                      Float? @db.Real
+  debt_to_capital_ratio_first_quartile     Float? @db.Real
+  debt_to_capital_ratio_median             Float? @db.Real
+  debt_to_capital_ratio_third_quartile     Float? @db.Real
+}
+
+model valuation {
+  id                  Int      @id @default(autoincrement())
+  symbol              String?  @db.VarChar(50)
+  email               String?  @db.VarChar(50)
+  inputs              Json?
+  fetched_inputs      Json?
+  stock_info          Json?
+  valuation_model     Json?
+  valuation_output    Json?
+  implied_share_price Decimal? @db.Decimal(10, 2)
+  description         String?
+  valued_date         Int?
+}
