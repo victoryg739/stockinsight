@@ -6,6 +6,7 @@ type AlertProps = {
 
 export default function Alert({ message }: AlertProps) {
   const [isVisible, setIsVisible] = useState(true);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
