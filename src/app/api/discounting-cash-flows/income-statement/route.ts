@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
+    const dcfKey = process.env.DISCOUNTING_CASH_FLOWS_KEY
+
     const searchParams = req.nextUrl.searchParams;
     const symbol = searchParams.get('symbol');
-    const url = `https://discountingcashflows.com/api/income-statement/${symbol}`;
-
+    const url = `https://discountingcashflows.com/api/income-statement/?ticker=${symbol}&period=annual&key=${dcfKey}`
     try {
         const response = await fetch(url);
         const data = await response.json();

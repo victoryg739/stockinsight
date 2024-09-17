@@ -11,7 +11,6 @@ export const fetchRiskFreeRate = async (
 ) => {
     try {
         const { data } = await axios.get(`${BASE_URL}/api/risk-free-rate`);
-        console.log(data)
         handleInputChange("riskFreeRate", data.previousClose, "fetchedInputs");
         handleInputChange("revGrowthPerpetuity", data.previousClose, "inputs");
 

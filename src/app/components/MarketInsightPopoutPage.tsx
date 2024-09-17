@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { RxCross1 } from "react-icons/rx";
 import MarketInsightTable from "./MarketInsightTable";
 import { useQuery } from "@tanstack/react-query";
@@ -21,7 +21,7 @@ const MarketInsightPopoutPage = ({
   const salesToCapRef = useRef(States.INPUT_STATS_SALES_TO_CAP);
   const waccRef = useRef(States.INPUT_STATS_WACC);
   const debtToCapRef = useRef(States.INPUT_STATS_DEBT_TO_CAPITAL);
-  const historicalSalesToCap = useRef<{ date: string; salesToCap: number }[]>([]);
+  const [historicalSalesToCap, setHistoricalSalesToCap] = useState<{ date: string; salesToCap: number | string }[]>([]);
   const handleInputChange = (id: string, newValue: any, type: string): void => {
     const value = newValue === undefined ? 0 : newValue;
 
@@ -67,32 +67,28 @@ const MarketInsightPopoutPage = ({
 
   const { data: revQuery } = useQuery({
     queryKey: ["historicalRevenue"],
-    queryFn: async () => {
-      const data = queryFn.fetchDCFHistoricalRev(symbol);
-      return data;
-    },
+    queryFn: async () => await queryFn.fetchDCFHistoricalRev(symbol),
   });
 
   const { data: investedCapitalQuery } = useQuery({
     queryKey: ["historicalInvestedCapital"],
-    queryFn: async () => {
-      const data = queryFn.fetchDCFHistoricalInvestedCap(symbol);
-      return data;
-    },
+    queryFn: async () => await queryFn.fetchDCFHistoricalInvestedCap(symbol),
   });
 
-  if (revQuery && investedCapitalQuery) {
-    historicalSalesToCap.current = [];
-    for (let i = 0; i < revQuery.length; i++) {
-      if (revQuery[i].date !== investedCapitalQuery[i].date) {
-        //throw some error
-        throw new Error("Sales to Capital revenue and invested capital dates are wrong");
+  useEffect(() => {
+    if (revQuery && investedCapitalQuery) {
+      const updatedSalesToCap = [];
+      for (let i = 0; i < revQuery.length; i++) {
+        if (i >= investedCapitalQuery.length || revQuery[i].date !== investedCapitalQuery[i].date) {
+          updatedSalesToCap.push({ date: revQuery[i].date, salesToCap: "Error" });
+        } else {
+          const curSalesToCap = revQuery[i].revenue / investedCapitalQuery[i].investedCapital;
+          updatedSalesToCap.push({ date: revQuery[i].date, salesToCap: curSalesToCap });
+        }
       }
-      const curSalesToCap = revQuery[i].revenue / investedCapitalQuery[i].investedCapital;
-      historicalSalesToCap.current.push({ date: revQuery[i].date, salesToCap: curSalesToCap });
+      setHistoricalSalesToCap(updatedSalesToCap); // Update the state
     }
-  }
-  console.log(historicalSalesToCap);
+  }, [revQuery, investedCapitalQuery]);
 
   if (inputStatsQuery) {
     // Update Revenue Growth
@@ -198,11 +194,11 @@ const MarketInsightPopoutPage = ({
               <thead>
                 <tr className="bg-gray-200">
                   <th className="py-2 px-4 border-b border-r rounded-tl-lg"></th>
-                  {historicalSalesToCap.current.map((item, index) => (
+                  {historicalSalesToCap.map((item, index) => (
                     <th
                       key={index}
                       className={`py-2 px-4 border-b font-semibold text-sm ${
-                        index === historicalSalesToCap.current.length - 1 ? "rounded-tr-lg" : ""
+                        index === historicalSalesToCap.length - 1 ? "rounded-tr-lg" : ""
                       }`}
                     >
                       {item.date}
@@ -213,14 +209,16 @@ const MarketInsightPopoutPage = ({
               <tbody>
                 <tr>
                   <td className="py-2 px-4 border-b border-r font-semibold rounded-bl-lg">Sales to Capital Ratio</td>
-                  {historicalSalesToCap.current.map((item, index) => (
+                  {historicalSalesToCap.map((item, index) => (
                     <td
                       key={index}
                       className={`py-2 px-4 border-b text-center ${
-                        index === historicalSalesToCap.current.length - 1 ? "rounded-br-lg" : ""
+                        index === historicalSalesToCap.length - 1 ? "rounded-br-lg" : ""
                       }`}
                     >
-                      {item.salesToCap.toFixed(2)}
+                      {typeof item.salesToCap === "number" && !isNaN(item.salesToCap)
+                        ? item.salesToCap.toFixed(2)
+                        : item.salesToCap}
                     </td>
                   ))}
                 </tr>
