@@ -91,12 +91,11 @@ export default function Page() {
   const valuationModelRef: any = useRef(States.VALUATION_MODEL);
   const valuationOutputRef: any = useRef(States.VALUATION_OUTPUT);
 
-  const { refetch: riskFreeRateRefetch } = useQuery({
+  const { data: riskFreeRateData } = useQuery({
     queryKey: ["riskFreeRate"],
     queryFn: async () => {
       queryFn.fetchRiskFreeRate(handleInputChange);
     },
-    enabled: false,
   });
 
   //GET ERP and marginal tax rate
@@ -150,7 +149,6 @@ export default function Page() {
   }, [symbolBtn]);
 
   useEffect(() => {
-    riskFreeRateRefetch(); //for now hardcoded to only have US 10 Year treasury yield
     equityRiskPremiumRefectch();
   }, [countryOptions]);
 
