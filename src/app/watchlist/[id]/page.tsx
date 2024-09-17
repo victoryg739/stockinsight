@@ -168,7 +168,7 @@ export default function Page({ params }: any) {
               className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
            border"
             >
-              <p className="leading-relaxed">{valuationQuery.description}</p>
+              <p className="leading-relaxed whitespace-pre-wrap">{valuationQuery.description}</p>
             </div>
           </>
         )}
