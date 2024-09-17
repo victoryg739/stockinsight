@@ -86,7 +86,7 @@ const MarketInsightPopoutPage = ({
     for (let i = 0; i < revQuery.length; i++) {
       if (revQuery[i].date !== investedCapitalQuery[i].date) {
         //throw some error
-        throw new Error("anc");
+        throw new Error("Sales to Capital revenue and invested capital dates are wrong");
       }
       const curSalesToCap = revQuery[i].revenue / investedCapitalQuery[i].investedCapital;
       historicalSalesToCap.current.push({ date: revQuery[i].date, salesToCap: curSalesToCap });

@@ -50,7 +50,10 @@ export const fetchIncomeStatement = async (symbol: string,
         const incomeStatement = sumAllTTM(data);
         console.log(incomeStatement)
         const baseEbitMargin = (incomeStatement["EBIT"] / incomeStatement["Total Revenue"]) * 100;
-        const effectiveTaxRate = (incomeStatement["Tax Provision"] / incomeStatement["Pretax Income"]) * 100
+        let effectiveTaxRate = (incomeStatement["Tax Provision"] / incomeStatement["Pretax Income"]) * 100
+        if (effectiveTaxRate < 0) {
+            effectiveTaxRate = 0;
+        }
         handleInputChange("baseRevenue", incomeStatement["Total Revenue"], "fetchedInputs");
         handleInputChange("baseEbitMargin", baseEbitMargin, "fetchedInputs");
         handleInputChange("minorityInterest", incomeStatement["Minority Interest"], "fetchedInputs");
