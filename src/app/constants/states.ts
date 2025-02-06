@@ -47,7 +47,7 @@ export const FETCHED_INPUT_FIELDS = [
     { id: "initialWacc", label: "Initial WACC", question: "", value: 0, unit: "%" },
     { id: "equityRiskPremium", label: "Country Equity Risk Premium", question: "Equity risk premiums (ERP) represent the price of risk in the equity market", value: 0, unit: "%" },
     { id: "riskFreeRate", label: "Risk Free Rate", question: "The risk-free rate is the theoretical rate of return on an investment with zero risk. Set to 10 year treasury yield rate", value: 0, unit: "%" },
-    { id: "sharesOutstanding", label: "Shares Outstanding", question: "Shares outstanding are the stock that is held by a company's shareholders on the open market", value: 0, unit: "Shares" },
+    { id: "impliedSharesOutstanding", label: "Shares Outstanding", question: "Shares outstanding are the stock that is held by a company's shareholders on the open market", value: 0, unit: "Shares" },
     { id: "currentSharePrice", label: "Current Share Price", question: "Current share price of the stock", value: 0, unit: "$" }
 
 ]

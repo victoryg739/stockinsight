@@ -240,7 +240,7 @@ export default function Page() {
   const equityValueCommonStock = FinCalc.calcEquityValueCommonStock(equityValue, 0);
   const impliedSharePrice = FinCalc.calcImpliedSharePrice(
     equityValueCommonStock,
-    getInputValue("sharesOutstanding", "fetchedInputs")
+    getInputValue("impliedSharesOutstanding", "fetchedInputs")
   );
 
   impliedSharePriceRef.current = impliedSharePrice;

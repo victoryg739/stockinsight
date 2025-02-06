@@ -96,7 +96,7 @@ export const fetchStockInfo = async (
     try {
         const { data } = await axios.get(`${BASE_URL}/api/stock-info?symbol=${symbol}`);
         const currentPrice = data["currentPrice"];
-        const sharesOutstanding = data["sharesOutstanding"];
+        const impliedSharesOutstanding = data["impliedSharesOutstanding"];
 
 
         const mrqDateObject = new Date(data["mostRecentQuarter"] * 1000);
@@ -107,7 +107,7 @@ export const fetchStockInfo = async (
 
 
         handleInputChange("currentSharePrice", currentPrice, "fetchedInputs");
-        handleInputChange("sharesOutstanding", sharesOutstanding, "fetchedInputs");
+        handleInputChange("impliedSharesOutstanding", impliedSharesOutstanding, "fetchedInputs");
         handleInputChange("shortName", data["shortName"], "stockInfo");
         handleInputChange("country", data["country"], "stockInfo");
         handleInputChange("currency", data["currency"], "stockInfo");

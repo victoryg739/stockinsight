@@ -184,8 +184,8 @@ export function calcEquityValueCommonStock(equityValue: number, valueOfOptions: 
     return equityValue - valueOfOptions;
 }
 
-export function calcImpliedSharePrice(calcEquityValueCommonStock: number, sharesOutstanding: number): number {
-    return calcEquityValueCommonStock / sharesOutstanding;
+export function calcImpliedSharePrice(calcEquityValueCommonStock: number, impliedSharesOutstanding: number): number {
+    return calcEquityValueCommonStock / impliedSharesOutstanding;
 }
 
 //Section: Calculate WACC

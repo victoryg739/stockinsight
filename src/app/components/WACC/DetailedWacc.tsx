@@ -94,9 +94,9 @@ export default function DetailedWacc({
   handleInputChange("preTaxCostOfDebt", preTaxCostOfDebt, "waccDebt");
 
   //calculate market value of equity
-  const sharesOutstanding = getPageInputValue("sharesOutstanding", "fetchedInputs");
+  const impliedSharesOutstanding = getPageInputValue("impliedSharesOutstanding", "fetchedInputs");
   const currentSharePrice = getPageInputValue("currentSharePrice", "fetchedInputs");
-  marketEquityRef.current = sharesOutstanding * currentSharePrice;
+  marketEquityRef.current = impliedSharesOutstanding * currentSharePrice;
 
   //calculate market value of debt
   const interestExpense = getPageInputValue("interestExpense", "fetchedInputs");
