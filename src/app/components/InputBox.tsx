@@ -19,7 +19,7 @@ const InputBox = ({ id, label, value, question, unit, onChange, firstElement }: 
           overlay={
             <div className="max-w-xs bg-gray-800 text-white p-2 rounded shadow-lg">
               <p className="text-sm">
-                {question.split("\n").map((line, index) => (
+                {question.split("\n").map((line: String, index: any) => (
                   <React.Fragment key={index}>
                     <div style={{ marginBottom: "6px" }}>{line}</div>
                   </React.Fragment>
