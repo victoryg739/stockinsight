@@ -14,7 +14,7 @@ const sliceTextByWords = (text: string, maxLength: number) => {
   return result;
 };
 
-export default function ReadMoreText({ text, maxLength = 200 }: any) {
+export default function ReadMoreText({ text, maxLength = 350 }: any) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleReadMore = () => {

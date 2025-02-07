@@ -18,7 +18,13 @@ const InputBox = ({ id, label, value, question, unit, onChange, firstElement }: 
           placement="right"
           overlay={
             <div className="max-w-xs bg-gray-800 text-white p-2 rounded shadow-lg">
-              <p className="text-sm break-words">{question}</p>
+              <p className="text-sm">
+                {question.split("\n").map((line, index) => (
+                  <React.Fragment key={index}>
+                    <div style={{ marginBottom: "6px" }}>{line}</div>
+                  </React.Fragment>
+                ))}
+              </p>
             </div>
           }
         >
@@ -41,7 +47,7 @@ const InputBox = ({ id, label, value, question, unit, onChange, firstElement }: 
               : "border-red-400 border-2"
           }`}
         />
-        <span className="absolute right-0 top-0 bottom-0 flex items-center px-3 bg-gray-100 rounded-r-md border-l">
+        <span className="absolute right-0 top-0 bottom-0 flex items-center px-3 bg-gray-100 rounded-r-md border">
           {unit}
         </span>
       </div>

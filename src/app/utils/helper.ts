@@ -39,13 +39,22 @@ export const convRound2Dp = (value: number) => {
     return removeTrailingZeros(value.toFixed(2));
 }
 
-export const convToMillion = (value: number) => {
+export const convToMillion = (value: number): string => {
     if (typeof value !== 'number' || isNaN(value)) {
         return '0';
     }
-    return removeTrailingZeros((value / 1000000).toFixed(2));
-}
 
+    // Convert to millions
+    const millionValue = value / 1000000;
+
+    // Format the number with commas and conditionally omit trailing ".00"
+    const formattedValue = millionValue.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+    });
+
+    return formattedValue;
+};
 
 export function epochToDateTime(epochTime: any) {
     // Create a new Date object using the epoch time (multiply by 1000 for milliseconds)

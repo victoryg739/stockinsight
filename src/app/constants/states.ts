@@ -1,25 +1,62 @@
 export const INPUT_FIELDS = [
-    { id: "revGrowthYr1", label: "Rev Growth Yr 1", question: "Revenue Growth next year in %", value: 15, unit: "%" },
+    {
+        id: "revGrowthYr1",
+        label: "Rev Growth Yr 1",
+        question: `The key input is the growth rate for years 2-5, but the year 1 growth rate is separated for two reasons:
+	1.	Some companies can forecast year 1 more accurately based on management guidance or existing contracts.
+	2.	For pre-revenue companies, it provides a reasonable starting point for projections.`,
+        value: 15,
+        unit: "%"
+    },
     {
         id: "revGrowthYr2to5",
         label: "Rev Growth (Yrs 2-5)",
-        question: "Annual Compounded Revenue Growth in year 1 in %",
+        question: `a. Review your company’s recent revenue growth
+        b. Compare your revenues to the overall market size and key sector players.
+        Suggestion: Check year 10 revenues against the market for potential market share and compare with competitors.
+        Note: This could be negative for a declining firm.`,
         value: 12,
         unit: "%"
     },
     {
         id: "revGrowthPerpetuity",
         label: "Rev Growth Perpetuity",
-        question: "Annual Compounded Revenue Growth in year 2 to 5 in %",
+        question: "Will assume that the growth rate in perpetuity will be equal to the risk free rate. This allows for both valuation consistency and prevents impossible growth rates.",
         value: 0,
         unit: "%"
     },
-    { id: "opMarginYr1", label: "Operating Margin Yr 1", question: "Operating Margin next year in %", value: 10, unit: "%" },
-    { id: "opMarginYr10", label: "Operating Margin In Yr 10", question: "Operating Margin in year 10 in %", value: 10, unit: "%" },
+    { id: "opMarginYr1", label: "Operating Margin Yr 1", question: "Same as revenue year 1", value: 10, unit: "%" },
+    {
+        id: "opMarginYr10", label: "Operating Margin In Yr 10", question: `This is the operating margin you expect over time:
+        a. For mature companies, it can be close to or equal to current operating margin.
+        b. For growth or loss-making companies, use the industry average or an estimate based on business characteristics.`,
+        value: 10,
+        unit: "%"
+    },
     { id: "yrsConvergence", label: "Years of Convergence", question: "How many years to converge on operating margin in Year 10?", value: 5, unit: "Yrs" },
-    { id: "salesToCapYr1", label: "Sales to Capital Yr 1", question: "This metric evaluates how effectively a company can convert $1 of capital into $1 of revenue. A higher sales-to-capital ratio indicates greater efficiency. Sales to Capital Ratio = Sales/Invested Capital. Invested Capital = Total Debt + Total Equity - Cash and Cash Equivalents", value: 0, unit: "" },
-    { id: "salesToCapYr2to5", label: "Sales to Capital Yr 2 to 5", question: "This metric evaluates how effectively a company can convert $1 of capital into $1 of revenue. A higher sales-to-capital ratio indicates greater efficiency. Sales to Capital Ratio = Sales/Invested Capital. Invested Capital = Total Debt + Total Equity - Cash and Cash Equivalents", value: 0, unit: "" },
-    { id: "salesToCapYr6to10", label: "Sales to Capital Yr 6 to 10", question: "This metric evaluates how effectively a company can convert $1 of capital into $1 of revenue. A higher sales-to-capital ratio indicates greater efficiency. Sales to Capital Ratio = Sales/Invested Capital. Invested Capital = Total Debt + Total Equity - Cash and Cash Equivalents", value: 0, unit: "" },
+    {
+        id: "salesToCapYr1",
+        label: "Sales to Capital Yr 1",
+        question: `This metric evaluates how effectively a company can convert $1 of capital into $1 of revenue.
+         A higher sales-to-capital ratio indicates greater efficiency. 
+         Sales to Capital Ratio = Sales/Invested Capital. Invested Capital = Total Debt + Total Equity - Cash and Cash Equivalents`,
+        value: 0,
+        unit: ""
+    },
+    {
+        id: "salesToCapYr2to5", label: "Sales to Capital Yr 2 to 5", question: `This metric evaluates how effectively a company can convert $1 of capital into $1 of revenue.
+        A higher sales-to-capital ratio indicates greater efficiency. 
+        Sales to Capital Ratio = Sales/Invested Capital. Invested Capital = Total Debt + Total Equity - Cash and Cash Equivalents`,
+        value: 0,
+        unit: ""
+    },
+    {
+        id: "salesToCapYr6to10", label: "Sales to Capital Yr 6 to 10", question: `This metric evaluates how effectively a company can convert $1 of capital into $1 of revenue.
+        A higher sales-to-capital ratio indicates greater efficiency. 
+        Sales to Capital Ratio = Sales/Invested Capital. Invested Capital = Total Debt + Total Equity - Cash and Cash Equivalents`,
+        value: 0,
+        unit: ""
+    },
 ]
 
 export const FETCHED_INPUT_FIELDS = [
@@ -29,11 +66,24 @@ export const FETCHED_INPUT_FIELDS = [
     { id: "totalDebt", label: "Total Debt", question: "TTM Total Debt/Book Value of Debt", value: 0, unit: "$" },
     { id: "cash", label: "Cash and Short Term Investments", question: "TTM Cash and Short Term Investments", value: 0, unit: "$" },
     { id: "minorityInterest", label: "Minority Interest", question: "This is a uniquely accounting item and will be on the liability side of your company's balance sheet. It reflects the requirement that if you own more than 50% of another company or have effective control of it, you have to consolidate that company's statements with yours. Thus, you count 100% of that subsidiaries assets, revenues and operating income with your company, even if you own only 60%. The minority interest reflects the book value of the 40% of the equity in the subsidiary that does not belong to you. Again, it is best if you can convert the book value to a market value by applying the price to book ratio for the sector in which the subsidiary operates", value: 0, unit: "$" },
-    { id: "interestExpense", label: "Interest Expense", question: "Interest expense relates to the cost of borrowing money. It is the price that a lender charges a borrower for the use of the lender's money. On the income statement, interest expense can represent the cost of borrowing money from banks, bond investors, and other sources.", value: 0, unit: "$" },
+    {
+        id: "interestExpense",
+        label: "Interest Expense",
+        question: `Interest expense relates to the cost of borrowing money.
+         It is the price that a lender charges a borrower for the use of the lender's money.
+          On the income statement, interest expense can represent the cost of borrowing money from banks, bond investors, and other sources.`,
+        value: 0,
+        unit: "$"
+    },
     {
         id: "effectiveTaxRate",
         label: "Effective Tax Rate",
-        question: "Enter your effective tax rate. You will find this in your company's annual report. If you cannot, you can compute it as follows, from the income statement: Effective tax rate = Taxes paid/ Taxable income If your effective tax rate varies across years, you can use an average. If the effective tax rate is less than zero, enter zero. If you have a money losing company, don't enter zero but enter the tax rate that you will have when you start making money.",
+        question: `You can find the effective tax rate in your company's annual report. 
+        If you cannot, you can compute it as follows, from the income statement: Effective tax rate = Taxes paid/ Taxable income , additionally if your effective tax rate varies across years, you can use an average.
+        If the effective tax rate is less than zero, enter zero. 
+        If you have a money losing company, don't enter zero but enter the tax rate that you will have when you start making money.
+        Auto calculated using: Tax Provision / Pretax Income
+`,
         value: 0,
         unit: "%"
     },

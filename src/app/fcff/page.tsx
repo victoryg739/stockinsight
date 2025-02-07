@@ -419,8 +419,11 @@ export default function Page() {
               </div>
             )}
           </div>
+          <div className="mt-10 mx-5 text-gray-700 font-extralight text-sm">
+            All financial numbers are in the millions
+          </div>
           {/*WACC Header */}
-          <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">WACC</div>
+          <div className="uppercase font-bold text-2xl text-center mt-5 mb-10 tracking-wider">WACC</div>
           {/* Container */}
           <div
             className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
@@ -443,12 +446,12 @@ export default function Page() {
           >
             <div className="flex flex-col items-center mb-14 mt-10">
               <h2 className="font-medium text-xl mb-4 text-gray-700">Present Value of Free Cash Flow</h2>
-              <div className="w-full max-w h-0.5 bg-gray-100"></div>
+              <div className="w-full max-w h-0.5 bg-gray-200"></div>
             </div>
             <PresentValueTable data={valuationModelRef.current} />
             <div className="flex flex-col items-center mb-14 mt-10">
               <h2 className="font-medium text-xl mb-4 text-gray-700">Equity Value</h2>
-              <div className="w-full max-w h-0.5 bg-gray-100"></div>
+              <div className="w-full max-w h-0.5 bg-gray-200"></div>
             </div>
             <EquityValue data={valuationOutputRef.current} />
             <ImpliedValue

@@ -139,29 +139,29 @@ export default function DetailedWacc({
     <div>
       <div className="flex flex-col items-center mb-14">
         <h2 className="font-medium text-xl mb-4 text-gray-700">Equity</h2>
-        <div className="w-full max-w h-0.5 bg-gray-100"></div>
+        <div className="w-full max-w h-0.5 bg-gray-200"></div>
       </div>
       <div className="grid grid-cols-3 place-items-center gap-y-10">
         {waccEquityRef.current.map((item, index) => (
           //old logic can change next time
           <>
             {item.id === "riskFreeRate" || item.id === "equityRiskPremium" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-100 rounded-2xl p-4 w-48 h-20 col-start-1">
+              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 col-start-1">
                 <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value) + "%"}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
             ) : item.id === "leveredBeta" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-100 rounded-2xl p-4 w-48 h-20">
+              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20">
                 <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value)}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
             ) : item.id === "marginalTaxRate" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-100 rounded-2xl p-4 w-48 h-20">
+              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20">
                 <div className="text-2xl font-semibold">{item.value + "%"}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center bg-gray-100 rounded-2xl p-4 w-48 h-20">
+              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20">
                 <div className="text-2xl font-semibold">{item.value}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
@@ -182,7 +182,7 @@ export default function DetailedWacc({
 
       <div className="flex flex-col items-center mb-14">
         <h2 className="font-medium text-xl mb-4 text-gray-700">Debt</h2>
-        <div className="w-full max-w h-0.5 bg-gray-100"></div>
+        <div className="w-full max-w h-0.5 bg-gray-200"></div>
       </div>
       <div className="grid grid-cols-3 place-items-center gap-y-10">
         <Dropdown
@@ -195,27 +195,27 @@ export default function DetailedWacc({
         {waccDebtRef.current.map((item, index) => (
           <>
             {index === 0 ? (
-              <div className="flex flex-col items-center justify-center bg-gray-100 rounded-2xl p-4 w-48 h-20 col-start-1">
+              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300 rounded-2xl p-4 w-48 h-20 col-start-1">
                 <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value) + "%"}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
             ) : item.id === "preTaxCostOfDebt" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-100 rounded-2xl p-4 w-48 h-20">
+              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20">
                 <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value)}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
             ) : item.id === "marginalTaxRate" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-100 rounded-2xl p-4 w-48 h-20">
+              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20">
                 <div className="text-2xl font-semibold">{item.value + "%"}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
             ) : item.id === "totalDebt" || item.id === "interestExpense" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-100 rounded-2xl p-4 w-48 h-20">
+              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20">
                 <div className="text-2xl font-semibold">{conv.convToMillion(item.value)}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center bg-gray-100 rounded-2xl p-4 w-48 h-20">
+              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20">
                 <div className="text-2xl font-semibold">{item.value}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
@@ -234,7 +234,7 @@ export default function DetailedWacc({
       </div>
       <div className="flex flex-col items-center mb-14 mt-10">
         <h2 className="font-medium text-xl mb-4 text-gray-700">WACC</h2>
-        <div className="w-full max-w h-0.5 bg-gray-100"></div>
+        <div className="w-full max-w h-0.5 bg-gray-200"></div>
       </div>
       <WaccFormula
         wacc={getPageInputValue("initialWacc", "fetchedInputs")}

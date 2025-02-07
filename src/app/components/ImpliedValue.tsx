@@ -21,7 +21,7 @@ const ImpliedValue = ({ title, value, currentPrice }: any) => {
   }
 
   return (
-    <div className="bg-gray-100 p-6 rounded-lg shadow-md my-16 ">
+    <div className="bg-gray-100 p-6 border rounded-lg shadow-md my-16 ">
       <h2 className="text-xl font-bold text-gray-800 mb-4">{title} DCF Value</h2>
 
       <div className="mb-4">
