@@ -16,7 +16,6 @@ export async function GET(
         const valuation = await prisma.valuation.findUnique({
             where: { id: id },
         });
-        console.log(valuation)
         if (!valuation) {
             return NextResponse.json({ error: 'Valuation not found' }, { status: 404 });
         }

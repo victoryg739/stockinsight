@@ -22,7 +22,9 @@ const ImpliedValue = ({ title, value, currentPrice }: any) => {
 
   return (
     <div className="bg-gray-100 p-6 border rounded-lg shadow-md my-16 ">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">{title} DCF Value</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        <span className="uppercase">{title}</span> DCF Value
+      </h2>
 
       <div className="mb-4">
         <div className="flex justify-between mb-1">

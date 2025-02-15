@@ -14,10 +14,16 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { epochToDateTime } from "@/app/utils/helper";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import PresentValuePopoutPage from "@/app/components/PresentValuePopoutPage";
 
 export default function Page({ params }: any) {
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  const [presentValuePopup, setPresentValuePopup] = useState(false);
+
+  const [valuationModelLabel, setValuationModelLabel] = useState("");
+
   const [showMoreInputs, setShowMoreInputs] = useState(false);
 
   const {
@@ -73,7 +79,7 @@ export default function Page({ params }: any) {
       <Navbar />
       <div className="grid grid-cols-3 gap-4 p-4 mt-5">
         <div className="col-span-3 text-center">
-          <span className="font-bold">Valued Date: </span>
+          <span className="font-bold mr-2">Valued Date: </span>
           {epochToDateTime(valuationQuery.valued_date)}
         </div>
 
@@ -85,7 +91,7 @@ export default function Page({ params }: any) {
         className=" mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
            border"
       >
-        <StockInfo stockInfo={valuationQuery.stock_info} />
+        <StockInfo stockInfo={valuationQuery.stock_info} searchedSymbol={valuationQuery.symbol} />
       </div>
       <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Inputs</div>
       {/* Container */}
@@ -145,12 +151,16 @@ export default function Page({ params }: any) {
         >
           <div className="flex flex-col items-center mb-14 mt-10">
             <h2 className="font-medium text-xl mb-4 text-gray-700">Present Value of Free Cash Flow</h2>
-            <div className="w-full max-w h-0.5 bg-gray-100"></div>
+            <div className="w-full max-w h-0.5 bg-gray-200"></div>
           </div>
-          <PresentValueTable data={valuationQuery.valuation_model} />
+          <PresentValueTable
+            data={valuationQuery.valuation_model}
+            setIsPopoutOpen={setPresentValuePopup}
+            setValuationModelLabel={setValuationModelLabel}
+          />
           <div className="flex flex-col items-center mb-14 mt-10">
             <h2 className="font-medium text-xl mb-4 text-gray-700">Equity Value</h2>
-            <div className="w-full max-w h-0.5 bg-gray-100"></div>
+            <div className="w-full max-w h-0.5 bg-gray-200"></div>
           </div>
           <EquityValue data={valuationQuery.valuation_output} />
           <ImpliedValue
@@ -173,6 +183,15 @@ export default function Page({ params }: any) {
           </>
         )}
       </div>
+      {presentValuePopup && (
+        <PresentValuePopoutPage
+          setIsPopoutOpen={setPresentValuePopup}
+          data={valuationQuery.valuation_model}
+          valuationModelLabel={valuationModelLabel} //key to identify which chart to show first
+          searchedSymbol={valuationQuery.symbol}
+          stockInfo={valuationQuery.stock_info}
+        />
+      )}
     </div>
   );
 }

@@ -10,8 +10,11 @@ import { useRouter } from "next/navigation";
 import { MdDeleteOutline } from "react-icons/md";
 import DeletePopoutPage from "../components/DeletePopoutPage";
 import Image from "next/image";
-import { FaArrowUp } from "react-icons/fa";
+import { FaArrowUp, FaDollarSign } from "react-icons/fa";
 import { FaArrowDown } from "react-icons/fa";
+import { MdDiamond } from "react-icons/md";
+import { MdOutlineDateRange } from "react-icons/md";
+import { MdOutlineDescription } from "react-icons/md";
 
 export default function Page() {
   const { data: session, status } = useSession();
@@ -63,8 +66,6 @@ export default function Page() {
   };
 
   const handleDelete = () => {
-    // Here you can implement the logic to delete the selected items.
-    console.log("Deleting items with IDs:", selectedItems);
     deleteValuationMutation.mutate(selectedItems, {
       onSuccess: () => {
         queryClient.invalidateQueries();
@@ -76,7 +77,7 @@ export default function Page() {
 
   const handleMoreDetails = (e: any, id: string) => {
     e.preventDefault();
-    router.push(`/watchlist/${id}`);
+    router.push(`/myValuations/${id}`);
   };
 
   if (status === "unauthenticated") {
@@ -152,39 +153,95 @@ export default function Page() {
             <p className="font-semibold text-lg text-center mt-5">Loading...</p>
           </div>
         ) : valuationQuery && valuationQuery.length > 0 ? (
-          <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+          <table className="w-full text-sm text-left rtl:text-right">
+            <thead className="text-sm font-medium bg-gray-50">
               <tr>
+                <th scope="col" className="px-1 py-3 whitespace-nowrap min-w-[180px]">
+                  Company
+                </th>
+                <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                  <span className="flex items-center">
+                    <FaDollarSign className="mr-1" />
+                    Market Price
+                  </span>
+                </th>
+                <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                  <span className="flex items-center">
+                    <MdDiamond className="mr-1" />
+                    Implied Price
+                  </span>
+                </th>
+                <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                  <span className="flex items-center">
+                    <MdOutlineDescription className="mr-1" />
+                    Description
+                  </span>
+                </th>
+                <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                  <span className="flex items-center">
+                    <MdOutlineDateRange className="mr-1" />
+                    Valuation Date
+                  </span>
+                </th>
                 <th scope="col" className="p-4"></th>
-                <th scope="col" className="px-6 py-3">
-                  Ticker
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Market Price
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Implied Price
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  description
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Valuation Date
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Action
-                </th>
               </tr>
             </thead>
             <tbody>
               {valuationQuery.map((item: any, index: number) => (
-                <tr key={index} className="bg-white border-b hover:bg-gray-50">
+                <tr
+                  key={index}
+                  className="bg-white border-b hover:bg-stone-200 cursor-pointer"
+                  onClick={(e) => {
+                    // Prevent triggering the click when interacting with specific elements
+                    if (!(e.target instanceof HTMLInputElement)) {
+                      handleMoreDetails(e, item.id);
+                    }
+                  }}
+                >
+                  <td className="px-1 py-6 font-bold grid grid-cols-[auto_1fr] gap-x-3 min-w-[180px]">
+                    <Image
+                      src={`https://img.logo.dev/ticker/${item.symbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
+                      alt="logo"
+                      height={128}
+                      width={128}
+                      className="row-span-2 aspect-square object-contain h-8 w-8 lg:h-10 lg:w-10"
+                    />
+                    <div className="col-start-2">{item.stock_info[0].value}</div>
+                    <div className="col-start-2">{item.symbol}</div>
+                  </td>
+                  <td className="px-6 py-6 ">${marketPriceQueries[index].data}</td>
+                  <td className="px-6 py-6 ">
+                    ${item.implied_share_price}
+                    {marketPriceQueries[index].data && (
+                      <div className="mt-1">
+                        {item.implied_share_price > marketPriceQueries[index].data ? (
+                          <div className="bg-green-300 text-green-800 text-center rounded-lg flex items-center justify-center py-1 px-2">
+                            <FaArrowUp className="mr-1" />
+                            <span>
+                              {valuationCalcuation(marketPriceQueries[index].data, item.implied_share_price)}%
+                            </span>
+                            <span className="ml-1"> Undervalued </span>
+                          </div>
+                        ) : (
+                          <div className="bg-red-200 text-red-800 text-center rounded-lg flex items-center justify-center py-1 px-2">
+                            <FaArrowDown className="mr-1" />
+                            <span>
+                              {valuationCalcuation(marketPriceQueries[index].data, item.implied_share_price)}%
+                            </span>
+                            <span className="ml-1">Overvalued</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-6 ">{truncateDescription(item.description)}</td>
+                  <td className="px-6 py-6 ">{epochToDateTime(item.valued_date)}</td>
                   <td className="w-4 px-3 py-6">
                     <div className="flex items-center">
                       <input
                         id={`checkbox-table-search-${index}`}
                         type="checkbox"
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded"
                         checked={selectedItems.includes(item.id)}
                         onChange={() => handleCheckboxChange(item.id)}
                       />
@@ -192,32 +249,6 @@ export default function Page() {
                         checkbox
                       </label>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 font-bold">{item.symbol}</td>
-                  <td className="px-6 py-4">${marketPriceQueries[index].data}</td>
-                  <td className="px-6 py-4">
-                    ${item.implied_share_price}
-                    {marketPriceQueries[index].data && item.implied_share_price > marketPriceQueries[index].data ? (
-                      <div className="bg-green-300 text-green-800 text-center rounded-lg flex items-center justify-center p-1 mt-1">
-                        <FaArrowUp className="mr-1" />
-                        {valuationCalcuation(marketPriceQueries[index].data, item.implied_share_price)}%
-                      </div>
-                    ) : (
-                      <div className="bg-red-200 text-red-800 text-center rounded-lg flex items-center justify-center p-1 mt-1">
-                        <FaArrowDown className="mr-1" />
-                        {valuationCalcuation(marketPriceQueries[index].data, item.implied_share_price)}%
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">{truncateDescription(item.description)}</td>
-                  <td className="px-6 py-4">{epochToDateTime(item.valued_date)}</td>
-                  <td className="px-6 py-4">
-                    <button
-                      className="bg-blue-800 text-white px-2 py-1 rounded-2xl text-sm"
-                      onClick={(e) => handleMoreDetails(e, item.id)}
-                    >
-                      More Details
-                    </button>
                   </td>
                 </tr>
               ))}

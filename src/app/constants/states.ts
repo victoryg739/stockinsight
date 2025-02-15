@@ -202,12 +202,11 @@ export const STOCK_INFO = [
     { id: "country", label: "Country", value: "", keyStats: false },
     { id: "currency", label: "Currency", value: "", keyStats: false },
 
-
     { id: "longBusinessSummary", label: "Business Summary", value: "", keyStats: false },
     { id: "industry", label: "Industry", value: "", keyStats: true },
     { id: "sector", label: "Sector", value: "", keyStats: true },
     { id: "trailingPE", label: "Trailing PE", value: "", keyStats: true },
-    { id: "forwardPE", label: "Forwared PE", value: "", keyStats: true },
+    { id: "forwardPE", label: "Forward PE", value: "", keyStats: true },
 
     { id: "trailingPegRatio", label: "Trailing PEG Ratio", value: "", keyStats: true },
     { id: "bookValue", label: "Book Value", value: "", keyStats: true },
@@ -217,5 +216,4 @@ export const STOCK_INFO = [
     { id: "lastFiscalYearEnd", label: "Last Fiscal Year", value: "", keyStats: true },
     { id: "mostRecentQuarter", label: "Most Recent Quarter", value: "", keyStats: true },
     { id: "nextFiscalYearEnd", label: "nextFiscalYear", value: "" },
-
 ]

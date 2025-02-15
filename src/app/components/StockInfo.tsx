@@ -1,14 +1,24 @@
 import React, { useEffect } from "react";
 import ReadMoreText from "./ReadMoreText";
-export default function StockInfo({ stockInfo, setStockInfo }: any) {
+import Image from "next/image";
+export default function StockInfo({ stockInfo, setStockInfo, searchedSymbol }: any) {
   return (
     <div>
       {stockInfo.map((item: any, index: number) => {
         if (item.keyStats === false) {
           if (item.id === "shortName") {
             return (
-              <div key={index} className="text-2xl font-bold">
-                {item.value}
+              <div className="flex items-center" key={item.id}>
+                <Image
+                  src={`https://img.logo.dev/ticker/${searchedSymbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
+                  alt="logo"
+                  height={64}
+                  width={64}
+                  className=""
+                />
+                <div key={index} className="text-2xl font-bold ml-2">
+                  {item.value}
+                </div>
               </div>
             );
           } else if (item.id === "country") {

@@ -56,6 +56,16 @@ export const convToMillion = (value: number): string => {
     return formattedValue;
 };
 
+export const convToMillionNumber = (value: number): number => {
+    if (typeof value !== 'number' || isNaN(value)) {
+        return 0;
+    }
+
+    // Convert to millions and round to 2 decimal places
+    return Math.round((value / 1000000) * 100) / 100;
+};
+
+
 export function epochToDateTime(epochTime: any) {
     // Create a new Date object using the epoch time (multiply by 1000 for milliseconds)
     const date = new Date(epochTime * 1000);

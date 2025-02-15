@@ -47,7 +47,6 @@ export const fetchIncomeStatement = async (symbol: string,
         const { data } = await axios.get(`${BASE_URL}/api/quarterly/income-statement?symbol=${symbol}`);
 
         const incomeStatement = sumAllTTM(data);
-        console.log(incomeStatement)
         const baseEbitMargin = (incomeStatement["EBIT"] / incomeStatement["Total Revenue"]) * 100;
         let effectiveTaxRate = (incomeStatement["Tax Provision"] / incomeStatement["Pretax Income"]) * 100
         if (effectiveTaxRate < 0) {
@@ -311,7 +310,9 @@ export const fetchDCFHistoricalRev = async (
     try {
         const { data } = await axios.get(`${BASE_URL}/api/discounting-cash-flows/income-statement?symbol=${symbol}`);
         const revenue = data.report.slice(0, 10).map((item: any) => {
-            return { date: item.date, revenue: item.revenue }
+            const [year, month] = item.date.split("-");
+            const yearMonth = `${year}-${month}`;
+            return { date: yearMonth, revenue: item.revenue }
         });
         return revenue
 
@@ -327,14 +328,82 @@ export const fetchDCFHistoricalInvestedCap = async (
 ) => {
     try {
         const { data } = await axios.get(`${BASE_URL}/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
+        console.log("ic")
+        console.log(data)
         const investedCapital = data.report.slice(0, 10).map((item: any) => {
             const itemInvestedCap = item.totalEquity + item.totalDebt - item.cashAndCashEquivalents
-            return { date: item.date, investedCapital: itemInvestedCap }
+
+
+            const [year, month] = item.date.split("-");
+            const yearMonth = `${year}-${month}`;
+
+            return { date: yearMonth, investedCapital: itemInvestedCap }
         });
         return investedCapital
 
     } catch (error) {
         console.error('Error fetching balance sheet quarterly:', error);
         throw error;
+    }
+};
+
+
+//get compAnalysis results
+export const fetchCompAnalysis = async (symbol: string) => {
+    try {
+        if (symbol === "") {
+
+        }
+
+        const balanceSheet = await axios.get(`${BASE_URL}/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
+        if (!balanceSheet.data.report || balanceSheet.data.report.length === 0) {
+            throw new Error("No balance sheet data available");
+        }
+        const balanceSheetCurYear = balanceSheet.data.report[0];
+
+        const incomeStatement = await axios.get(`${BASE_URL}/api/discounting-cash-flows/income-statement?symbol=${symbol}`);
+        if (!incomeStatement.data.report || incomeStatement.data.report.length === 0) {
+            throw new Error("No income statement data available");
+        }
+        const incomeStatementCurYear = incomeStatement.data.report[0];
+
+        let salesToCap = "N/A";
+        if (incomeStatementCurYear.date === balanceSheetCurYear.date) {
+            const investedCapital = balanceSheetCurYear.totalEquity + balanceSheetCurYear.totalDebt - balanceSheetCurYear.cashAndCashEquivalents;
+            const revenue = incomeStatementCurYear.revenue;
+            salesToCap = String(convRound2Dp(revenue / investedCapital));
+        }
+
+        const incomeStatementYahoo = await axios.get(`${BASE_URL}/api/quarterly/income-statement?symbol=${symbol}`);
+        const incomeStatementYahooTTM = sumAllTTM(incomeStatementYahoo.data);
+
+        const ebitMarginTTM = (incomeStatementYahooTTM["EBIT"] / incomeStatementYahooTTM["Total Revenue"]) * 100;
+
+        const stockInfo = await axios.get(`${BASE_URL}/api/stock-info?symbol=${symbol}`);
+        if (!stockInfo.data) {
+            throw new Error("No stock info data available");
+        }
+
+        console.log(stockInfo.data.trailingPE)
+
+        return {
+            shortName: stockInfo.data.shortName,
+            revenue: incomeStatementYahooTTM["Total Revenue"],
+            ebit: incomeStatementYahooTTM["EBIT"],
+            ebitMargin: ebitMarginTTM,
+            peRatio: stockInfo.data["trailingPE"],
+            salesToCapital: salesToCap
+        };
+
+    } catch (error) {
+        return {
+            ticker: symbol,
+            shortName: "",
+            revenue: 0,
+            ebit: 0,
+            ebitMargin: 0,
+            peRatio: 0,
+            salesToCapital: "N/A"
+        };
     }
 };

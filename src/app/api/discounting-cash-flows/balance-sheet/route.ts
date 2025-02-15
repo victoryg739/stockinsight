@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const fetchCache = 'auto'
 
 export async function GET(req: NextRequest) {
     const dcfKey = process.env.DISCOUNTING_CASH_FLOWS_KEY

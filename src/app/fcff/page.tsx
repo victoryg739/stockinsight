@@ -17,6 +17,8 @@ import * as States from "../constants/states";
 import { countries, industries } from "../constants/dropdown";
 import { useMutation } from "@tanstack/react-query";
 import Alert from "../components/Alert";
+import PresentValuePopoutPage from "../components/PresentValuePopoutPage";
+import { MdInsights } from "react-icons/md";
 
 import * as FinCalc from "../utils/financialCalculations";
 import * as queryFn from "../utils/queryAPIFunctions";
@@ -37,12 +39,16 @@ interface InputField {
 
 export default function Page() {
   const [symbol, setSymbol] = useState("");
+  //This state is to capture symbol only when search button is pressed
+  const [searchedSymbol, setSearchedSymbol] = useState("");
   const [symbolBtn, setSymbolBtn] = useState(false);
   const [showMoreInputs, setShowMoreInputs] = useState(false);
   const impliedSharePriceRef = useRef(0);
   const [countryOptions, setCountryOptions] = useState("United States");
   const [industryOptions, setIndustryOptions] = useState("Software (Internet)");
   const [marketPopup, setMarketPopup] = useState(false);
+  const [presentValuePopup, setPresentValuePopup] = useState(false);
+  const [valuationModelLabel, setValuationModelLabel] = useState("");
   const [savePopup, setSavePopup] = useState(false);
 
   const { data: session, status } = useSession();
@@ -143,9 +149,15 @@ export default function Page() {
   });
 
   useEffect(() => {
+    console.log("useEffect triggered"); // Debugging
+    if (!symbol.trim()) {
+      console.log("Symbol is empty, exiting early"); // Debugging
+      return;
+    }
     stockInfoRefetch();
     incomeStatementRefetch();
     balanceSheetQuartelyRefetch();
+    setSearchedSymbol(symbol); // Capture the symbol at search time
   }, [symbolBtn]);
 
   useEffect(() => {
@@ -242,7 +254,6 @@ export default function Page() {
     equityValueCommonStock,
     getInputValue("impliedSharesOutstanding", "fetchedInputs")
   );
-
   impliedSharePriceRef.current = impliedSharePrice;
   // Update VALUATION_MODEL
   valuationModelRef.current = States.VALUATION_MODEL.map((item) => {
@@ -302,10 +313,15 @@ export default function Page() {
   return (
     <div>
       <Navbar />
-      <SearchTicker symbol={symbol} setSymbol={setSymbol} setSymbolBtn={setSymbolBtn} />
+      <SearchTicker
+        symbol={symbol}
+        setSymbol={setSymbol}
+        setSymbolBtn={setSymbolBtn}
+        incomeStatementIsFetching={incomeStatementIsFetching}
+      />
 
       {/*Inputs Header */}
-      {!symbol ? (
+      {searchedSymbol === "" ? (
         <div className="flex flex-col justify-center items-center h-screen">
           <Image
             src="/growth.svg"
@@ -346,7 +362,7 @@ export default function Page() {
             className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
            border"
           >
-            <StockInfo stockInfo={stockInfo} setStockInfo={setStockInfo} />
+            <StockInfo stockInfo={stockInfo} setStockInfo={setStockInfo} searchedSymbol={searchedSymbol} />
           </div>
           <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Inputs</div>
           {/* Container */}
@@ -370,9 +386,10 @@ export default function Page() {
                 label="Industry"
               />
               <button
-                className="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-opacity-50 rounded-lg px-4 py-2 transition-all duration-200"
+                className="text-white bg-gray-800 flex items-center hover:bg-gray-700 rounded-lg px-4 py-2"
                 onClick={() => setMarketPopup(true)}
               >
+                <MdInsights className="mr-2" />
                 Market Insight
               </button>
 
@@ -448,7 +465,12 @@ export default function Page() {
               <h2 className="font-medium text-xl mb-4 text-gray-700">Present Value of Free Cash Flow</h2>
               <div className="w-full max-w h-0.5 bg-gray-200"></div>
             </div>
-            <PresentValueTable data={valuationModelRef.current} />
+            <PresentValueTable
+              data={valuationModelRef.current}
+              setIsPopoutOpen={setPresentValuePopup}
+              setValuationModelLabel={setValuationModelLabel}
+            />
+
             <div className="flex flex-col items-center mb-14 mt-10">
               <h2 className="font-medium text-xl mb-4 text-gray-700">Equity Value</h2>
               <div className="w-full max-w h-0.5 bg-gray-200"></div>
@@ -461,6 +483,7 @@ export default function Page() {
             />
             <SaveValuationButton setSavePopup={setSavePopup} />
           </div>
+          {/* Write the popup pages in parent page to ensure that the darken/blur effect affects the whole page*/}
           {marketPopup && (
             <MarketInsightPopoutPage
               setIsPopoutOpen={setMarketPopup}
@@ -469,6 +492,15 @@ export default function Page() {
               pageFetchedInputs={fetchedInputs}
               getPageInputValue={getInputValue}
               symbol={symbol}
+            />
+          )}
+          {presentValuePopup && (
+            <PresentValuePopoutPage
+              setIsPopoutOpen={setPresentValuePopup}
+              data={valuationModelRef.current}
+              valuationModelLabel={valuationModelLabel} //key to identify which chart to show first
+              searchedSymbol={searchedSymbol}
+              stockInfo={stockInfo}
             />
           )}
           {savePopup && (

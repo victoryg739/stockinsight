@@ -101,15 +101,15 @@ const Navbar = () => {
             </li>
             <li>
               <a
-                href="/watchlist"
+                href="/myValuations"
                 className={`flex items-center space-x-2 py-2 px-3 rounded md:px-2 md:py-1  ${
-                  isActive("/watchlist")
+                  isActive("/myValuations")
                     ? "text-blue-700 md:dark:text-blue-500"
                     : "text-white hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white"
                 }`}
               >
                 <BiSolidBinoculars />
-                <span>Watchlist</span>
+                <span>My Valuations</span>
               </a>
             </li>
           </ul>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { RxCross1 } from "react-icons/rx";
 
 export default function SaveValuationPopoutPage({
@@ -14,6 +14,7 @@ export default function SaveValuationPopoutPage({
   mutation,
 }: any) {
   const [description, setDescription] = useState("");
+  const popoutRef = useRef<HTMLDivElement>(null);
 
   const handleSave = () => {
     const nowEpochSeconds = Math.floor(Date.now() / 1000);
@@ -34,9 +35,21 @@ export default function SaveValuationPopoutPage({
     setIsPopoutOpen(false); // Close the popout after saving
   };
 
+  // Close when clicking outside the popout
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target as Node)) {
+        setIsPopoutOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [setIsPopoutOpen]);
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-[650px] h-[400px] overflow-auto relative">
+      <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-[650px] h-[400px] overflow-auto relative">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Save Valuation</h2>
 

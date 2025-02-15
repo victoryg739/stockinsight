@@ -12,7 +12,7 @@ const TableHeader = ({ children, rowSpan = 1, colSpan = 1 }: any) => (
 
 const TableCell = ({ children, isHeader = false, id }: any) => {
   const baseClass = "px-4 py-3 border-b border-gray-200 text-center";
-  const headerClass = "font-medium text-gray-700 bg-gray-100";
+  const headerClass = "font-bold text-gray-700 bg-gray-100";
   const industryClass = "font-medium text-gray-700 bg-gray-100 w-24";
 
   return id === "industry" ? (
@@ -37,7 +37,7 @@ const MarketInsightTable = ({ data }: any) => {
             ))}
           </tr>
         </thead>
-        <tbody className="text-gray-600">
+        <tbody className="text-gray-800 text-sm font-mono font-medium">
           <tr>
             {data.map((cell: any, index: number) => (
               <TableCell key={index} isHeader={cell.isHeader} id={cell.id}>

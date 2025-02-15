@@ -1,12 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import * as conv from "../utils/helper";
+import { GoGraph } from "react-icons/go";
+import { IoMdClose } from "react-icons/io";
+import PresentValuePopoutPage from "./PresentValuePopoutPage";
 
-const PresentValueTable = ({ data }: any) => {
+const PresentValueTable = ({ data, setIsPopoutOpen, setValuationModelLabel }: any) => {
   const years = ["", "Base year", ...Array.from({ length: 10 }, (_, i) => `Year ${i + 1}`), "Terminal Year"];
+
+  const handlePopout = (label: String) => {
+    setIsPopoutOpen(true);
+    setValuationModelLabel(label);
+  };
+
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-      <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50 ">
+      <table className="w-full text-sm text-left rtl:text-right">
+        <thead className="text-xs uppercase bg-gray-50">
           <tr className="whitespace-nowrap">
             {years.map((year, index) => (
               <th key={index} scope="col" className="px-6 py-3">
@@ -17,9 +26,13 @@ const PresentValueTable = ({ data }: any) => {
         </thead>
         <tbody>
           {data.map((row: any, rowIndex: number) => (
-            <tr key={rowIndex} className="bg-white border-b hover:bg-gray-50">
-              <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+            <tr key={rowIndex} className="bg-white border-b hover:bg-gray-200">
+              <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap flex items-center">
                 {row.label}
+                <GoGraph
+                  className="ml-5 text-gray-500 cursor-pointer hover:text-blue-500"
+                  onClick={() => handlePopout(row.label)}
+                />
               </th>
               {(Array.isArray(row.value) ? row.value : [row.value]).map((col: any, colIndex: number) => (
                 <>
