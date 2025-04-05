@@ -44,9 +44,14 @@ export const fetchIncomeStatement = async (symbol: string,
     handleInputChange: (id: string, newValue: any, type: "inputs" | "fetchedInputs") => void
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/quarterly/income-statement?symbol=${symbol}`);
+        const { data } = await axios.get(`${BASE_URL}/api/ttm/income-statement?symbol=${symbol}`);
 
-        const incomeStatement = sumAllTTM(data);
+        // Get the first key (timestamp) from the data object
+        const timestampKey = Object.keys(data)[0];
+
+        // Access the inner object using the timestamp key
+        const incomeStatement = data[timestampKey];
+
         const baseEbitMargin = (incomeStatement["EBIT"] / incomeStatement["Total Revenue"]) * 100;
         let effectiveTaxRate = (incomeStatement["Tax Provision"] / incomeStatement["Pretax Income"]) * 100
         if (effectiveTaxRate < 0) {
@@ -328,8 +333,6 @@ export const fetchDCFHistoricalInvestedCap = async (
 ) => {
     try {
         const { data } = await axios.get(`${BASE_URL}/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
-        console.log("ic")
-        console.log(data)
         const investedCapital = data.report.slice(0, 10).map((item: any) => {
             const itemInvestedCap = item.totalEquity + item.totalDebt - item.cashAndCashEquivalents
 
@@ -374,8 +377,13 @@ export const fetchCompAnalysis = async (symbol: string) => {
             salesToCap = String(convRound2Dp(revenue / investedCapital));
         }
 
-        const incomeStatementYahoo = await axios.get(`${BASE_URL}/api/quarterly/income-statement?symbol=${symbol}`);
-        const incomeStatementYahooTTM = sumAllTTM(incomeStatementYahoo.data);
+        const { data } = await axios.get(`${BASE_URL}/api/ttm/income-statement?symbol=${symbol}`);
+
+        // Get the first key (timestamp) from the data object
+        const timestampKey = Object.keys(data)[0];
+
+        // Access the inner object using the timestamp key
+        const incomeStatementYahooTTM = data[timestampKey];
 
         const ebitMarginTTM = (incomeStatementYahooTTM["EBIT"] / incomeStatementYahooTTM["Total Revenue"]) * 100;
 

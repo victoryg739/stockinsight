@@ -149,9 +149,7 @@ export default function Page() {
   });
 
   useEffect(() => {
-    console.log("useEffect triggered"); // Debugging
     if (!symbol.trim()) {
-      console.log("Symbol is empty, exiting early"); // Debugging
       return;
     }
     stockInfoRefetch();

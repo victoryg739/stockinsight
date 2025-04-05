@@ -24,7 +24,6 @@ model country_risk_premium {
   country_risk_premium String? @db.VarChar
   corporate_tax_rate   String? @db.VarChar
   moody_rating         String? @db.VarChar
-  soverign_cds_spread  String? @db.VarChar
 }
 
 model data_last_update {

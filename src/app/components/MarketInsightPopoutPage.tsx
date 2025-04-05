@@ -245,7 +245,6 @@ const MarketInsightPopoutPage = ({
   const handleCompAnalysis = async () => {
     // Wait for all refetch operations to complete
     const results = await Promise.all(compAnalysisQueries.map((query) => query.refetch()));
-    console.log(results);
     const avg = {
       ebitMargin: { value: 0, count: 0 },
       peRatio: { value: 0, count: 0 },
@@ -274,7 +273,6 @@ const MarketInsightPopoutPage = ({
         }
       }
     });
-    console.log(avg);
 
     // Update the averages state
     setAverages({
