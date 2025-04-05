@@ -68,6 +68,7 @@ export function calcTaxRate(effectiveTaxRate: number, marginalTaxRate: number) {
     return (taxRate);
 }
 
+//TODO: need to take account for NOL: after 2017 the NOL can carry forward indefintely until the loss is fully recovered
 export function calcEbitAfterTax(ebit: number[], tax: number[]): number[] {
     const ebitAfterTax = []
     for (let i = 0; i < ebit.length; i++) {
@@ -91,7 +92,7 @@ export function calcTerminalWACC(countryEquityPremium: number, riskFreeRate: num
     return countryEquityPremium + riskFreeRate;
 }
 
-
+//This reinvestment calculation assumes no lag between reinvesting and generating growth from that reinvestment
 export function calcReinvestment(revenue: number[], salesToCapY1: number, salesToCapY2To5: number, salesToCapY6To10: number, revGrowthTerminalYr: number, terminalWacc: number, ebitAfterTaxTerminalYr: number): number[] {
     const reinvestment = []
     //yr1
