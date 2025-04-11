@@ -8,7 +8,7 @@ import { fetchValuations, deleteValuationById, fetchMarketPrice } from "../utils
 import { epochToDateTime } from "../utils/helper";
 import { useRouter } from "next/navigation";
 import { MdDeleteOutline } from "react-icons/md";
-import DeletePopoutPage from "../components/DeletePopoutPage";
+import DeletePopoutPage from "../components/PopoutPage/DeletePopoutPage";
 import Image from "next/image";
 import { FaArrowUp, FaDollarSign } from "react-icons/fa";
 import { FaArrowDown } from "react-icons/fa";

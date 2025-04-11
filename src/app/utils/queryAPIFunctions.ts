@@ -11,9 +11,8 @@ export const fetchRiskFreeRate = async (
 ) => {
     try {
         const { data } = await axios.get(`${BASE_URL}/api/risk-free-rate`);
-        handleInputChange("riskFreeRate", data.previousClose, "fetchedInputs");
-        handleInputChange("revGrowthPerpetuity", data.previousClose, "inputs");
-
+        handleInputChange("riskFreeRate", data.regularMarketPrice, "fetchedInputs");
+        handleInputChange("revGrowthPerpetuity", data.regularMarketPrice, "inputs");
     } catch (error) {
         console.error(error);
         throw error;
@@ -160,8 +159,6 @@ export const fetchBeta = async (
     industry: string,
 ) => {
     try {
-        console.log(industry)
-
         const { data } = await axios.get(`${BASE_URL}/api/aswath-data/beta-us?industry=${industry}`);
         const unlevered_beta = parseFloat(data["avg_unlevered_beta"]);
         return unlevered_beta

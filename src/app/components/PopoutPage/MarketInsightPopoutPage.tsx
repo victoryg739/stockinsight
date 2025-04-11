@@ -2,11 +2,11 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { RxCross1 } from "react-icons/rx";
-import MarketInsightTable from "./MarketInsightTable";
+import MarketInsightTable from "../MarketInsightTable";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import * as queryFn from "../utils/queryAPIFunctions";
-import * as States from "../constants/states";
-import { convRound2Dp, convToMillion } from "../utils/helper";
+import * as queryFn from "../../utils/queryAPIFunctions";
+import * as States from "../../constants/states";
+import { convRound2Dp, convToMillion } from "../../utils/helper";
 import { CiSearch } from "react-icons/ci";
 
 const MarketInsightPopoutPage = ({
@@ -529,23 +529,6 @@ const MarketInsightPopoutPage = ({
             </button>
           </div>
         </div>
-
-        <a
-          href={`https://chat.aitickerchat.com/`}
-          className="block mt-10 text-blue-500 hover:underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Use AI for Financial Reports - AI Ticker Chat
-        </a>
-        <a
-          href={`https://www.alphaspread.com/security/nasdaq/${symbol}/analyst-estimates`}
-          className="block mt-10 text-blue-500 hover:underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View Analyst Estimates - AlphaSpread
-        </a>
       </div>
     </div>
   );

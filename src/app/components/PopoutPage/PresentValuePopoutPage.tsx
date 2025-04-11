@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { RxCross1 } from "react-icons/rx";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { convRound2Dp, convToMillionNumber } from "../utils/helper";
+import { convRound2Dp, convToMillionNumber } from "../../utils/helper";
 import Image from "next/image";
 
 const PresentValuePopoutPage = ({ setIsPopoutOpen, data, valuationModelLabel, searchedSymbol, stockInfo }: any) => {

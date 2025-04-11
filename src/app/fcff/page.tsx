@@ -5,8 +5,8 @@ import SearchTicker from "../components/SearchTicker";
 import InputBox from "../components/InputBox";
 import PresentValueTable from "../components/PresentValueTable";
 import EquityValue from "../components/EquityValue";
-import MarketInsightPopoutPage from "../components/MarketInsightPopoutPage";
-import SaveValuationPopoutPage from "../components/SaveValuationPopoutPage";
+import MarketInsightPopoutPage from "../components/PopoutPage/MarketInsightPopoutPage";
+import SaveValuationPopoutPage from "../components/PopoutPage/SaveValuationPopoutPage";
 import DetailedWacc from "../components/WACC/DetailedWacc";
 import ImpliedValue from "../components/ImpliedValue";
 import Dropdown from "../components/DropDown";
@@ -17,7 +17,7 @@ import * as States from "../constants/states";
 import { countries, industries } from "../constants/dropdown";
 import { useMutation } from "@tanstack/react-query";
 import Alert from "../components/Alert";
-import PresentValuePopoutPage from "../components/PresentValuePopoutPage";
+import PresentValuePopoutPage from "../components/PopoutPage/PresentValuePopoutPage";
 import { MdInsights } from "react-icons/md";
 
 import * as FinCalc from "../utils/financialCalculations";
@@ -28,6 +28,8 @@ import { useSession } from "next-auth/react";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import StockInfo from "../components/StockInfo";
+import MonteCarloPopoutPage from "../components/PopoutPage/MonteCarloPopoutPage";
+import SensitivityAnalysisPopoutPage from "../components/PopoutPage/SensitivityAnalysisPopoutPage";
 
 interface InputField {
   id: string;
@@ -48,6 +50,8 @@ export default function Page() {
   const [industryOptions, setIndustryOptions] = useState("Software (Internet)");
   const [marketPopup, setMarketPopup] = useState(false);
   const [presentValuePopup, setPresentValuePopup] = useState(false);
+  const [monteCarloPopup, setMonteCarloPopup] = useState(false);
+  const [sensitivityPopup, setSensitivityPopup] = useState(false);
   const [valuationModelLabel, setValuationModelLabel] = useState("");
   const [savePopup, setSavePopup] = useState(false);
 
@@ -102,6 +106,7 @@ export default function Page() {
     queryFn: async () => {
       queryFn.fetchRiskFreeRate(handleInputChange);
     },
+    staleTime: 0,
   });
 
   //GET ERP and marginal tax rate
@@ -321,35 +326,17 @@ export default function Page() {
       {/*Inputs Header */}
       {searchedSymbol === "" ? (
         <div className="flex flex-col justify-center items-center h-screen">
-          <Image
-            src="/growth.svg"
-            alt="growth icon"
-            height={500}
-            width={500}
-            className="object-contain mb-4" // Added margin-bottom for spacing
-          />
+          <Image src="/growth.svg" alt="growth icon" height={500} width={500} className="object-contain mb-4" />
           <p className=" font-medium text-lg text-center mt-5"> Search for the stock ticker you want to view</p>
         </div>
       ) : incomeStatementStatus === "error" ? (
         <div className="flex flex-col justify-center items-center h-screen">
-          <Image
-            src="/error.svg"
-            alt="Error icon"
-            height={500}
-            width={500}
-            className="object-contain mb-4" // Added margin-bottom for spacing
-          />
+          <Image src="/error.svg" alt="Error icon" height={500} width={500} className="object-contain mb-4" />
           <p className="text-red-700 font-medium text-lg text-center mt-5">No such symbol. Please enter valid symbol</p>
         </div>
       ) : incomeStatementIsFetching || status === "loading" ? (
         <div className="flex flex-col justify-center items-center h-screen">
-          <Image
-            src="/loading.svg"
-            alt="Loading icon"
-            height={400}
-            width={400}
-            className="object-contain mb-4" // Added margin-bottom for spacing
-          />
+          <Image src="/loading.svg" alt="Loading icon" height={400} width={400} className="object-contain mb-4" />
           <p className="font-semibold text-lg text-center mt-5">Loading...</p>
         </div>
       ) : (
@@ -362,6 +349,54 @@ export default function Page() {
           >
             <StockInfo stockInfo={stockInfo} setStockInfo={setStockInfo} searchedSymbol={searchedSymbol} />
           </div>
+
+          <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Analysis Tools</div>
+          <div className="mt-10 mx-5 px-5 py-5 bg-white rounded-2xl drop-shadow-md border">
+            <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-items-center">
+              <button
+                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
+                onClick={() => setMarketPopup(true)}
+              >
+                <MdInsights className="mr-2" />
+                Market Insight
+              </button>
+              <button
+                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
+                onClick={() => setMonteCarloPopup(true)}
+              >
+                <MdInsights className="mr-2" />
+                Monte Carlo Simulation
+              </button>
+              <button
+                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
+                onClick={() => setSensitivityPopup(true)}
+              >
+                <MdInsights className="mr-2" />
+                Sensitivity Analysis
+              </button>
+              <button
+                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
+                onClick={() => window.open("https://app.stocksentinel.ai/", "_blank", "noopener,noreferrer")}
+              >
+                <MdInsights className="mr-2" />
+                Stock Sentinel
+              </button>
+              <button
+                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
+                onClick={() =>
+                  window.open(
+                    `https://www.alphaspread.com/security/nasdaq/${symbol}/analyst-estimates`,
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
+              >
+                <MdInsights className="mr-2" />
+                Alpha Spread
+              </button>
+            </div>
+          </div>
+
           <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Inputs</div>
           {/* Container */}
           <div
@@ -383,13 +418,6 @@ export default function Page() {
                 defaultOption="Software (Internet)"
                 label="Industry"
               />
-              <button
-                className="text-white bg-gray-800 flex items-center hover:bg-gray-700 rounded-lg px-4 py-2"
-                onClick={() => setMarketPopup(true)}
-              >
-                <MdInsights className="mr-2" />
-                Market Insight
-              </button>
 
               {inputs.map((input, index) => (
                 <InputBox
@@ -513,6 +541,24 @@ export default function Page() {
               valuationOutput={valuationOutputRef.current}
               impliedSharePrice={impliedSharePriceRef.current}
               mutation={saveValuationMutation}
+            />
+          )}
+          {monteCarloPopup && (
+            <MonteCarloPopoutPage
+              setIsPopoutOpen={setMonteCarloPopup}
+              initialInputs={inputs}
+              fetchedInputs={fetchedInputs}
+              searchedSymbol={searchedSymbol}
+              stockInfo={stockInfo}
+            />
+          )}
+          {sensitivityPopup && (
+            <SensitivityAnalysisPopoutPage
+              setIsPopoutOpen={setSensitivityPopup}
+              initialInputs={inputs}
+              fetchedInputs={fetchedInputs}
+              searchedSymbol={searchedSymbol}
+              stockInfo={stockInfo}
             />
           )}
         </>
