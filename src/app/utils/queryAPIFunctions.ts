@@ -1,6 +1,4 @@
 import axios from 'axios';
-import * as FetchInputHelper from "./helper";
-import { GiConsoleController } from 'react-icons/gi';
 import { convRound2Dp, extractLatestQuarterValues } from './helper';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;

@@ -1,10 +1,81 @@
 import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
+// Define types for the distribution parameters
+interface NormalParams {
+  mean: number;
+  stdDev: number;
+}
+
+interface UniformParams {
+  min: number;
+  max: number;
+}
+
+interface TriangularParams {
+  min: number;
+  mode: number;
+  max: number;
+}
+
+interface LogisticParams {
+  location: number;
+  scale: number;
+}
+
+interface ExponentialParams {
+  rate: number;
+}
+
+interface LognormalParams {
+  mu: number;
+  sigma: number;
+}
+
+interface MinExtremeParams {
+  location: number;
+  scale: number;
+}
+
+// Union type for all possible distribution parameters
+type DistributionParams =
+  | NormalParams
+  | UniformParams
+  | TriangularParams
+  | LogisticParams
+  | ExponentialParams
+  | LognormalParams
+  | MinExtremeParams;
+
+// Type for distribution types
+type DistributionType = "Normal" | "Uniform" | "Triangular" | "Logistic" | "Exponential" | "Lognormal" | "Min Extreme";
+
+// Define props for the component
+interface DistributionPreviewChartProps {
+  distributionType: DistributionType;
+  params: DistributionParams;
+  variableId: string;
+  variableLabel: string;
+  variableValue: number;
+}
+
+// Define the data point type
+interface DataPoint {
+  x: number;
+  y: number;
+  isControlPoint?: boolean;
+}
+
 // Component to preview what a distribution looks like
-const DistributionPreviewChart = ({ distributionType, params, variableId, variableLabel, variableValue }) => {
-  const [distributionData, setDistributionData] = useState([]);
-  const [error, setError] = useState(null);
+const DistributionPreviewChart: React.FC<DistributionPreviewChartProps> = ({
+  distributionType,
+  params,
+  variableId,
+  variableLabel,
+  variableValue,
+}) => {
+  const [distributionData, setDistributionData] = useState<DataPoint[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Generate sample data points for the selected distribution
   useEffect(() => {
@@ -15,16 +86,17 @@ const DistributionPreviewChart = ({ distributionType, params, variableId, variab
         return;
       }
 
-      const generateDistributionData = () => {
-        let data = [];
+      const generateDistributionData = (): DataPoint[] => {
+        let data: DataPoint[] = [];
         const MAX_POINTS = 100; // Limit number of points to prevent performance issues
         const MIN_DENSITY = 0.0001; // Minimum probability density to include a point
 
         switch (distributionType) {
           case "Normal": {
             // Guard against invalid parameters
-            const mean = parseFloat(params.mean) || 0;
-            const stdDev = Math.max(parseFloat(params.stdDev) || 1, 0.01); // Prevent division by zero
+            const typedParams = params as NormalParams;
+            const mean = parseFloat(typedParams.mean.toString()) || 0;
+            const stdDev = Math.max(parseFloat(typedParams.stdDev.toString()) || 1, 0.01); // Prevent division by zero
 
             const min = mean - 4 * stdDev;
             const max = mean + 4 * stdDev;
@@ -42,8 +114,9 @@ const DistributionPreviewChart = ({ distributionType, params, variableId, variab
           }
           case "Uniform": {
             // Guard against invalid parameters
-            const min = parseFloat(params.min) || 0;
-            const max = parseFloat(params.max) || 1;
+            const typedParams = params as UniformParams;
+            const min = parseFloat(typedParams.min.toString()) || 0;
+            const max = parseFloat(typedParams.max.toString()) || 1;
 
             if (min >= max) {
               data = [
@@ -82,9 +155,10 @@ const DistributionPreviewChart = ({ distributionType, params, variableId, variab
           }
           case "Triangular": {
             // Guard against invalid parameters
-            const min = parseFloat(params.min) || 0;
-            const mode = parseFloat(params.mode) || 0.5;
-            const max = parseFloat(params.max) || 1;
+            const typedParams = params as TriangularParams;
+            const min = parseFloat(typedParams.min.toString()) || 0;
+            const mode = parseFloat(typedParams.mode.toString()) || 0.5;
+            const max = parseFloat(typedParams.max.toString()) || 1;
 
             if (min >= max) {
               data = [{ x: min, y: 1 }];
@@ -138,8 +212,9 @@ const DistributionPreviewChart = ({ distributionType, params, variableId, variab
           }
           case "Logistic": {
             // Guard against invalid parameters
-            const location = parseFloat(params.location) || 0;
-            const scale = Math.max(parseFloat(params.scale) || 1, 0.01); // Prevent division by zero
+            const typedParams = params as LogisticParams;
+            const location = parseFloat(typedParams.location.toString()) || 0;
+            const scale = Math.max(parseFloat(typedParams.scale.toString()) || 1, 0.01); // Prevent division by zero
 
             const min = location - 6 * scale;
             const max = location + 6 * scale;
@@ -157,7 +232,8 @@ const DistributionPreviewChart = ({ distributionType, params, variableId, variab
           }
           case "Exponential": {
             // Guard against invalid parameters
-            const rate = Math.max(parseFloat(params.rate) || 1, 0.01); // Prevent division by zero
+            const typedParams = params as ExponentialParams;
+            const rate = Math.max(parseFloat(typedParams.rate.toString()) || 1, 0.01); // Prevent division by zero
 
             const max = 5 / rate;
             const step = max / MAX_POINTS;
@@ -174,8 +250,9 @@ const DistributionPreviewChart = ({ distributionType, params, variableId, variab
           }
           case "Lognormal": {
             // Guard against invalid parameters
-            const mu = parseFloat(params.mu) || 0;
-            const sigma = Math.max(parseFloat(params.sigma) || 1, 0.01); // Prevent division by zero
+            const typedParams = params as LognormalParams;
+            const mu = parseFloat(typedParams.mu.toString()) || 0;
+            const sigma = Math.max(parseFloat(typedParams.sigma.toString()) || 1, 0.01); // Prevent division by zero
 
             // Default to 0.1 to 10 if we don't have valid mu/sigma
             const min = Math.exp(mu - 3 * sigma) || 0.1;
@@ -196,8 +273,9 @@ const DistributionPreviewChart = ({ distributionType, params, variableId, variab
           }
           case "Min Extreme": {
             // Guard against invalid parameters
-            const location = parseFloat(params.location) || 0;
-            const scale = Math.max(parseFloat(params.scale) || 1, 0.01); // Prevent division by zero
+            const typedParams = params as MinExtremeParams;
+            const location = parseFloat(typedParams.location.toString()) || 0;
+            const scale = Math.max(parseFloat(typedParams.scale.toString()) || 1, 0.01); // Prevent division by zero
 
             const min = location - 6 * scale;
             const max = location + 2 * scale;
@@ -230,7 +308,7 @@ const DistributionPreviewChart = ({ distributionType, params, variableId, variab
     }
   }, [distributionType, params]);
 
-  const formatXAxis = (value) => {
+  const formatXAxis = (value: number): string => {
     if (
       variableId?.includes("revGrowth") ||
       variableId?.includes("opMargin") ||
@@ -243,7 +321,7 @@ const DistributionPreviewChart = ({ distributionType, params, variableId, variab
   };
 
   // Custom tooltip content
-  const CustomTooltip = ({ active, payload }) => {
+  const CustomTooltip: React.FC<any> = ({ active, payload }) => {
     if (active && payload && payload.length && payload[0] && payload[0].payload) {
       const x = payload[0].payload.x;
       const y = payload[0].payload.y;

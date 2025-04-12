@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import * as conv from "../utils/helper";
 import { GoGraph } from "react-icons/go";
-import { IoMdClose } from "react-icons/io";
-import PresentValuePopoutPage from "./PresentValuePopoutPage";
 
 const PresentValueTable = ({ data, setIsPopoutOpen, setValuationModelLabel }: any) => {
   const years = ["", "Base year", ...Array.from({ length: 10 }, (_, i) => `Year ${i + 1}`), "Terminal Year"];
