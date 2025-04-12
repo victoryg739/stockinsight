@@ -7,13 +7,159 @@ import axios from "axios";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import Image from "next/image";
 import DistributionPreviewChart from "../DistributionPreviewChart";
+import {
+  type DistributionType,
+  type DistributionParams,
+  type NormalParams,
+  type UniformParams,
+  type TriangularParams,
+  type LogisticParams,
+  type ExponentialParams,
+  type LognormalParams,
+  type MinExtremeParams,
+} from "../../utils/distributionTypes";
 
-const DISTRIBUTION_TYPES = ["Normal", "Uniform", "Triangular", "Logistic", "Exponential", "Lognormal", "Min Extreme"];
+const DISTRIBUTION_TYPES: DistributionType[] = [
+  "Normal",
+  "Uniform",
+  "Triangular",
+  "Logistic",
+  "Exponential",
+  "Lognormal",
+  "Min Extreme",
+];
+
+// Define interfaces for input and fetched input objects
+interface InputField {
+  id: string;
+  label: string;
+  value: number | string;
+  question?: string;
+  unit?: string;
+}
+
+interface StockInfoField {
+  id: string;
+  label: string;
+  value: string | number;
+}
+
+// Define our internal distribution parameters type with optional fields
+interface LocalDistributionParams {
+  mean?: number;
+  stdDev?: number;
+  min?: number;
+  max?: number;
+  mode?: number;
+  location?: number;
+  scale?: number;
+  rate?: number;
+  mu?: number;
+  sigma?: number;
+  displayMean?: number;
+  displayStdDev?: number;
+}
+
+// Interface for input variable
+interface InputVariable {
+  id: string;
+  label: string;
+  value: number;
+  enabled: boolean;
+  distributionType: DistributionType;
+  distributionParams: LocalDistributionParams;
+}
+
+// Interface for simulation results
+interface SimulationResults {
+  mean: number;
+  median: number;
+  min: number;
+  max: number;
+  percentiles: Array<{
+    percentile: number;
+    value: number;
+  }>;
+  histogram: Array<{
+    x: number;
+    frequency: number;
+    binStart?: number;
+    binEnd?: number;
+  }>;
+}
+
+// Props for the DistributionParams component
+interface DistributionParamsProps {
+  type: DistributionType;
+  params: LocalDistributionParams;
+  onChange: (paramName: string, value: number) => void;
+  variable: InputVariable;
+}
+
+// Props for the InputVariableCard component
+interface InputVariableCardProps {
+  variable: InputVariable;
+  onToggle: () => void;
+  onDistributionChange: (type: DistributionType) => void;
+  onParamChange: (paramName: string, value: number) => void;
+}
+
+// Props for the MonteCarloPopoutPage component
+interface MonteCarloPopoutPageProps {
+  setIsPopoutOpen: (isOpen: boolean) => void;
+  initialInputs: InputField[];
+  fetchedInputs: InputField[];
+  searchedSymbol: string;
+  stockInfo: StockInfoField[];
+}
+
+// Helper function to convert from our internal params to the specific type expected by DistributionPreviewChart
+const convertToDistributionParams = (type: DistributionType, params: LocalDistributionParams): DistributionParams => {
+  switch (type) {
+    case "Normal":
+      return {
+        mean: params.mean || 0,
+        stdDev: params.stdDev || 1,
+      } as NormalParams;
+    case "Uniform":
+      return {
+        min: params.min || 0,
+        max: params.max || 1,
+      } as UniformParams;
+    case "Triangular":
+      return {
+        min: params.min || 0,
+        mode: params.mode || 0.5,
+        max: params.max || 1,
+      } as TriangularParams;
+    case "Logistic":
+      return {
+        location: params.location || 0,
+        scale: params.scale || 1,
+      } as LogisticParams;
+    case "Exponential":
+      return {
+        rate: params.rate || 1,
+      } as ExponentialParams;
+    case "Lognormal":
+      return {
+        mu: params.mu || 0,
+        sigma: params.sigma || 0.4,
+      } as LognormalParams;
+    case "Min Extreme":
+      return {
+        location: params.location || 0,
+        scale: params.scale || 1,
+      } as MinExtremeParams;
+    default:
+      return { mean: 0, stdDev: 1 } as NormalParams;
+  }
+};
 
 // Helper component to display distribution parameter fields
-const DistributionParams = ({ type, params, onChange, variable }) => {
+const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, onChange, variable }) => {
   // For lognormal distribution, convert between display parameters and actual parameters
-  const handleLognormalParamChange = (paramName, value) => {
+  const handleLognormalParamChange = (paramName: string, value: number) => {
     if (paramName === "displayMean") {
       // User is changing the mean
       const displayMean = value;
@@ -216,8 +362,13 @@ const DistributionParams = ({ type, params, onChange, variable }) => {
 };
 
 // Input variable component
-const InputVariableCard = ({ variable, onToggle, onDistributionChange, onParamChange }) => {
-  const [showChart, setShowChart] = useState(false);
+const InputVariableCard: React.FC<InputVariableCardProps> = ({
+  variable,
+  onToggle,
+  onDistributionChange,
+  onParamChange,
+}) => {
+  const [showChart, setShowChart] = useState<boolean>(false);
 
   return (
     <div
@@ -274,7 +425,7 @@ const InputVariableCard = ({ variable, onToggle, onDistributionChange, onParamCh
 
           <select
             value={variable.distributionType}
-            onChange={(e) => onDistributionChange(e.target.value)}
+            onChange={(e) => onDistributionChange(e.target.value as DistributionType)}
             className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
           >
             {DISTRIBUTION_TYPES.map((type) => (
@@ -294,7 +445,7 @@ const InputVariableCard = ({ variable, onToggle, onDistributionChange, onParamCh
           {showChart && (
             <DistributionPreviewChart
               distributionType={variable.distributionType}
-              params={variable.distributionParams}
+              params={convertToDistributionParams(variable.distributionType, variable.distributionParams)}
               variableId={variable.id}
               variableLabel={variable.label}
               variableValue={variable.value}
@@ -306,30 +457,30 @@ const InputVariableCard = ({ variable, onToggle, onDistributionChange, onParamCh
   );
 };
 
-export default function MonteCarloPopoutPage({
+const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
   setIsPopoutOpen,
   initialInputs,
   fetchedInputs,
   searchedSymbol,
   stockInfo,
-}) {
-  const popoutRef = useRef(null);
-  const [numIterations, setNumIterations] = useState(1000000);
-  const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState(null);
-  const [error, setError] = useState(null);
+}) => {
+  const popoutRef = useRef<HTMLDivElement>(null);
+  const [numIterations, setNumIterations] = useState<number>(1000000);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [results, setResults] = useState<SimulationResults | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const shortName = stockInfo.find((el) => el.id === "shortName")?.value || searchedSymbol;
 
   // Get current market price from fetchedInputs
   const currentPrice = fetchedInputs.find((input) => input.id === "currentSharePrice")?.value || 0;
 
   // Initialize input variables
-  const [inputVars, setInputVars] = useState(() => {
-    const vars = {};
+  const [inputVars, setInputVars] = useState<Record<string, InputVariable>>(() => {
+    const vars: Record<string, InputVariable> = {};
 
     // Process initialInputs (user inputs)
     initialInputs.forEach((input) => {
-      const value = typeof input.value === "string" ? parseFloat(input.value) : input.value;
+      const value = typeof input.value === "string" ? parseFloat(input.value) : (input.value as number);
       vars[input.id] = {
         id: input.id,
         label: input.label,
@@ -357,7 +508,7 @@ export default function MonteCarloPopoutPage({
 
     // Process fetchedInputs (system inputs)
     fetchedInputs.forEach((input) => {
-      const value = typeof input.value === "string" ? parseFloat(input.value) : input.value;
+      const value = typeof input.value === "string" ? parseFloat(input.value) : (input.value as number);
       if (["initialWacc", "riskFreeRate"].includes(input.id)) {
         vars[input.id] = {
           id: input.id,
@@ -388,7 +539,7 @@ export default function MonteCarloPopoutPage({
   });
 
   // Handle toggle for input variables
-  const handleToggle = (id) => {
+  const handleToggle = (id: string) => {
     setInputVars((prev) => ({
       ...prev,
       [id]: {
@@ -399,7 +550,7 @@ export default function MonteCarloPopoutPage({
   };
 
   // Handle distribution type change
-  const handleDistributionChange = (id, type) => {
+  const handleDistributionChange = (id: string, type: DistributionType) => {
     setInputVars((prev) => ({
       ...prev,
       [id]: {
@@ -410,7 +561,7 @@ export default function MonteCarloPopoutPage({
   };
 
   // Handle parameter change
-  const handleParamChange = (id, paramName, value) => {
+  const handleParamChange = (id: string, paramName: string, value: number) => {
     setInputVars((prev) => ({
       ...prev,
       [id]: {
@@ -424,13 +575,13 @@ export default function MonteCarloPopoutPage({
   };
 
   // Calculate percentage difference between market price and DCF value
-  const calculateDifference = (valuePrice) => {
+  const calculateDifference = (valuePrice: number): number => {
     if (currentPrice === 0) return 0;
-    return ((valuePrice - currentPrice) / currentPrice) * 100;
+    return ((valuePrice - (currentPrice as number)) / (currentPrice as number)) * 100;
   };
 
   // Get color based on percentage difference
-  const getDifferenceColor = (diff) => {
+  const getDifferenceColor = (diff: number): string => {
     if (diff > 0) return "text-green-600"; // Undervalued (positive difference)
     if (diff < 0) return "text-red-600"; // Overvalued (negative difference)
     return "text-gray-600"; // No difference
@@ -446,14 +597,14 @@ export default function MonteCarloPopoutPage({
       const enabledVariables = Object.values(inputVars).filter((v) => v.enabled);
 
       // Get all initial inputs as a map
-      const baseInputsMap = initialInputs.reduce((acc, input) => {
-        acc[input.id] = typeof input.value === "string" ? parseFloat(input.value) : input.value;
+      const baseInputsMap: Record<string, number> = initialInputs.reduce((acc: Record<string, number>, input) => {
+        acc[input.id] = typeof input.value === "string" ? parseFloat(input.value) : (input.value as number);
         return acc;
       }, {});
 
       // Get all fetched inputs as a map
-      const fetchedInputsMap = fetchedInputs.reduce((acc, input) => {
-        acc[input.id] = typeof input.value === "string" ? parseFloat(input.value) : input.value;
+      const fetchedInputsMap: Record<string, number> = fetchedInputs.reduce((acc: Record<string, number>, input) => {
+        acc[input.id] = typeof input.value === "string" ? parseFloat(input.value) : (input.value as number);
         return acc;
       }, {});
 
@@ -477,8 +628,8 @@ export default function MonteCarloPopoutPage({
 
   // Close when clicking outside the popout
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (popoutRef.current && !popoutRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target as Node)) {
         setIsPopoutOpen(false);
       }
     };
@@ -620,7 +771,7 @@ export default function MonteCarloPopoutPage({
                     <h4 className="text-md font-medium">Percentiles</h4>
                     <div className="flex items-center bg-gray-100 px-3 py-1 rounded-md">
                       <span className="text-sm font-medium text-gray-700 mr-2">Current Price:</span>
-                      <span className="text-sm font-bold">${currentPrice.toFixed(2)}</span>
+                      <span className="text-sm font-bold">${currentPrice.toString()}</span>
                     </div>
                   </div>
                   <div className="overflow-x-auto">
@@ -668,11 +819,11 @@ export default function MonteCarloPopoutPage({
                           );
                         })}
                       </tbody>
-                      <div className="mb-2 flex items-center text-xs text-gray-600">
-                        <div className="w-3 h-3 bg-amber-50 border border-amber-400 mr-1"></div>
-                        <span>30-70 percentile range highlights the most probable outcomes</span>
-                      </div>
                     </table>
+                    <div className="mb-2 flex items-center text-xs text-gray-600">
+                      <div className="w-3 h-3 bg-amber-50 border border-amber-400 mr-1"></div>
+                      <span>30-70 percentile range highlights the most probable outcomes</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -750,12 +901,12 @@ export default function MonteCarloPopoutPage({
                   width={38}
                 />
                 <Tooltip
-                  formatter={(value) => [`${value}`, "Frequency"]}
+                  formatter={(value: number) => [`${value}`, "Frequency"]}
                   labelFormatter={(labelValue, payload) => {
                     if (payload && payload.length > 0 && payload[0].payload.binStart !== undefined) {
                       return `${payload[0].payload.binStart.toFixed(2)} - ${payload[0].payload.binEnd.toFixed(2)}`;
                     }
-                    return `Value: ${parseFloat(labelValue).toFixed(2)}`;
+                    return `Value: ${parseFloat(labelValue.toString()).toFixed(2)}`;
                   }}
                 />
                 <Legend verticalAlign="top" align="right" wrapperStyle={{ top: 0, right: 0 }} />
@@ -777,4 +928,6 @@ export default function MonteCarloPopoutPage({
       </div>
     </div>
   );
-}
+};
+
+export default MonteCarloPopoutPage;

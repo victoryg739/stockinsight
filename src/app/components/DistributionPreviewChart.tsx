@@ -1,54 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-
-// Define types for the distribution parameters
-interface NormalParams {
-  mean: number;
-  stdDev: number;
-}
-
-interface UniformParams {
-  min: number;
-  max: number;
-}
-
-interface TriangularParams {
-  min: number;
-  mode: number;
-  max: number;
-}
-
-interface LogisticParams {
-  location: number;
-  scale: number;
-}
-
-interface ExponentialParams {
-  rate: number;
-}
-
-interface LognormalParams {
-  mu: number;
-  sigma: number;
-}
-
-interface MinExtremeParams {
-  location: number;
-  scale: number;
-}
-
-// Union type for all possible distribution parameters
-type DistributionParams =
-  | NormalParams
-  | UniformParams
-  | TriangularParams
-  | LogisticParams
-  | ExponentialParams
-  | LognormalParams
-  | MinExtremeParams;
-
-// Type for distribution types
-type DistributionType = "Normal" | "Uniform" | "Triangular" | "Logistic" | "Exponential" | "Lognormal" | "Min Extreme";
+import {
+  DistributionType,
+  DistributionParams,
+  NormalParams,
+  UniformParams,
+  TriangularParams,
+  LogisticParams,
+  ExponentialParams,
+  LognormalParams,
+  MinExtremeParams,
+  DataPoint,
+} from "../utils/distributionTypes";
 
 // Define props for the component
 interface DistributionPreviewChartProps {
@@ -57,13 +20,6 @@ interface DistributionPreviewChartProps {
   variableId: string;
   variableLabel: string;
   variableValue: number;
-}
-
-// Define the data point type
-interface DataPoint {
-  x: number;
-  y: number;
-  isControlPoint?: boolean;
 }
 
 // Component to preview what a distribution looks like
@@ -95,8 +51,8 @@ const DistributionPreviewChart: React.FC<DistributionPreviewChartProps> = ({
           case "Normal": {
             // Guard against invalid parameters
             const typedParams = params as NormalParams;
-            const mean = parseFloat(typedParams.mean.toString()) || 0;
-            const stdDev = Math.max(parseFloat(typedParams.stdDev.toString()) || 1, 0.01); // Prevent division by zero
+            const mean = typedParams.mean;
+            const stdDev = Math.max(typedParams.stdDev, 0.01); // Prevent division by zero
 
             const min = mean - 4 * stdDev;
             const max = mean + 4 * stdDev;
@@ -115,8 +71,8 @@ const DistributionPreviewChart: React.FC<DistributionPreviewChartProps> = ({
           case "Uniform": {
             // Guard against invalid parameters
             const typedParams = params as UniformParams;
-            const min = parseFloat(typedParams.min.toString()) || 0;
-            const max = parseFloat(typedParams.max.toString()) || 1;
+            const min = typedParams.min;
+            const max = typedParams.max;
 
             if (min >= max) {
               data = [
@@ -156,9 +112,9 @@ const DistributionPreviewChart: React.FC<DistributionPreviewChartProps> = ({
           case "Triangular": {
             // Guard against invalid parameters
             const typedParams = params as TriangularParams;
-            const min = parseFloat(typedParams.min.toString()) || 0;
-            const mode = parseFloat(typedParams.mode.toString()) || 0.5;
-            const max = parseFloat(typedParams.max.toString()) || 1;
+            const min = typedParams.min;
+            const mode = typedParams.mode;
+            const max = typedParams.max;
 
             if (min >= max) {
               data = [{ x: min, y: 1 }];
@@ -213,8 +169,8 @@ const DistributionPreviewChart: React.FC<DistributionPreviewChartProps> = ({
           case "Logistic": {
             // Guard against invalid parameters
             const typedParams = params as LogisticParams;
-            const location = parseFloat(typedParams.location.toString()) || 0;
-            const scale = Math.max(parseFloat(typedParams.scale.toString()) || 1, 0.01); // Prevent division by zero
+            const location = typedParams.location;
+            const scale = Math.max(typedParams.scale, 0.01); // Prevent division by zero
 
             const min = location - 6 * scale;
             const max = location + 6 * scale;
@@ -233,7 +189,7 @@ const DistributionPreviewChart: React.FC<DistributionPreviewChartProps> = ({
           case "Exponential": {
             // Guard against invalid parameters
             const typedParams = params as ExponentialParams;
-            const rate = Math.max(parseFloat(typedParams.rate.toString()) || 1, 0.01); // Prevent division by zero
+            const rate = Math.max(typedParams.rate, 0.01); // Prevent division by zero
 
             const max = 5 / rate;
             const step = max / MAX_POINTS;
@@ -251,8 +207,8 @@ const DistributionPreviewChart: React.FC<DistributionPreviewChartProps> = ({
           case "Lognormal": {
             // Guard against invalid parameters
             const typedParams = params as LognormalParams;
-            const mu = parseFloat(typedParams.mu.toString()) || 0;
-            const sigma = Math.max(parseFloat(typedParams.sigma.toString()) || 1, 0.01); // Prevent division by zero
+            const mu = typedParams.mu;
+            const sigma = Math.max(typedParams.sigma, 0.01); // Prevent division by zero
 
             // Default to 0.1 to 10 if we don't have valid mu/sigma
             const min = Math.exp(mu - 3 * sigma) || 0.1;
@@ -274,8 +230,8 @@ const DistributionPreviewChart: React.FC<DistributionPreviewChartProps> = ({
           case "Min Extreme": {
             // Guard against invalid parameters
             const typedParams = params as MinExtremeParams;
-            const location = parseFloat(typedParams.location.toString()) || 0;
-            const scale = Math.max(parseFloat(typedParams.scale.toString()) || 1, 0.01); // Prevent division by zero
+            const location = typedParams.location;
+            const scale = Math.max(typedParams.scale, 0.01); // Prevent division by zero
 
             const min = location - 6 * scale;
             const max = location + 2 * scale;

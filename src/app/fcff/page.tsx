@@ -18,7 +18,10 @@ import { countries, industries } from "../constants/dropdown";
 import { useMutation } from "@tanstack/react-query";
 import Alert from "../components/Alert";
 import PresentValuePopoutPage from "../components/PopoutPage/PresentValuePopoutPage";
-import { MdInsights } from "react-icons/md";
+import { MdInsights, MdCasino } from "react-icons/md";
+import { SiMarketo } from "react-icons/si";
+import { AiOutlineStock } from "react-icons/ai";
+import { TbAlpha } from "react-icons/tb";
 
 import * as FinCalc from "../utils/financialCalculations";
 import * as queryFn from "../utils/queryAPIFunctions";
@@ -30,6 +33,7 @@ import { useRouter } from "next/navigation";
 import StockInfo from "../components/StockInfo";
 import MonteCarloPopoutPage from "../components/PopoutPage/MonteCarloPopoutPage";
 import SensitivityAnalysisPopoutPage from "../components/PopoutPage/SensitivityAnalysisPopoutPage";
+import AnalysisToolsCarousel from "../components/AnalysisToolsCarousel"; // Import the new carousel component
 
 interface InputField {
   id: string;
@@ -351,51 +355,13 @@ export default function Page() {
           </div>
 
           <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Analysis Tools</div>
-          <div className="mt-10 mx-5 px-5 py-5 bg-white rounded-2xl drop-shadow-md border">
-            <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-items-center">
-              <button
-                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
-                onClick={() => setMarketPopup(true)}
-              >
-                <MdInsights className="mr-2" />
-                Market Insight
-              </button>
-              <button
-                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
-                onClick={() => setMonteCarloPopup(true)}
-              >
-                <MdInsights className="mr-2" />
-                Monte Carlo Simulation
-              </button>
-              <button
-                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
-                onClick={() => setSensitivityPopup(true)}
-              >
-                <MdInsights className="mr-2" />
-                Sensitivity Analysis
-              </button>
-              <button
-                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
-                onClick={() => window.open("https://app.stocksentinel.ai/", "_blank", "noopener,noreferrer")}
-              >
-                <MdInsights className="mr-2" />
-                Stock Sentinel
-              </button>
-              <button
-                className="text-white bg-gray-800 flex items-center justify-center hover:bg-gray-700 rounded-lg px-4 py-2 w-full max-w-[300px]"
-                onClick={() =>
-                  window.open(
-                    `https://www.alphaspread.com/security/nasdaq/${symbol}/analyst-estimates`,
-                    "_blank",
-                    "noopener,noreferrer"
-                  )
-                }
-              >
-                <MdInsights className="mr-2" />
-                Alpha Spread
-              </button>
-            </div>
-          </div>
+          {/* Replace the old grid with the new carousel component */}
+          <AnalysisToolsCarousel
+            setMarketPopup={setMarketPopup}
+            setMonteCarloPopup={setMonteCarloPopup}
+            setSensitivityPopup={setSensitivityPopup}
+            symbol={symbol}
+          />
 
           <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Inputs</div>
           {/* Container */}

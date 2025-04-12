@@ -5,7 +5,75 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import * as FinCalc from "../../utils/financialCalculations";
 import * as conv from "../../utils/helper";
 
-const CustomSensitivityTooltip = ({ active, payload, label, currentPrice, primaryVariableInfo }) => {
+// For the tooltip component
+interface CustomSensitivityTooltipProps {
+  active?: boolean;
+  payload?: Array<any>;
+  label?: any;
+  currentPrice: number;
+  primaryVariableInfo: PrimaryVariableInfo | null;
+}
+
+// For input variables
+interface InputField {
+  id: string;
+  label: string;
+  value: number | string;
+  question?: string;
+  unit?: string;
+}
+
+// For stock info
+interface StockInfoField {
+  id: string;
+  label: string;
+  value: string | number;
+}
+
+// For primary range state
+interface PrimaryRange {
+  min: number | string;
+  max: number | string;
+  step: number;
+}
+
+// For available variables
+interface Variable {
+  id: string;
+  label: string;
+  value: number;
+  unit: string;
+}
+
+// For primary variable info
+interface PrimaryVariableInfo {
+  id: string;
+  label: string;
+  unit?: string;
+}
+
+// For analysis results
+interface AnalysisResult {
+  primary: PrimaryVariableInfo;
+  data: Array<Record<string, number>>;
+}
+
+// For the main component props
+interface SensitivityAnalysisPopoutPageProps {
+  setIsPopoutOpen: (isOpen: boolean) => void;
+  initialInputs: InputField[];
+  fetchedInputs: InputField[];
+  searchedSymbol: string;
+  stockInfo: StockInfoField[];
+}
+
+const CustomSensitivityTooltip: React.FC<CustomSensitivityTooltipProps> = ({
+  active,
+  payload,
+  label,
+  currentPrice,
+  primaryVariableInfo,
+}) => {
   if (active && payload && payload.length && primaryVariableInfo) {
     const intrinsicValueData = payload.find((p) => p.dataKey === "intrinsicValue");
 
@@ -40,29 +108,28 @@ const CustomSensitivityTooltip = ({ active, payload, label, currentPrice, primar
 };
 
 // --- SensitivityAnalysisPopoutPage Component (Main component remains largely the same) ---
-export default function SensitivityAnalysisPopoutPage({
+const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps> = ({
   setIsPopoutOpen,
   initialInputs,
   fetchedInputs,
   searchedSymbol,
   stockInfo,
-}) {
-  const popoutRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState(null); // State holds results including primary variable info
-  const [error, setError] = useState(null);
+}) => {
+  const popoutRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [results, setResults] = useState<AnalysisResult | null>(null); // State holds results including primary variable info
+  const [error, setError] = useState<string | null>(null);
   const shortName = stockInfo.find((el) => el.id === "shortName")?.value || searchedSymbol;
-  const currentPrice = fetchedInputs.find((input) => input.id === "currentSharePrice")?.value || 0;
-  const [primaryVariable, setPrimaryVariable] = useState(null);
-  const [primaryRange, setPrimaryRange] = useState({ min: 0, max: 0, step: 0 });
+  const currentPrice = Number(fetchedInputs.find((input) => input.id === "currentSharePrice")?.value || 0);
+  const [primaryVariable, setPrimaryVariable] = useState<Variable | null>(null);
+  const [primaryRange, setPrimaryRange] = useState<PrimaryRange>({ min: 0, max: 0, step: 0 });
 
-  // ... (rest of the state, availableVariables, handlers, runAnalysis, calculateIntrinsicValue logic remains the same) ...
   // Get all available variables for analysis
   const availableVariables = [
     ...initialInputs.map((input) => ({
       id: input.id,
       label: input.label,
-      value: typeof input.value === "string" ? parseFloat(input.value) : input.value,
+      value: typeof input.value === "string" ? parseFloat(input.value) : Number(input.value),
       unit: input.unit || "",
     })),
     ...fetchedInputs
@@ -70,13 +137,13 @@ export default function SensitivityAnalysisPopoutPage({
       .map((input) => ({
         id: input.id,
         label: input.label,
-        value: typeof input.value === "string" ? parseFloat(input.value) : input.value,
+        value: typeof input.value === "string" ? parseFloat(input.value) : Number(input.value),
         unit: input.unit || "",
       })),
   ];
 
   // Handle primary variable selection
-  const handlePrimaryVariableChange = (varId) => {
+  const handlePrimaryVariableChange = (varId: string): void => {
     const variable = availableVariables.find((v) => v.id === varId);
 
     if (variable) {
@@ -87,7 +154,7 @@ export default function SensitivityAnalysisPopoutPage({
       const absValue = Math.abs(value);
 
       // Determine a nice step size based on the value magnitude
-      let stepSize;
+      let stepSize: number;
       if (absValue >= 100) {
         stepSize = 10;
       } else if (absValue >= 10) {
@@ -103,7 +170,7 @@ export default function SensitivityAnalysisPopoutPage({
       stepSize = Math.max(0.1, stepSize);
 
       // Calculate appropriate min and max based on the sign of the value
-      let min, max;
+      let min: number, max: number;
       if (value >= 0) {
         // For positive values, go down to 50% or 5 steps below
         min = Math.min(value * 0.5, Math.max(0, value - stepSize * 5));
@@ -125,14 +192,14 @@ export default function SensitivityAnalysisPopoutPage({
   };
 
   // Handle step size change with minimum validation
-  const handleStepSizeChange = (e) => {
+  const handleStepSizeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     let newStep = parseFloat(e.target.value) || 0;
     newStep = Math.max(0.1, newStep);
     setPrimaryRange({ ...primaryRange, step: newStep });
   };
 
   // Run sensitivity analysis
-  const runAnalysis = () => {
+  const runAnalysis = (): void => {
     if (!primaryVariable) {
       setError("Please select a variable for analysis");
       return;
@@ -143,46 +210,45 @@ export default function SensitivityAnalysisPopoutPage({
 
     try {
       // Create copies of the input values
-      const baseInputs = initialInputs.reduce((acc, input) => {
-        acc[input.id] = typeof input.value === "string" ? parseFloat(input.value) : input.value;
+      const baseInputs: Record<string, number> = initialInputs.reduce((acc: Record<string, number>, input) => {
+        acc[input.id] = typeof input.value === "string" ? parseFloat(input.value) : Number(input.value);
         return acc;
       }, {});
 
-      const baseFetchedInputs = fetchedInputs.reduce((acc, input) => {
-        acc[input.id] = typeof input.value === "string" ? parseFloat(input.value) : input.value;
+      const baseFetchedInputs: Record<string, number> = fetchedInputs.reduce((acc: Record<string, number>, input) => {
+        acc[input.id] = typeof input.value === "string" ? parseFloat(input.value) : Number(input.value);
         return acc;
       }, {});
 
       // Generate the values to test for primary variable with nice intervals
-      const primaryValues = [];
+      const primaryValues: number[] = [];
       // Recalculate numSteps inside runAnalysis in case range/step changed
-      const numSteps = primaryRange.step > 0 ? Math.ceil((primaryRange.max - primaryRange.min) / primaryRange.step) : 0;
+      const min = typeof primaryRange.min === "string" ? parseFloat(primaryRange.min) : primaryRange.min;
+      const max = typeof primaryRange.max === "string" ? parseFloat(primaryRange.max) : primaryRange.max;
+      const step = primaryRange.step;
+
+      const numSteps = step > 0 ? Math.ceil((max - min) / step) : 0;
 
       for (let i = 0; i <= numSteps; i++) {
-        let value = primaryRange.min + i * primaryRange.step;
+        let value = min + i * step;
         // Ensure value doesn't exceed max due to potential floating point inaccuracies
         if (i === numSteps && numSteps > 0) {
-          value = primaryRange.max;
-        } else if (value > primaryRange.max && i === numSteps) {
+          value = max;
+        } else if (value > max && i === numSteps) {
           // If calculated value slightly overshoots max on the last step, clamp it
-          value = primaryRange.max;
+          value = max;
         }
 
-        const decimals = primaryRange.step < 0.1 ? 3 : 2;
+        const decimals = step < 0.1 ? 3 : 2;
         primaryValues.push(parseFloat(value.toFixed(decimals)));
       }
 
-      if (
-        primaryValues.length > 0 &&
-        primaryValues[primaryValues.length - 1] < primaryRange.max &&
-        primaryRange.step > 0
-      ) {
-        primaryValues.push(primaryRange.max);
+      if (primaryValues.length > 0 && primaryValues[primaryValues.length - 1] < max && step > 0) {
+        primaryValues.push(max);
       }
 
-      const uniquePrimaryValues = [...new Set(primaryValues)].sort((a, b) => a - b);
-
-      const calculatedResults = [];
+      const uniquePrimaryValues = Array.from(new Set(primaryValues)).sort((a, b) => a - b);
+      const calculatedResults: Array<{ primaryValue: number; intrinsicValue: number }> = [];
 
       uniquePrimaryValues.forEach((primaryValue) => {
         const modifiedInputs = { ...baseInputs };
@@ -228,7 +294,10 @@ export default function SensitivityAnalysisPopoutPage({
   };
 
   // Calculate intrinsic value using the financial calculations
-  const calculateIntrinsicValue = (inputsValues, fetchedInputValues) => {
+  const calculateIntrinsicValue = (
+    inputsValues: Record<string, number>,
+    fetchedInputValues: Record<string, number>
+  ): number => {
     // Extract required values from the inputs
     const growthY1 = inputsValues["revGrowthYr1"];
     const growthY2to5 = inputsValues["revGrowthYr2to5"];
@@ -253,7 +322,7 @@ export default function SensitivityAnalysisPopoutPage({
     const equityRiskPremium = fetchedInputValues["equityRiskPremium"];
 
     // Add checks for missing/invalid inputs before calculations
-    const requiredInputs = {
+    const requiredInputs: Record<string, number> = {
       growthY1,
       growthY2to5,
       growthTerminal,
@@ -264,7 +333,7 @@ export default function SensitivityAnalysisPopoutPage({
       sCapY2to5,
       sCapY6to10,
     };
-    const requiredFetched = {
+    const requiredFetched: Record<string, number> = {
       baseRevenue,
       baseEbitMargin,
       effectiveTaxRate,
@@ -389,8 +458,8 @@ export default function SensitivityAnalysisPopoutPage({
 
   // Close when clicking outside the popout
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (popoutRef.current && !popoutRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target as Node)) {
         setIsPopoutOpen(false);
       }
     };
@@ -401,13 +470,13 @@ export default function SensitivityAnalysisPopoutPage({
   }, [setIsPopoutOpen]);
 
   // Helper function to format percentage difference
-  const calculateDifference = (valuePrice) => {
+  const calculateDifference = (valuePrice: number): number => {
     if (currentPrice === 0) return 0;
     return ((valuePrice - currentPrice) / currentPrice) * 100;
   };
 
   // Get color based on percentage difference
-  const getDifferenceColor = (diff) => {
+  const getDifferenceColor = (diff: number): string => {
     if (diff > 0) return "text-green-600";
     if (diff < 0) return "text-red-600";
     return "text-gray-600"; // No difference
@@ -711,8 +780,14 @@ export default function SensitivityAnalysisPopoutPage({
                             </td>
                             {currentPrice > 0 && (
                               <td className={`px-2 py-1 whitespace-nowrap text-xs font-medium text-right ${diffColor}`}>
-                                {diff > 0 ? "+" : ""}
-                                {conv.convRound2Dp(diff)}%
+                                {diff !== null ? (
+                                  <>
+                                    {diff > 0 ? "+" : ""}
+                                    {conv.convRound2Dp(diff)}%
+                                  </>
+                                ) : (
+                                  "-"
+                                )}
                               </td>
                             )}
                           </tr>
@@ -746,4 +821,6 @@ export default function SensitivityAnalysisPopoutPage({
       </div>
     </div>
   );
-}
+};
+
+export default SensitivityAnalysisPopoutPage;
