@@ -327,7 +327,6 @@ export default function Page() {
         incomeStatementIsFetching={incomeStatementIsFetching}
       />
 
-      {/*Inputs Header */}
       {searchedSymbol === "" ? (
         <div className="flex flex-col justify-center items-center h-screen">
           <Image src="/growth.svg" alt="growth icon" height={500} width={500} className="object-contain mb-4" />
@@ -369,7 +368,7 @@ export default function Page() {
             className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
            border"
           >
-            <div className="grid grid-cols-3 place-items-center gap-y-10 ">
+            <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10 ">
               <Dropdown
                 options={countries}
                 value={countryOptions}
@@ -413,7 +412,7 @@ export default function Page() {
 
             {/* Fetched Inputs */}
             {showMoreInputs && (
-              <div className="grid grid-cols-3 place-items-center gap-y-10 mt-10">
+              <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10 mt-10">
                 {fetchedInputs.map((input: InputField) => (
                   <InputBox
                     key={input.id}

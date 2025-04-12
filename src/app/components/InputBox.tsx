@@ -39,7 +39,7 @@ const InputBox = ({ id, label, value, question, unit, onChange, firstElement }: 
           id={id}
           value={value}
           onChange={onChange}
-          className={`w-full rounded-md py-2 px-3 pr-12 ${
+          className={`w-full rounded-md py-2 pl-3 pr-12 ${
             value === 0
               ? "border-amber-400 border-2"
               : isValidNumber(value)
@@ -47,7 +47,7 @@ const InputBox = ({ id, label, value, question, unit, onChange, firstElement }: 
               : "border-red-400 border-2"
           }`}
         />
-        <span className="absolute right-0 top-0 bottom-0 flex items-center px-3 bg-gray-100 rounded-r-md border">
+        <span className="absolute right-0 top-0 bottom-0 flex items-center px-2 md:px-3 bg-gray-100 rounded-r-md border">
           {unit}
         </span>
       </div>
