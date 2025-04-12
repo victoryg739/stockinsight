@@ -16,7 +16,7 @@ const PresentValueTable = ({ data, setIsPopoutOpen, setValuationModelLabel }: an
         <thead className="text-xs uppercase bg-gray-50">
           <tr className="whitespace-nowrap">
             {years.map((year, index) => (
-              <th key={index} scope="col" className="px-6 py-3">
+              <th key={index} scope="col" className="px-3 py-3">
                 <div className="w-22 overflow-hidden text-ellipsis">{year}</div>
               </th>
             ))}
@@ -25,7 +25,7 @@ const PresentValueTable = ({ data, setIsPopoutOpen, setValuationModelLabel }: an
         <tbody>
           {data.map((row: any, rowIndex: number) => (
             <tr key={rowIndex} className="bg-white border-b hover:bg-gray-200">
-              <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap flex items-center">
+              <th scope="row" className="pl-3 py-3 font-medium text-gray-900 whitespace-nowrap flex items-center">
                 {row.label}
                 <GoGraph
                   className="ml-5 text-gray-500 cursor-pointer hover:text-blue-500"
@@ -35,11 +35,11 @@ const PresentValueTable = ({ data, setIsPopoutOpen, setValuationModelLabel }: an
               {(Array.isArray(row.value) ? row.value : [row.value]).map((col: any, colIndex: number) => (
                 <>
                   {(row.value.length === 11 || row.value.length === 10) && colIndex === 0 && (
-                    <td key={`empty-${colIndex}`} className="px-6 py-4">
+                    <td key={`empty-${colIndex}`} className="px-3 py-3">
                       {" "}
                     </td>
                   )}
-                  <td key={colIndex} className="px-6 py-4">
+                  <td key={colIndex} className="px-3 py-3">
                     {row.id === "revenue" ||
                     row.id === "ebit" ||
                     row.id === "ebitAfterTax" ||
