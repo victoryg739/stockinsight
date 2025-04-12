@@ -14,7 +14,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { epochToDateTime } from "@/app/utils/helper";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import PresentValuePopoutPage from "@/app/components/PresentValuePopoutPage";
+import PresentValuePopoutPage from "@/app/components/PopoutPage/PresentValuePopoutPage";
 
 export default function Page({ params }: any) {
   const { data: session, status } = useSession();
