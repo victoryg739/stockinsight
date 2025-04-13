@@ -5,7 +5,6 @@ export const fetchCache = 'auto'
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const symbol = searchParams.get('symbol');
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
     const url = `https://valuation-yfinance.vercel.app/ttm_income_statement/${symbol}`;
 
     try {

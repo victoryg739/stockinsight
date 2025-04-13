@@ -18,11 +18,7 @@ import { countries, industries } from "../constants/dropdown";
 import { useMutation } from "@tanstack/react-query";
 import Alert from "../components/Alert";
 import PresentValuePopoutPage from "../components/PopoutPage/PresentValuePopoutPage";
-import { MdInsights, MdCasino } from "react-icons/md";
-import { SiMarketo } from "react-icons/si";
-import { AiOutlineStock } from "react-icons/ai";
-import { TbAlpha } from "react-icons/tb";
-
+import CurrencyConverterPopoutPage from "../components/PopoutPage/CurrencyConverterPopoutPage";
 import * as FinCalc from "../utils/financialCalculations";
 import * as queryFn from "../utils/queryAPIFunctions";
 
@@ -56,6 +52,9 @@ export default function Page() {
   const [presentValuePopup, setPresentValuePopup] = useState(false);
   const [monteCarloPopup, setMonteCarloPopup] = useState(false);
   const [sensitivityPopup, setSensitivityPopup] = useState(false);
+  const [currencyConverterPopup, setCurrencyConverterPopup] = useState(false);
+  const [currencyConverted, setCurrencyConverted] = useState(false);
+
   const [valuationModelLabel, setValuationModelLabel] = useState("");
   const [savePopup, setSavePopup] = useState(false);
 
@@ -110,7 +109,6 @@ export default function Page() {
     queryFn: async () => {
       queryFn.fetchRiskFreeRate(handleInputChange);
     },
-    staleTime: 0,
   });
 
   //GET ERP and marginal tax rate
@@ -161,6 +159,8 @@ export default function Page() {
     if (!symbol.trim()) {
       return;
     }
+    setCurrencyConverted(false);
+
     stockInfoRefetch();
     incomeStatementRefetch();
     balanceSheetQuartelyRefetch();
@@ -359,7 +359,9 @@ export default function Page() {
             setMarketPopup={setMarketPopup}
             setMonteCarloPopup={setMonteCarloPopup}
             setSensitivityPopup={setSensitivityPopup}
+            setCurrencyConverterPopup={setCurrencyConverterPopup}
             symbol={symbol}
+            currencyConverted={currencyConverted}
           />
 
           <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Inputs</div>
@@ -524,6 +526,16 @@ export default function Page() {
               fetchedInputs={fetchedInputs}
               searchedSymbol={searchedSymbol}
               stockInfo={stockInfo}
+            />
+          )}
+          {currencyConverterPopup && (
+            <CurrencyConverterPopoutPage
+              setIsPopoutOpen={setCurrencyConverterPopup}
+              symbol={symbol}
+              stockInfo={stockInfo}
+              fetchedInputs={fetchedInputs}
+              handleInputChange={handleInputChange}
+              setCurrencyConverted={setCurrencyConverted}
             />
           )}
         </>

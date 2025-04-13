@@ -3,19 +3,24 @@ import { MdInsights, MdCasino, MdChevronLeft, MdChevronRight } from "react-icons
 import { SiMarketo } from "react-icons/si";
 import { AiOutlineStock } from "react-icons/ai";
 import { TbAlpha } from "react-icons/tb";
+import { FaDollarSign } from "react-icons/fa";
 
 interface AnalysisToolsCarouselProps {
   setMarketPopup: (value: boolean) => void;
   setMonteCarloPopup: (value: boolean) => void;
   setSensitivityPopup: (value: boolean) => void;
+  setCurrencyConverterPopup: (value: boolean) => void;
   symbol: string;
+  currencyConverted?: boolean;
 }
 
 const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
   setMarketPopup,
   setMonteCarloPopup,
   setSensitivityPopup,
+  setCurrencyConverterPopup,
   symbol,
+  currencyConverted,
 }) => {
   const carouselRef = useRef<HTMLDivElement>(null);
   const buttonsContainerRef = useRef<HTMLDivElement>(null);
@@ -40,6 +45,13 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
       name: "Sensitivity Analysis",
       icon: <SiMarketo className="mr-2" />,
       onClick: () => setSensitivityPopup(true),
+    },
+    {
+      name: currencyConverted ? "Currency Converted" : "Currency Converter", // Change name when converted
+      icon: <FaDollarSign className="mr-2" />,
+      onClick: () => setCurrencyConverterPopup(true),
+      disabled: currencyConverted, // Still disable the button
+      disabledMessage: "Currency conversion already applied",
     },
     {
       name: "Stock Sentinel",
@@ -112,7 +124,7 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
       // Otherwise show arrows based on scroll position
       const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
       setShowLeftArrow(scrollLeft > 5);
-      
+
       // Modified: Use a smaller threshold (1px instead of 5px) to ensure we can scroll to the very end
       // This ensures the right arrow remains visible until we've scrolled to see the entire content
       setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 1);
@@ -141,8 +153,8 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
   useEffect(() => {
     const scrollContainer = carouselRef.current;
     if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', updateArrowVisibility);
-      return () => scrollContainer.removeEventListener('scroll', updateArrowVisibility);
+      scrollContainer.addEventListener("scroll", updateArrowVisibility);
+      return () => scrollContainer.removeEventListener("scroll", updateArrowVisibility);
     }
   }, []);
 
@@ -164,14 +176,12 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
     if (!carouselRef.current) return;
 
     const visibleWidth = getVisibleWidth();
-    
+
     // Modified: Calculate scroll amount as 80% of visible width to ensure overlap and prevent cut-off
     const scrollAmount = Math.floor(visibleWidth * 0.8);
 
     const currentScroll = carouselRef.current.scrollLeft;
-    let newScrollLeft = direction === "left" 
-      ? Math.max(0, currentScroll - scrollAmount) 
-      : currentScroll + scrollAmount;
+    let newScrollLeft = direction === "left" ? Math.max(0, currentScroll - scrollAmount) : currentScroll + scrollAmount;
 
     // Special handling for right scrolls to ensure we can see the last button fully
     if (direction === "right" && carouselRef.current) {
@@ -213,9 +223,9 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
         </button>
 
         {/* Carousel Container */}
-        <div 
-          ref={carouselRef} 
-          className="flex-1 overflow-x-auto" 
+        <div
+          ref={carouselRef}
+          className="flex-1 overflow-x-auto"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
@@ -225,9 +235,7 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
           {/* Inner container for buttons */}
           <div
             ref={buttonsContainerRef}
-            className={`flex gap-4 py-2 ${
-              allButtonsVisible ? "justify-center mx-auto" : "w-max"
-            }`}
+            className={`flex gap-4 py-2 ${allButtonsVisible ? "justify-center mx-auto" : "w-max"}`}
           >
             {tools.map((tool, index) => (
               <button
@@ -236,8 +244,11 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
                   activeButton === index ? "bg-gray-700 scale-95" : "bg-gray-800 hover:bg-gray-700"
                 } 
                   flex items-center justify-center rounded-lg px-4 py-2 w-56 flex-shrink-0
-                  transition-all duration-200 transform hover:scale-[1.02]`}
-                onClick={() => handleToolClick(index, tool.onClick)}
+                  transition-all duration-200 transform hover:scale-[1.02]
+                  ${tool.disabled ? "opacity-50 cursor-not-allowed hover:bg-gray-800 hover:scale-100" : ""}`}
+                onClick={() => !tool.disabled && handleToolClick(index, tool.onClick)}
+                title={tool.disabled ? tool.disabledMessage : ""}
+                disabled={tool.disabled}
               >
                 {tool.icon}
                 {tool.name}

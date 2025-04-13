@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { convRound2Dp, extractLatestQuarterValues } from './helper';
+import { encodeParams } from '../utils/helper'; // Make sure this import exists
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -37,6 +38,10 @@ export const fetchEquityRiskPremium = async (
 
 
 //handle revenue,ebit margin, interest expense from income statement
+//Take note that our definition of EBIT and Operating Income is the same thing 
+//However yahoo finance EBIT is calculated differently from Operating Income 
+//We use yahoo finance Operating Income but call it EBIT for simplicity/shorten form
+//Operating Income  = Revenue - COGS/COR - Operating Expenses 
 export const fetchIncomeStatement = async (symbol: string,
     handleInputChange: (id: string, newValue: any, type: "inputs" | "fetchedInputs") => void
 ) => {
@@ -49,7 +54,7 @@ export const fetchIncomeStatement = async (symbol: string,
         // Access the inner object using the timestamp key
         const incomeStatement = data[timestampKey];
 
-        const baseEbitMargin = (incomeStatement["EBIT"] / incomeStatement["Total Revenue"]) * 100;
+        const baseEbitMargin = (incomeStatement["Operating Income"] / incomeStatement["Total Revenue"]) * 100;
         let effectiveTaxRate = (incomeStatement["Tax Provision"] / incomeStatement["Pretax Income"]) * 100
         if (effectiveTaxRate < 0) {
             effectiveTaxRate = 0;
@@ -111,7 +116,7 @@ export const fetchStockInfo = async (
         handleInputChange("impliedSharesOutstanding", impliedSharesOutstanding, "fetchedInputs");
         handleInputChange("shortName", data["shortName"], "stockInfo");
         handleInputChange("country", data["country"], "stockInfo");
-        handleInputChange("currency", data["currency"], "stockInfo");
+        handleInputChange("currency", data["financialCurrency"], "stockInfo");
         handleInputChange("industry", data["industry"], "stockInfo");
         handleInputChange("sector", data["sector"], "stockInfo");
         handleInputChange("trailingPE", convRound2Dp(data["trailingPE"]), "stockInfo");
@@ -209,7 +214,9 @@ export const fetchInputStats = async (
     industry: string,
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/aswath-data/input-stats?industry=${industry}`);
+        const encodedIndustry = encodeParams(industry);
+        const { data } = await axios.get(`${BASE_URL}/api/aswath-data/input-stats?industry=${encodedIndustry}`);
+        console.log(data)
         return data
 
     } catch (error) {
@@ -350,7 +357,7 @@ export const fetchDCFHistoricalInvestedCap = async (
 export const fetchCompAnalysis = async (symbol: string) => {
     try {
         if (symbol === "") {
-
+            return
         }
 
         const balanceSheet = await axios.get(`${BASE_URL}/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
@@ -380,19 +387,17 @@ export const fetchCompAnalysis = async (symbol: string) => {
         // Access the inner object using the timestamp key
         const incomeStatementYahooTTM = data[timestampKey];
 
-        const ebitMarginTTM = (incomeStatementYahooTTM["EBIT"] / incomeStatementYahooTTM["Total Revenue"]) * 100;
+        const ebitMarginTTM = (incomeStatementYahooTTM["Operating Income"] / incomeStatementYahooTTM["Total Revenue"]) * 100;
 
         const stockInfo = await axios.get(`${BASE_URL}/api/stock-info?symbol=${symbol}`);
         if (!stockInfo.data) {
             throw new Error("No stock info data available");
         }
 
-        console.log(stockInfo.data.trailingPE)
-
         return {
             shortName: stockInfo.data.shortName,
             revenue: incomeStatementYahooTTM["Total Revenue"],
-            ebit: incomeStatementYahooTTM["EBIT"],
+            ebit: incomeStatementYahooTTM["Operating Income"],
             ebitMargin: ebitMarginTTM,
             peRatio: stockInfo.data["trailingPE"],
             salesToCapital: salesToCap

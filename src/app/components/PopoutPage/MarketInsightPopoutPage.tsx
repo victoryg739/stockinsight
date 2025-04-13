@@ -71,7 +71,7 @@ const MarketInsightPopoutPage = ({
   };
 
   const { data: inputStatsQuery } = useQuery({
-    queryKey: ["balanceSheetQuartely"],
+    queryKey: ["inputStats"],
     queryFn: async () => {
       const data = queryFn.fetchInputStats(industries);
       return data;
