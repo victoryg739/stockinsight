@@ -216,11 +216,26 @@ export const fetchInputStats = async (
     try {
         const encodedIndustry = encodeParams(industry);
         const { data } = await axios.get(`${BASE_URL}/api/aswath-data/input-stats?industry=${encodedIndustry}`);
+        return data
+
+    } catch (error) {
+        console.error('Error fetching inputs stats from aswath data:', error);
+        throw error;
+    }
+};
+
+//handle aswath data roic
+export const fetchRoic = async (
+    industry: string,
+) => {
+    try {
+        const encodedIndustry = encodeParams(industry);
+        const { data } = await axios.get(`${BASE_URL}/api/aswath-data/roic?industry=${encodedIndustry}`);
         console.log(data)
         return data
 
     } catch (error) {
-        console.error('Error fetching balance sheet quarterly:', error);
+        console.error('Error fetching roic from aswath data:', error);
         throw error;
     }
 };

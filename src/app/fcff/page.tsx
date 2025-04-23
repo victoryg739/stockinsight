@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import SearchTicker from "../components/SearchTicker";
 import InputBox from "../components/InputBox";
 import PresentValueTable from "../components/PresentValueTable";
+import ROICTable from "../components/ROICTable";
 import EquityValue from "../components/EquityValue";
 import MarketInsightPopoutPage from "../components/PopoutPage/MarketInsightPopoutPage";
 import SaveValuationPopoutPage from "../components/PopoutPage/SaveValuationPopoutPage";
@@ -217,14 +218,41 @@ export default function Page() {
     countryEquityRiskPremium,
     getInputValue("riskFreeRate", "fetchedInputs")
   );
+
+  const RoicTerminalAutoFill = () => {
+    //we use terminal WACC however in Aswath spreadsheet is year 10 WACC however of both the value is always the same
+    const terminalWacc = FinCalc.calcTerminalWACC(
+      countryEquityRiskPremium,
+      getInputValue("riskFreeRate", "fetchedInputs")
+    );
+    useEffect(() => {
+      handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs");
+    }, [getInputValue("riskFreeRate", "fetchedInputs")]);
+  };
+  RoicTerminalAutoFill();
+  const roicTerminalYear = getInputValue("roicTerminalYear", "fetchedInputs");
+
   const reinvestment = FinCalc.calcReinvestment(
     revenue,
     sCapY1,
     sCapY2to5,
     sCapY6to10,
     growthTerminal,
-    terminalWacc,
+    roicTerminalYear,
     ebitAfterTax[ebitAfterTax.length - 1]
+  );
+
+  //For ROIC table
+  const roicData = FinCalc.calcROIC(
+    sCapY1,
+    sCapY2to5,
+    sCapY6to10,
+    getInputValue("totalEquity", "fetchedInputs"),
+    getInputValue("totalDebt", "fetchedInputs"),
+    getInputValue("cash", "fetchedInputs"),
+    reinvestment,
+    ebitAfterTax,
+    roicTerminalYear
   );
   const fcff = FinCalc.calcFcff(ebitAfterTax, reinvestment);
   const wacc = FinCalc.calcWACC(getInputValue("initialWacc", "fetchedInputs"), terminalWacc);
@@ -463,7 +491,11 @@ export default function Page() {
               setIsPopoutOpen={setPresentValuePopup}
               setValuationModelLabel={setValuationModelLabel}
             />
-
+            <div className="flex flex-col items-center mb-14 mt-10">
+              <h2 className="font-medium text-xl mb-4 text-gray-700">Return on Invested Capital</h2>
+              <div className="w-full max-w h-0.5 bg-gray-200"></div>
+            </div>
+            <ROICTable data={roicData} />
             <div className="flex flex-col items-center mb-14 mt-10">
               <h2 className="font-medium text-xl mb-4 text-gray-700">Equity Value</h2>
               <div className="w-full max-w h-0.5 bg-gray-200"></div>

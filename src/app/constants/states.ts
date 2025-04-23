@@ -95,6 +95,33 @@ export const FETCHED_INPUT_FIELDS = [
         unit: "%"
     },
     { id: "initialWacc", label: "Initial WACC", question: "", value: 0, unit: "%" },
+    {
+        id: "roicTerminalYear", label: "ROIC Terminal Year",
+        question: `
+By default, we assume companies cannot maintain excess returns indefinitely, so:
+• Terminal ROIC = Year 10 WACC (Cost of Capital)
+• This reflects economic theory that competition erodes abnormal returns
+
+For Companies with Moats:
+If strong evidence of sustainable competitive advantage exists:
+1. Set ROIC above WACC in terminal period
+2. Compare to historical company performance
+3. Reference industry average ROICs when calibrating
+4. Consider the strength and durability of specific moat factors
+
+Important Considerations:
+• Most mature companies struggle to generate returns exceeding WACC long-term
+• Significant exceptions exist among companies with proven, durable moats
+• As moats narrow, ROIC should trend toward WACC
+• Even the strongest moats typically see some ROIC deterioration over time
+    
+Evaluating Moat Strength:
+• Strong: 10+ years of consistent ROIC > WACC by substantial margin
+• Medium: 5-10 years of ROIC > WACC with some volatility
+• Weak/None: Inconsistent ROIC or trending toward WACC`
+        , value: 0, unit: "%"
+    },
+
     { id: "equityRiskPremium", label: "Country Equity Risk Premium", question: "Equity risk premiums (ERP) represent the price of risk in the equity market", value: 0, unit: "%" },
     { id: "riskFreeRate", label: "Risk Free Rate", question: "The risk-free rate is the theoretical rate of return on an investment with zero risk. Set to 10 year treasury yield rate", value: 0, unit: "%" },
     { id: "impliedSharesOutstanding", label: "Shares Outstanding", question: "Shares outstanding are the stock that is held by a company's shareholders on the open market", value: 0, unit: "Shares" },
@@ -197,6 +224,12 @@ export const INPUT_STATS_DEBT_TO_CAPITAL = [
     { id: "debtToCapitalThirdQuartile", label: "3rd Quartile", value: 0 }
 ];
 
+export const ROIC_STATS = [
+    { id: "", label: "", value: "Return on Invested Capital", isHeader: true },
+    { id: "roic", label: "ROIC", value: 0 },
+    { id: "reinvestmentRate", label: "Reinvestment Rate", value: 0 },
+    { id: "expectedGrowthEbit", label: "Expected Growth EBIT", value: 0 },
+];
 export const STOCK_INFO = [
     { id: "shortName", label: "Company Name", value: "", keyStats: false },
     { id: "country", label: "Country", value: "", keyStats: false },

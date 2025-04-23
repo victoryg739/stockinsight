@@ -139,3 +139,12 @@ model valuation {
   description         String?
   valued_date         Int?
 }
+
+model roic {
+  industry           String   @id
+  no_of_firms        String?
+  roc                String?
+  reinvestment_rate  String?
+  expected_growth_ebit String?
+}
+

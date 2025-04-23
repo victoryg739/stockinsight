@@ -22,6 +22,7 @@ const MarketInsightPopoutPage = ({
   const salesToCapRef = useRef(States.INPUT_STATS_SALES_TO_CAP);
   const waccRef = useRef(States.INPUT_STATS_WACC);
   const debtToCapRef = useRef(States.INPUT_STATS_DEBT_TO_CAPITAL);
+  const roicRef = useRef(States.ROIC_STATS);
   const [historicalSalesToCap, setHistoricalSalesToCap] = useState<{ date: string; salesToCap: number | string }[]>([]);
   const popoutRef = useRef<HTMLDivElement>(null);
 
@@ -64,6 +65,9 @@ const MarketInsightPopoutPage = ({
         debtToCapRef.current = debtToCapRef.current.map((input) => (input.id === id ? { ...input, value } : input));
         break;
 
+      case "roic":
+        roicRef.current = roicRef.current.map((input) => (input.id === id ? { ...input, value } : input));
+
       default:
         console.error("Invalid type provided to handleInputChange.");
         break;
@@ -74,6 +78,15 @@ const MarketInsightPopoutPage = ({
     queryKey: ["inputStats"],
     queryFn: async () => {
       const data = queryFn.fetchInputStats(industries);
+      return data;
+    },
+    // enabled: false,
+  });
+
+  const { data: roicStatsQuery } = useQuery({
+    queryKey: ["roicStats"],
+    queryFn: async () => {
+      const data = queryFn.fetchRoic(industries);
       return data;
     },
     // enabled: false,
@@ -228,6 +241,13 @@ const MarketInsightPopoutPage = ({
     );
   }
 
+  if (roicStatsQuery) {
+    handleInputChange("roic", roicStatsQuery["roc"], "roic");
+    handleInputChange("reinvestmentRate", roicStatsQuery["reinvestment_rate"], "roic");
+    handleInputChange("expectedGrowthEbit", roicStatsQuery["expected_growth_ebit"], "roic");
+  }
+  console.log(roicRef);
+
   // Close when clicking outside the popout
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -309,6 +329,8 @@ const MarketInsightPopoutPage = ({
         <MarketInsightTable data={salesToCapRef.current} />
         <MarketInsightTable data={waccRef.current} />
         <MarketInsightTable data={debtToCapRef.current} />
+        <MarketInsightTable data={roicRef.current} />
+
         <div className="mt-16">
           <h3 className="text-xl font-semibold mb-4 text-center">Historical Sales to Capital Ratio</h3>
           <div className="overflow-x-auto rounded-lg shadow">
