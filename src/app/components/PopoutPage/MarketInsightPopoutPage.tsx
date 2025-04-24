@@ -123,7 +123,6 @@ const MarketInsightPopoutPage = ({
   });
 
   const isFetchingCompAnalysis = compAnalysisQueries.some((query) => query.isFetching);
-  console.log(isFetchingCompAnalysis);
 
   // Force re-render mechanism
   const [, forceUpdate] = useState({});
@@ -242,11 +241,10 @@ const MarketInsightPopoutPage = ({
   }
 
   if (roicStatsQuery) {
-    handleInputChange("roic", roicStatsQuery["roc"], "roic");
-    handleInputChange("reinvestmentRate", roicStatsQuery["reinvestment_rate"], "roic");
-    handleInputChange("expectedGrowthEbit", roicStatsQuery["expected_growth_ebit"], "roic");
+    handleInputChange("roic", roicStatsQuery["roc"] + "%", "roic");
+    handleInputChange("reinvestmentRate", "$" + roicStatsQuery["reinvestment_rate"], "roic");
+    handleInputChange("expectedGrowthEbit", roicStatsQuery["expected_growth_ebit"] + "%", "roic");
   }
-  console.log(roicRef);
 
   // Close when clicking outside the popout
   useEffect(() => {
@@ -287,7 +285,6 @@ const MarketInsightPopoutPage = ({
         }
         if (result.data?.salesToCapital !== "N/A" && result.data?.salesToCapital !== undefined) {
           avg.salesToCapital.count += 1;
-          console.log(result.data.salesToCapital);
           avg.salesToCapital.value +=
             (Number(result.data.salesToCapital) - avg.salesToCapital.value) / avg.salesToCapital.count;
         }

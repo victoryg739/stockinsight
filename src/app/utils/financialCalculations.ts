@@ -283,7 +283,6 @@ export function calcROIC(salesToCapY1: number, salesToCapY2To5: number, salesToC
 
     // Terminal year ROIC calculation
     roic.push(roicTerminalYear);
-    console.log(roic)
 
     return {
         salesToCap,

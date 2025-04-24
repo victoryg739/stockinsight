@@ -231,7 +231,6 @@ export const fetchRoic = async (
     try {
         const encodedIndustry = encodeParams(industry);
         const { data } = await axios.get(`${BASE_URL}/api/aswath-data/roic?industry=${encodedIndustry}`);
-        console.log(data)
         return data
 
     } catch (error) {

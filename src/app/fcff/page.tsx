@@ -227,7 +227,7 @@ export default function Page() {
     );
     useEffect(() => {
       handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs");
-    }, [getInputValue("riskFreeRate", "fetchedInputs")]);
+    }, [getInputValue("riskFreeRate", "fetchedInputs"), getInputValue("equityRiskPremium", "fetchedInputs")]);
   };
   RoicTerminalAutoFill();
   const roicTerminalYear = getInputValue("roicTerminalYear", "fetchedInputs");
@@ -539,6 +539,7 @@ export default function Page() {
               valuationModel={valuationModelRef.current}
               valuationOutput={valuationOutputRef.current}
               impliedSharePrice={impliedSharePriceRef.current}
+              industryOptions={industryOptions}
               mutation={saveValuationMutation}
             />
           )}

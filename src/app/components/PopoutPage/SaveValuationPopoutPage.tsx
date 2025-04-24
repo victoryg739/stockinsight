@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { RxCross1 } from "react-icons/rx";
 import * as conv from "../../utils/helper";
+import { useQuery } from "@tanstack/react-query";
+import * as queryFn from "../../utils/queryAPIFunctions";
 
 export default function SaveValuationPopoutPage({
   setIsPopoutOpen,
@@ -12,10 +14,27 @@ export default function SaveValuationPopoutPage({
   valuationModel,
   valuationOutput,
   impliedSharePrice,
+  industryOptions,
   mutation,
 }: any) {
   const [description, setDescription] = useState("");
   const popoutRef = useRef<HTMLDivElement>(null);
+
+  // Get industry from stockInfo for API calls
+
+  const { data: roicData } = useQuery({
+    queryKey: ["roic", industryOptions],
+    queryFn: async () => {
+      return queryFn.fetchRoic(industryOptions);
+    },
+  });
+
+  const { data: inputStatsData } = useQuery({
+    queryKey: ["inputStats", industryOptions],
+    queryFn: async () => {
+      return queryFn.fetchInputStats(industryOptions);
+    },
+  });
 
   // Helper function to extract values
   const getInputValue = (id: string, inputArray: any[]): any => {
@@ -32,7 +51,7 @@ export default function SaveValuationPopoutPage({
 
   // Helper function to format values
   const formatValue = (value: any, type: string): string => {
-    if (value === "N/A") return "N/A";
+    if (value === "N/A" || value === undefined || value === null) return "N/A";
 
     switch (type) {
       case "percentage":
@@ -50,6 +69,9 @@ export default function SaveValuationPopoutPage({
   const revGrowthY1 = getInputValue("revGrowthYr1", inputs);
   const revGrowthY2to5 = getInputValue("revGrowthYr2to5", inputs);
   const baseRevenue = getInputValue("baseRevenue", fetchedInputs);
+
+  // Industry revenue growth data
+  const industryRevGrowthNext5Years = inputStatsData?.revenue_growth_rate_median;
 
   // Margins
   const opMarginYr1 = getInputValue("opMarginYr1", inputs);
@@ -80,8 +102,6 @@ export default function SaveValuationPopoutPage({
       // Note: cumulatedDiscountFactor array starts at year 1, so we need to use i-1 as index
       const yearEbitAfterTax = ebitAfterTaxValues[i] || 0;
       const discountFactor = cumulatedDiscountFactorValues[i - 1] || 0;
-      console.log(yearEbitAfterTax);
-      console.log(discountFactor);
       sumOfEbitAfterTax += yearEbitAfterTax * discountFactor;
     }
   }
@@ -94,6 +114,15 @@ export default function SaveValuationPopoutPage({
   const waccValues = valuationModel.find((m: any) => m.id === "wacc")?.value || [];
   const initialWacc = waccValues.length > 0 ? waccValues[0] : getInputValue("initialWacc", fetchedInputs);
   const terminalWacc = waccValues.length > 10 ? waccValues[10] : "N/A";
+
+  // Get industry WACC from input stats
+  const industryWacc = inputStatsData?.cost_of_capital_median;
+
+  // ROIC terminal year
+  const roicTerminalYear = getInputValue("roicTerminalYear", fetchedInputs);
+
+  // Get industry average ROIC
+  const industryRoic = roicData?.roc;
 
   const handleSave = () => {
     const nowEpochSeconds = Math.floor(Date.now() / 1000);
@@ -130,7 +159,7 @@ export default function SaveValuationPopoutPage({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-[800px] h-[700px] overflow-auto relative">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Valuation Review & Save</h2>
 
           <button
@@ -143,22 +172,22 @@ export default function SaveValuationPopoutPage({
           </button>
         </div>
 
-        <div className="space-y-8 mb-20">
+        <div className="space-y-12">
           {/* 1. Revenue Growth Rate */}
           <section>
             <h3 className="text-lg font-semibold mb-3 border-b pb-2">1. Check Revenue Growth Rate</h3>
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Year 1</div>
-                <div className="text-lg font-semibold">{formatValue(revGrowthY1, "percentage")}</div>
+                <div className="text-md font-semibold">{formatValue(revGrowthY1, "percentage")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Years 2-5</div>
-                <div className="text-lg font-semibold">{formatValue(revGrowthY2to5, "percentage")}</div>
+                <div className="text-md font-semibold">{formatValue(revGrowthY2to5, "percentage")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Industry Average</div>
-                <div className="text-lg font-semibold">N/A</div>
+                <div className="text-md font-semibold">{formatValue(industryRevGrowthNext5Years, "percentage")}</div>
               </div>
             </div>
 
@@ -176,23 +205,23 @@ export default function SaveValuationPopoutPage({
 
           {/* 2. Dollar Revenues */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-2">2.Check Dollar Revenues</h3>
+            <h3 className="text-lg font-semibold mb-3 border-b pb-2">2. Check Dollar Revenues</h3>
             <div className="grid grid-cols-4 gap-4 mb-4">
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Base Year</div>
-                <div className="text-lg font-semibold">{formatValue(baseRevenue, "currency")}</div>
+                <div className="text-md font-semibold">{formatValue(baseRevenue, "currency")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Next Year</div>
-                <div className="text-lg font-semibold">{formatValue(getModelValue("revenue", 1), "currency")}</div>
+                <div className="text-md font-semibold">{formatValue(getModelValue("revenue", 1), "currency")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Year 5</div>
-                <div className="text-lg font-semibold">{formatValue(getModelValue("revenue", 5), "currency")}</div>
+                <div className="text-md font-semibold">{formatValue(getModelValue("revenue", 5), "currency")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Year 10</div>
-                <div className="text-lg font-semibold">{formatValue(getModelValue("revenue", 10), "currency")}</div>
+                <div className="text-md font-semibold">{formatValue(getModelValue("revenue", 10), "currency")}</div>
               </div>
             </div>
 
@@ -212,19 +241,19 @@ export default function SaveValuationPopoutPage({
             <div className="grid grid-cols-4 gap-4 mb-4">
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Base Year</div>
-                <div className="text-lg font-semibold">{formatValue(getModelValue("ebitMargin", 0), "percentage")}</div>
+                <div className="text-md font-semibold">{formatValue(getModelValue("ebitMargin", 0), "percentage")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Next Year</div>
-                <div className="text-lg font-semibold">{formatValue(getModelValue("ebitMargin", 1), "percentage")}</div>
+                <div className="text-md font-semibold">{formatValue(getModelValue("ebitMargin", 1), "percentage")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Year 5</div>
-                <div className="text-lg font-semibold">{formatValue(getModelValue("ebitMargin", 5), "percentage")}</div>
+                <div className="text-md font-semibold">{formatValue(getModelValue("ebitMargin", 5), "percentage")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Year 10</div>
-                <div className="text-lg font-semibold">
+                <div className="text-md font-semibold">
                   {formatValue(getModelValue("ebitMargin", 10), "percentage")}
                 </div>
               </div>
@@ -246,32 +275,43 @@ export default function SaveValuationPopoutPage({
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Sales to Capital (Yr 1)</div>
-                <div className="text-lg font-semibold">{formatValue(salesToCapYr1, "number")}</div>
+                <div className="text-md font-semibold">{formatValue(salesToCapYr1, "number")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Sales to Capital (Yr 2-5)</div>
-                <div className="text-lg font-semibold">{formatValue(salesToCapYr2to5, "number")}</div>
+                <div className="text-md font-semibold">{formatValue(salesToCapYr2to5, "number")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Sales to Capital (Yr 6-10)</div>
-                <div className="text-lg font-semibold">{formatValue(salesToCapYr6to10, "number")}</div>
+                <div className="text-md font-semibold">{formatValue(salesToCapYr6to10, "number")}</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-gray-100 p-3 rounded-md">
+                <div className="text-sm text-gray-600">ROIC Terminal Year</div>
+                <div className="text-md font-semibold">{formatValue(roicTerminalYear, "percentage")}</div>
+              </div>
+              <div className="bg-gray-100 p-3 rounded-md">
+                <div className="text-sm text-gray-600">Industry Average ROIC</div>
+                <div className="text-md font-semibold">{formatValue(industryRoic, "percentage")}</div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Sum of PV of EBIT After Tax (10 Years)</div>
-                <div className="text-lg font-semibold">{formatValue(sumOfEbitAfterTax, "currency")}</div>
+                <div className="text-md font-semibold">{formatValue(sumOfEbitAfterTax, "currency")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Sum of PV of FCFF (10 Years)</div>
-                <div className="text-lg font-semibold">{formatValue(sumOfPVFCFF, "currency")}</div>
+                <div className="text-md font-semibold">{formatValue(sumOfPVFCFF, "currency")}</div>
               </div>
             </div>
 
             <div className="bg-amber-100 p-3 rounded-md mb-4">
-              <div className="text-sm text-gray-800">t Value Effecof Reinvestment (10 Years)</div>
-              <div className="text-lg font-semibold">
+              <div className="text-sm text-gray-800">Value Effect of Reinvestment (10 Years)</div>
+              <div className="text-md font-semibold">
                 {formatValue(reinvestmentEffect, "currency")} ({formatValue(reinvestmentPercentage, "percentage")} of
                 EBIT After Tax)
               </div>
@@ -284,7 +324,8 @@ export default function SaveValuationPopoutPage({
                   Is your reinvestment <strong>consistent</strong> with your revenue growth forecast? (high revenue
                   growth should expect significant reinvestment unless asset-light tech companies)
                 </li>
-                <li>How does return on capital (ROIC) in Year 10 look? (higher ROIC suggests stronger moat)</li>
+                <li>How does terminal ROIC compare to industry average ROIC?</li>
+                <li>Is your terminal ROIC assumption justified by the company's competitive advantages?</li>
               </ul>
             </div>
           </section>
@@ -295,15 +336,15 @@ export default function SaveValuationPopoutPage({
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">WACC (Years 1-5)</div>
-                <div className="text-lg font-semibold">{formatValue(initialWacc, "percentage")}</div>
+                <div className="text-md font-semibold">{formatValue(initialWacc, "percentage")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Terminal WACC</div>
-                <div className="text-lg font-semibold">{formatValue(terminalWacc, "percentage")}</div>
+                <div className="text-md font-semibold">{formatValue(terminalWacc, "percentage")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Industry WACC</div>
-                <div className="text-lg font-semibold">N/A</div>
+                <div className="text-md font-semibold">{formatValue(industryWacc, "percentage")}</div>
               </div>
             </div>
 
@@ -312,6 +353,7 @@ export default function SaveValuationPopoutPage({
               <ul className="list-disc pl-5 space-y-1 text-sm">
                 <li>How does your cost of capital compare to the industry average?</li>
                 <li>Is the cost of capital changing over time? If so, why?</li>
+                <li>Does the company's risk profile justify a discount or premium to the industry WACC?</li>
               </ul>
             </div>
           </section>
@@ -332,8 +374,7 @@ export default function SaveValuationPopoutPage({
           </section>
         </div>
 
-        {/* Save Button (always visible) */}
-        <div className=" flex justify-center p-4 bg-white border-t">
+        <div className="flex justify-center p-4 bg-white border-t">
           <button
             onClick={handleSave}
             className="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors"

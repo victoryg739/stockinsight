@@ -9,7 +9,6 @@ const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 export async function GET() {
     // Check if we have a valid cache
     const now = Date.now();
-    console.log(symbolsCache)
     if (symbolsCache && now - cacheTimestamp < CACHE_DURATION) {
         return NextResponse.json({ symbols: symbolsCache });
     }
