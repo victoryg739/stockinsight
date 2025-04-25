@@ -1,37 +1,40 @@
 "use client";
-import React from "react";
-import { useState } from "react";
-import Navbar from "../components/Navbar";
+import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { fetchValuations, deleteValuationById, fetchMarketPrice } from "../utils/queryAPIFunctions";
-import { epochToDateTime } from "../utils/helper";
 import { useRouter } from "next/navigation";
-import { MdDeleteOutline } from "react-icons/md";
-import DeletePopoutPage from "../components/PopoutPage/DeletePopoutPage";
 import Image from "next/image";
-import { FaArrowUp, FaDollarSign } from "react-icons/fa";
-import { FaArrowDown } from "react-icons/fa";
-import { MdDiamond } from "react-icons/md";
-import { MdOutlineDateRange } from "react-icons/md";
-import { MdOutlineDescription } from "react-icons/md";
+import { HiOutlineCollection } from "react-icons/hi";
+// Icons
+import { MdDeleteOutline, MdSearch, MdFilterAlt, MdOutlineSort, MdAdd, MdGridView, MdViewList } from "react-icons/md";
+import { FaArrowUp, FaArrowDown, FaCalendarAlt } from "react-icons/fa";
 
-export default function Page() {
+// Components
+import Navbar from "../components/Navbar";
+import DeletePopoutPage from "../components/PopoutPage/DeletePopoutPage";
+
+// Utils
+import { fetchValuations, deleteValuationById, fetchMarketPrice } from "../utils/queryAPIFunctions";
+import { epochToDateTime, convRound2Dp } from "../utils/helper";
+
+export default function MyValuationsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  // States
   const [symbol, setSymbol] = useState("");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [deletePage, setDeletePage] = useState(false);
-  const queryClient = useQueryClient();
-  const valuationCalcuation = (marketPrice: any, impliedPrice: any) => {
-    return Math.abs((impliedPrice / marketPrice - 1) * 100).toFixed(2);
-  };
+  const [sortField, setSortField] = useState<string>("valued_date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [view, setView] = useState<"grid" | "list">("grid");
 
+  // Queries
   const { data: valuationQuery, isFetching: valuationIsFetching } = useQuery({
-    queryKey: ["valuations", symbol], // Include symbol in the queryKey
-    queryFn: async () => {
-      return fetchValuations(symbol);
-    },
+    queryKey: ["valuations", symbol],
+    queryFn: async () => fetchValuations(symbol),
   });
 
   const marketPriceQueries = useQueries({
@@ -39,23 +42,37 @@ export default function Page() {
       queryKey: ["marketPrice", item.symbol],
       queryFn: () => fetchMarketPrice(item.symbol),
       enabled: !!item.symbol,
-    })) as { queryKey: [string, string]; queryFn: () => Promise<number | null> }[],
+    })),
   });
 
+  // Mutation for delete
   const deleteValuationMutation = useMutation({
     mutationFn: async (ids: any) => {
       await deleteValuationById(ids);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["valuations"] });
+      setSelectedItems([]);
+      setIsDeleteMode(false);
+    },
   });
 
-  function truncateDescription(description: string, maxLength = 50) {
-    if (description.length > maxLength) {
-      return description.slice(0, maxLength) + "...";
-    }
-    return description;
-  }
+  // Helpers
+  const calculateValuationDiff = (marketPrice: number, impliedPrice: number) => {
+    if (!marketPrice) return 0;
+    return (impliedPrice / marketPrice - 1) * 100;
+  };
 
-  const handleCheckboxChange = (id: string) => {
+  const formatValuationDiff = (diff: number) => {
+    return `${Math.abs(diff).toFixed(2)}%`;
+  };
+
+  const handleCheckboxChange = (id: string, e?: React.MouseEvent | React.ChangeEvent<HTMLInputElement>) => {
+    // If event exists, stop propagation to prevent conflicts
+    if (e) {
+      e.stopPropagation();
+    }
+
     setSelectedItems((prevSelectedItems) => {
       if (prevSelectedItems.includes(id)) {
         return prevSelectedItems.filter((item) => item !== id);
@@ -66,199 +83,577 @@ export default function Page() {
   };
 
   const handleDelete = () => {
-    deleteValuationMutation.mutate(selectedItems, {
-      onSuccess: () => {
-        queryClient.invalidateQueries();
-        setSelectedItems([]); // Clear selected items after successful deletion
-      },
-    });
+    deleteValuationMutation.mutate(selectedItems);
     setDeletePage(false);
   };
 
-  const handleMoreDetails = (e: any, id: string) => {
-    e.preventDefault();
+  const handleViewDetails = (id: string) => {
     router.push(`/myValuations/${id}`);
   };
 
+  const formatValuationDate = (epochTimestamp: number): string => {
+    const date = new Date(epochTimestamp * 1000);
+    return date.toLocaleDateString(); // Returns only the date in a format like MM/DD/YYYY
+  };
+
+  const toggleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("desc");
+    }
+  };
+
+  // Function to get MRQ from stock_info
+  const getMostRecentQuarter = (stockInfo: any[]): string => {
+    const mrqInfo = stockInfo.find((item: any) => item.id === "mostRecentQuarter");
+    return mrqInfo ? mrqInfo.value : "N/A";
+  };
+
+  // Sort valuations
+  const sortedValuations = React.useMemo(() => {
+    if (!valuationQuery) return [];
+
+    return [...valuationQuery].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case "symbol":
+          comparison = a.symbol.localeCompare(b.symbol);
+          break;
+        case "implied_share_price":
+          comparison = Number(a.implied_share_price) - Number(b.implied_share_price);
+          break;
+        case "valued_date":
+          comparison = a.valued_date - b.valued_date;
+          break;
+        case "mrq":
+          const aMRQ = getMostRecentQuarter(a.stock_info);
+          const bMRQ = getMostRecentQuarter(b.stock_info);
+          comparison = aMRQ.localeCompare(bMRQ);
+          break;
+        case "diff":
+          const aIndex = valuationQuery.findIndex((v: any) => v.id === a.id);
+          const bIndex = valuationQuery.findIndex((v: any) => v.id === b.id);
+
+          const aMarketPrice =
+            aIndex >= 0 && aIndex < marketPriceQueries.length ? marketPriceQueries[aIndex].data || 0 : 0;
+
+          const bMarketPrice =
+            bIndex >= 0 && bIndex < marketPriceQueries.length ? marketPriceQueries[bIndex].data || 0 : 0;
+
+          const aDiff = aMarketPrice ? calculateValuationDiff(Number(aMarketPrice), Number(a.implied_share_price)) : 0;
+          const bDiff = bMarketPrice ? calculateValuationDiff(Number(bMarketPrice), Number(b.implied_share_price)) : 0;
+          comparison = aDiff - bDiff;
+          break;
+        default:
+          comparison = 0;
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [valuationQuery, sortField, sortDirection, marketPriceQueries]);
+
+  // Stats calculation
+  const stats = React.useMemo(() => {
+    if (!valuationQuery || valuationQuery.length === 0 || !marketPriceQueries) {
+      return {
+        totalValuations: 0,
+        undervaluedCount: 0,
+        overvaluedCount: 0,
+      };
+    }
+
+    let undervaluedCount = 0;
+    let overvaluedCount = 0;
+
+    valuationQuery.forEach((item: any, index: any) => {
+      const marketPrice = marketPriceQueries[index]?.data || 0;
+      if (marketPrice) {
+        const diff = calculateValuationDiff(Number(marketPrice), Number(item.implied_share_price));
+        if (diff > 0) {
+          undervaluedCount++;
+        } else {
+          overvaluedCount++;
+        }
+      }
+    });
+
+    return {
+      totalValuations: valuationQuery.length,
+      undervaluedCount,
+      overvaluedCount,
+    };
+  }, [valuationQuery, marketPriceQueries]);
+
+  // Authentication check
   if (status === "unauthenticated") {
-    return router.push("/"); // Redirect to homepage
-  } else if (status === "loading") {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen">
-        <Image
-          src="/loading.svg"
-          alt="Loading icon"
-          height={400}
-          width={400}
-          className="object-contain mb-4" // Added margin-bottom for spacing
-        />
-        <p className="font-semibold text-lg text-center mt-5">Loading...</p>
-      </div>
-    );
+    router.push("/");
+    return null;
   }
 
+  // Loading State Component
+  const LoadingState = () => (
+    <div className="mt-10 animate-pulse space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-28 bg-gray-200 rounded-xl"></div>
+        ))}
+      </div>
+      <div className="h-16 bg-gray-200 rounded-xl mb-6"></div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="h-60 bg-gray-200 rounded-xl"></div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Empty State Component
+  const EmptyState = ({ searchTerm }: { searchTerm: string }) => (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="bg-indigo-100 p-6 rounded-full mb-6">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-16 w-16 text-indigo-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      </div>
+      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+        {searchTerm ? "No matching valuations found" : "Your valuation portfolio is empty"}
+      </h3>
+      <p className="text-gray-600 mb-8 max-w-md">
+        {searchTerm
+          ? `We couldn't find any valuations matching "${searchTerm}". Try another search term or clear your filter.`
+          : "Get started by creating your first valuation. Track your investment ideas and monitor their performance over time."}
+      </p>
+      <button
+        onClick={() => (window.location.href = "/fcff")}
+        className="flex items-center bg-indigo-600 text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition-colors"
+      >
+        <MdAdd className="mr-2 h-5 w-5" />
+        Create Your First Valuation
+      </button>
+    </div>
+  );
+
   return (
-    <div>
+    <>
       <Navbar />
-      <div className="relative overflow-x-auto sm:rounded-lg mx-10">
-        <div className="pb-4 my-10 flex items-center justify-between">
-          <div className="flex items-center">
-            <label htmlFor="table-search" className="sr-only">
-              Search
-            </label>
-            <div className="relative mt-1">
-              <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                  />
-                </svg>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">My Valuations</h1>
+
+          <button
+            onClick={() => (window.location.href = "/fcff")}
+            className="inline-flex items-center px-5 py-2.5 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <MdAdd className="mr-1 h-5 w-5" />
+            New Valuation
+          </button>
+        </div>
+
+        {/* Stats Cards */}
+        {!valuationIsFetching && valuationQuery && valuationQuery.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Total Valuations Card */}
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-blue-50 text-blue-600 mr-4">
+                  <HiOutlineCollection className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Total Valuations</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalValuations}</p>
+                </div>
               </div>
-              <input
-                type="text"
-                id="table-search"
-                className="block py-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Search for ticker"
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-              />
+            </div>
+
+            {/* Undervalued Card */}
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-green-50 text-green-600 mr-4">
+                  <FaArrowUp className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Undervalued</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.undervaluedCount}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Overvalued Card */}
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-red-50 text-red-600 mr-4">
+                  <FaArrowDown className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Overvalued</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.overvaluedCount}</p>
+                </div>
+              </div>
             </div>
           </div>
+        )}
 
-          <div className="flex px-5 py-2 items-center bg-red-700 hover:bg-red-800 text-white rounded-lg">
-            <MdDeleteOutline className="mr-2" />
-            <button className="text-white" onClick={() => setDeletePage(true)}>
-              Delete
+        {/* Filter Bar */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-wrap gap-4 items-center justify-between mb-8">
+          <div className="relative flex-grow max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MdSearch className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Search by ticker symbol..."
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setView("grid")}
+                className={`p-2.5 ${view === "grid" ? "bg-indigo-100 text-indigo-600" : "bg-white text-gray-600"}`}
+              >
+                <MdGridView className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setView("list")}
+                className={`p-2.5 ${view === "list" ? "bg-indigo-100 text-indigo-600" : "bg-white text-gray-600"}`}
+              >
+                <MdViewList className="h-5 w-5" />
+              </button>
+            </div>
+
+            <button
+              onClick={() => toggleSort(sortField)}
+              className="flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm font-medium hover:bg-gray-50"
+            >
+              <MdOutlineSort className="mr-1 h-5 w-5" />
+              Sort
             </button>
+
+            <button
+              onClick={() => setIsDeleteMode(!isDeleteMode)}
+              className={`inline-flex items-center px-3 py-2 border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500
+                ${
+                  isDeleteMode
+                    ? "bg-red-100 text-red-800 border-red-300 hover:bg-red-200"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+            >
+              <MdDeleteOutline className="mr-2 h-5 w-5" />
+              {isDeleteMode ? "Cancel" : "Delete"}
+            </button>
+
+            {isDeleteMode && selectedItems.length > 0 && (
+              <button
+                onClick={() => setDeletePage(true)}
+                className="inline-flex items-center px-3 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                Delete {selectedItems.length}
+              </button>
+            )}
           </div>
         </div>
-        {valuationIsFetching ? (
-          <div className="flex flex-col justify-center items-center h-screen">
-            <Image
-              src="/loading.svg"
-              alt="Loading icon"
-              height={400}
-              width={400}
-              className="object-contain mb-4" // Added margin-bottom for spacing
-            />
-            <p className="font-semibold text-lg text-center mt-5">Loading...</p>
-          </div>
-        ) : valuationQuery && valuationQuery.length > 0 ? (
-          <table className="w-full text-sm text-left rtl:text-right">
-            <thead className="text-sm font-medium bg-gray-50">
-              <tr>
-                <th scope="col" className="px-1 py-3 whitespace-nowrap min-w-[180px]">
-                  Company
-                </th>
-                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                  <span className="flex items-center">
-                    <FaDollarSign className="mr-1" />
-                    Market Price
-                  </span>
-                </th>
-                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                  <span className="flex items-center">
-                    <MdDiamond className="mr-1" />
-                    Implied Price
-                  </span>
-                </th>
-                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                  <span className="flex items-center">
-                    <MdOutlineDescription className="mr-1" />
-                    Description
-                  </span>
-                </th>
-                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                  <span className="flex items-center">
-                    <MdOutlineDateRange className="mr-1" />
-                    Valuation Date
-                  </span>
-                </th>
-                <th scope="col" className="p-4"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {valuationQuery.map((item: any, index: number) => (
-                <tr
-                  key={index}
-                  className="bg-white border-b hover:bg-stone-200 cursor-pointer"
-                  onClick={(e) => {
-                    // Prevent triggering the click when interacting with specific elements
-                    if (!(e.target instanceof HTMLInputElement)) {
-                      handleMoreDetails(e, item.id);
-                    }
-                  }}
+
+        {/* Sort info */}
+        <div className="mb-4 text-sm text-gray-500">
+          Sorting by:{" "}
+          {sortField === "valued_date"
+            ? "Date"
+            : sortField === "symbol"
+            ? "Symbol"
+            : sortField === "implied_share_price"
+            ? "Implied Price"
+            : sortField === "diff"
+            ? "Valuation Difference"
+            : sortField === "mrq"
+            ? "Most Recent Quarter"
+            : "Date"}{" "}
+          ({sortDirection === "desc" ? "descending" : "ascending"})
+        </div>
+
+        {/* Main content */}
+        {valuationIsFetching || status === "loading" ? (
+          <LoadingState />
+        ) : !valuationQuery || valuationQuery.length === 0 ? (
+          <EmptyState searchTerm={symbol} />
+        ) : view === "grid" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sortedValuations.map((item, index) => {
+              const marketPrice = marketPriceQueries[valuationQuery.findIndex((v: any) => v.id === item.id)]?.data || 0;
+              const valuationDiff = calculateValuationDiff(Number(marketPrice), Number(item.implied_share_price));
+              const isUndervalued = valuationDiff > 0;
+              const stockName = item.stock_info.find((si: any) => si.id === "shortName")?.value || item.symbol;
+              const mrq = getMostRecentQuarter(item.stock_info);
+
+              return (
+                <div
+                  key={item.id}
+                  className={`rounded-xl overflow-hidden shadow-sm bg-white border hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
+                    selectedItems.includes(item.id) ? "border-indigo-500 ring-2 ring-indigo-200" : "border-gray-200"
+                  } cursor-pointer`}
+                  onClick={isDeleteMode ? () => handleCheckboxChange(item.id) : () => handleViewDetails(item.id)}
                 >
-                  <td className="px-1 py-6 font-bold grid grid-cols-[auto_1fr] gap-x-3 min-w-[180px]">
-                    <Image
-                      src={`https://img.logo.dev/ticker/${item.symbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
-                      alt="logo"
-                      height={128}
-                      width={128}
-                      className="row-span-2 aspect-square object-contain h-8 w-8 lg:h-10 lg:w-10"
-                    />
-                    <div className="col-start-2">{item.stock_info[0].value}</div>
-                    <div className="col-start-2">{item.symbol}</div>
-                  </td>
-                  <td className="px-6 py-6 ">${marketPriceQueries[index].data}</td>
-                  <td className="px-6 py-6 ">
-                    ${item.implied_share_price}
-                    {marketPriceQueries[index].data && (
-                      <div className="mt-1">
-                        {item.implied_share_price > marketPriceQueries[index].data ? (
-                          <div className="bg-green-300 text-green-800 text-center rounded-lg flex items-center justify-center py-1 px-2">
-                            <FaArrowUp className="mr-1" />
-                            <span>
-                              {valuationCalcuation(marketPriceQueries[index].data, item.implied_share_price)}%
-                            </span>
-                            <span className="ml-1"> Undervalued </span>
-                          </div>
-                        ) : (
-                          <div className="bg-red-200 text-red-800 text-center rounded-lg flex items-center justify-center py-1 px-2">
-                            <FaArrowDown className="mr-1" />
-                            <span>
-                              {valuationCalcuation(marketPriceQueries[index].data, item.implied_share_price)}%
-                            </span>
-                            <span className="ml-1">Overvalued</span>
-                          </div>
-                        )}
+                  {/* Top section with valuation status */}
+                  <div className={`h-2 ${isUndervalued ? "bg-green-500" : "bg-red-500"}`}></div>
+
+                  {/* Company info */}
+                  <div className="py-5 px-4 border-b border-gray-100">
+                    <div className="flex justify-between">
+                      <div className="flex items-center">
+                        <div className="mr-3 relative w-12 h-12">
+                          <Image
+                            src={`https://img.logo.dev/ticker/${item.symbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
+                            alt={`${item.symbol} logo`}
+                            fill
+                            className="rounded-lg"
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder-logo.svg";
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-xl text-gray-900">{item.symbol}</h3>
+                          <p className="text-sm text-gray-500 truncate max-w-[180px]">{stockName}</p>
+                        </div>
                       </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-6 ">{truncateDescription(item.description)}</td>
-                  <td className="px-6 py-6 ">{epochToDateTime(item.valued_date)}</td>
-                  <td className="w-4 px-3 py-6">
-                    <div className="flex items-center">
-                      <input
-                        id={`checkbox-table-search-${index}`}
-                        type="checkbox"
-                        className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => handleCheckboxChange(item.id)}
-                      />
-                      <label htmlFor={`checkbox-table-search-${index}`} className="sr-only">
-                        checkbox
-                      </label>
+
+                      {isDeleteMode && (
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.includes(item.id)}
+                            onChange={(e) => handleCheckboxChange(item.id, e)}
+                            className="h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                          />
+                        </div>
+                      )}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+                    <div className="flex flex-col gap-2 mt-4">
+                      <div className="flex items-center text-xs text-gray-500">
+                        <FaCalendarAlt className="mr-1" />
+                        <span>{formatValuationDate(item.valued_date)}</span>
+                      </div>
+                      <div className="text-xs mt-2 text-gray-500">
+                        Last MRQ: <span className="font-medium">{mrq}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Valuation data */}
+                  <div className="py-2 px-4">
+                    <div className="flex justify-between mb-4">
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Implied Value</div>
+                        <div className="text-lg font-bold">${convRound2Dp(Number(item.implied_share_price))}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Market Price</div>
+                        <div className="text-lg font-bold">
+                          ${marketPrice ? convRound2Dp(Number(marketPrice)) : "--"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`${
+                        isUndervalued
+                          ? "bg-green-50 border-green-100 text-green-800"
+                          : "bg-red-50 border-red-100 text-red-800"
+                      } rounded-lg border p-3 text-center`}
+                    >
+                      <div className="flex items-center justify-center">
+                        {isUndervalued ? (
+                          <FaArrowUp className="mr-2 text-green-600" />
+                        ) : (
+                          <FaArrowDown className="mr-2 text-red-600" />
+                        )}
+                        <span className="font-bold">{formatValuationDiff(valuationDiff)}</span>
+                        <span className="ml-1 text-sm">{isUndervalued ? "Undervalued" : "Overvalued"}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
-          <div>No data available. Please enter a stock symbol.</div>
+          // List view
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  {isDeleteMode && (
+                    <th scope="col" className="pl-6 py-3 w-10">
+                      <span className="sr-only">Select</span>
+                    </th>
+                  )}
+                  <th
+                    scope="col"
+                    className="pl-6 pr-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => toggleSort("symbol")}
+                  >
+                    <div className="flex items-center">
+                      Company
+                      {sortField === "symbol" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                    </div>
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-32"
+                    onClick={() => toggleSort("implied_share_price")}
+                  >
+                    <div className="flex items-center justify-end">
+                      <span>Implied</span>
+                      {sortField === "implied_share_price" && (
+                        <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-32"
+                  >
+                    Market
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-40"
+                    onClick={() => toggleSort("diff")}
+                  >
+                    <div className="flex items-center justify-end">
+                      <span>Difference</span>
+                      {sortField === "diff" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                    </div>
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-36"
+                    onClick={() => toggleSort("mrq")}
+                  >
+                    <div className="flex items-center justify-end">
+                      <span>Last MRQ</span>
+                      {sortField === "mrq" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                    </div>
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-40"
+                    onClick={() => toggleSort("valued_date")}
+                  >
+                    <div className="flex items-center justify-end">
+                      <span>Date</span>
+                      {sortField === "valued_date" && (
+                        <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {sortedValuations.map((item, index) => {
+                  const marketPrice =
+                    marketPriceQueries[valuationQuery.findIndex((v: any) => v.id === item.id)]?.data || 0;
+                  const valuationDiff = calculateValuationDiff(Number(marketPrice), Number(item.implied_share_price));
+                  const isUndervalued = valuationDiff > 0;
+                  const stockName = item.stock_info.find((si: any) => si.id === "shortName")?.value || item.symbol;
+                  const mrq = getMostRecentQuarter(item.stock_info);
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className={`hover:bg-gray-50 transition-colors cursor-pointer`}
+                      onClick={isDeleteMode ? () => handleCheckboxChange(item.id) : () => handleViewDetails(item.id)}
+                    >
+                      {isDeleteMode && (
+                        <td className="pl-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.includes(item.id)}
+                            onChange={(e) => handleCheckboxChange(item.id, e)}
+                            className="h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                          />
+                        </td>
+                      )}
+
+                      <td className="pl-6 pr-3 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 relative">
+                            <Image
+                              src={`https://img.logo.dev/ticker/${item.symbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
+                              alt={`${item.symbol} logo`}
+                              fill
+                              className="rounded-lg"
+                              onError={(e) => {
+                                e.currentTarget.src = "/placeholder-logo.svg";
+                              }}
+                            />
+                          </div>
+                          <div className="ml-4">
+                            <div className="font-bold text-gray-900">{item.symbol}</div>
+                            <div className="text-sm text-gray-500 truncate max-w-[200px]">{stockName}</div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-4 whitespace-nowrap text-right">
+                        <div className="text-sm font-bold text-gray-900">
+                          ${convRound2Dp(Number(item.implied_share_price))}
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-4 whitespace-nowrap text-right">
+                        <div className="text-sm font-bold text-gray-900">
+                          ${marketPrice ? convRound2Dp(Number(marketPrice)) : "--"}
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-4 whitespace-nowrap text-right">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                            isUndervalued ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {isUndervalued ? <FaArrowUp className="mr-1" /> : <FaArrowDown className="mr-1" />}
+                          {formatValuationDiff(valuationDiff)}
+                        </span>
+                      </td>
+
+                      <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-500 font-medium">
+                        {mrq}
+                      </td>
+
+                      <td className="px-5 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                        {formatValuationDate(item.valued_date)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
+
+      {/* Delete confirmation popup */}
       {deletePage && <DeletePopoutPage setIsPopoutOpen={setDeletePage} handleDelete={handleDelete} />}
-    </div>
+    </>
   );
 }

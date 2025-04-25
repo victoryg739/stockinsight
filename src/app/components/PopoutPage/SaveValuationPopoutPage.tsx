@@ -183,7 +183,7 @@ export default function SaveValuationPopoutPage({
   const handleSave = () => {
     const nowEpochSeconds = Math.floor(Date.now() / 1000);
     const data = {
-      symbol,
+      symbol: symbol.toUpperCase(),
       email,
       inputs,
       fetchedInputs,
@@ -618,7 +618,7 @@ export default function SaveValuationPopoutPage({
                   growth should expect significant reinvestment unless in asset-light tech companies)
                 </li>
                 <li>How does terminal ROIC compare to industry average ROIC?</li>
-                <li>Is your terminal ROIC assumption justified by the company's competitive advantages?</li>
+                <li>Is your terminal ROIC assumption justified by the company&apos;s competitive advantages?</li>
               </ul>
             </div>
           </section>
@@ -650,7 +650,7 @@ export default function SaveValuationPopoutPage({
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>How does your WACC compare to the industry average?</li>
                 <li>Is the WACC changing over time? If so, why?</li>
-                <li>Does the company's risk profile justify a discount or premium to the industry WACC?</li>
+                <li>Does the company&apos;s risk profile justify a discount or premium to the industry WACC?</li>
               </ul>
             </div>
           </section>
