@@ -12,7 +12,7 @@ const EquityValue = ({ data }: any) => {
               <td className="px-6 py-4 text-sm text-gray-500 text-right">
                 {item.id === "impliedSharePrice"
                   ? conv.convRound2Dp(item.value)
-                  : item.id === "terminalCOC"
+                  : item.id === "terminalWACC"
                   ? conv.convRound2Dp(item.value) + "%"
                   : conv.convToMillion(item.value)}
               </td>

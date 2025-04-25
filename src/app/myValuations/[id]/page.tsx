@@ -15,6 +15,7 @@ import { epochToDateTime } from "@/app/utils/helper";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import PresentValuePopoutPage from "@/app/components/PopoutPage/PresentValuePopoutPage";
+import ROICTable from "@/app/components/ROICTable";
 
 export default function Page({ params }: any) {
   const { data: session, status } = useSession();
@@ -99,7 +100,7 @@ export default function Page({ params }: any) {
         className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
            border"
       >
-        <div className="grid grid-cols-3 place-items-center gap-y-10 ">
+        <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10 ">
           {valuationQuery.inputs.map((input: any, index: number) => (
             <InputBox
               key={input.id}
@@ -128,8 +129,8 @@ export default function Page({ params }: any) {
 
         {/* Fetched Inputs */}
         {showMoreInputs && (
-          <div className="grid grid-cols-3 place-items-center gap-y-10 mt-10">
-            {valuationQuery.inputs.map((input: any) => (
+          <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10 mt-10">
+            {valuationQuery.fetched_inputs.map((input: any) => (
               <InputBox
                 key={input.id}
                 id={input.id}
@@ -158,6 +159,12 @@ export default function Page({ params }: any) {
             setIsPopoutOpen={setPresentValuePopup}
             setValuationModelLabel={setValuationModelLabel}
           />
+
+          <div className="flex flex-col items-center mb-14 mt-10">
+            <h2 className="font-medium text-xl mb-4 text-gray-700">Return on Invested Capital</h2>
+            <div className="w-full max-w h-0.5 bg-gray-200"></div>
+          </div>
+          <ROICTable data={valuationQuery.roic_data} />
           <div className="flex flex-col items-center mb-14 mt-10">
             <h2 className="font-medium text-xl mb-4 text-gray-700">Equity Value</h2>
             <div className="w-full max-w h-0.5 bg-gray-200"></div>

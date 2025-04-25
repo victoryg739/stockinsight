@@ -242,7 +242,7 @@ const MarketInsightPopoutPage = ({
 
   if (roicStatsQuery) {
     handleInputChange("roic", roicStatsQuery["roc"] + "%", "roic");
-    handleInputChange("reinvestmentRate", "$" + roicStatsQuery["reinvestment_rate"], "roic");
+    handleInputChange("reinvestmentRate", roicStatsQuery["reinvestment_rate"] + "%", "roic");
     handleInputChange("expectedGrowthEbit", roicStatsQuery["expected_growth_ebit"] + "%", "roic");
   }
 

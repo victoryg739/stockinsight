@@ -136,6 +136,7 @@ model valuation {
   valuation_model     Json?
   valuation_output    Json?
   implied_share_price Decimal? @db.Decimal(10, 2)
+  roic_data            Json? 
   description         String?
   valued_date         Int?
 }

@@ -3,6 +3,8 @@ import { RxCross1 } from "react-icons/rx";
 import * as conv from "../../utils/helper";
 import { useQuery } from "@tanstack/react-query";
 import * as queryFn from "../../utils/queryAPIFunctions";
+import * as finCalc from "../../utils/financialCalculations";
+import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 
 export default function SaveValuationPopoutPage({
   setIsPopoutOpen,
@@ -15,21 +17,22 @@ export default function SaveValuationPopoutPage({
   valuationOutput,
   impliedSharePrice,
   industryOptions,
+  roicData,
   mutation,
 }: any) {
   const [description, setDescription] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
   const popoutRef = useRef<HTMLDivElement>(null);
 
   // Get industry from stockInfo for API calls
-
-  const { data: roicData } = useQuery({
+  const { data: roicStats } = useQuery({
     queryKey: ["roic", industryOptions],
     queryFn: async () => {
       return queryFn.fetchRoic(industryOptions);
     },
   });
 
-  const { data: inputStatsData } = useQuery({
+  const { data: inputStats } = useQuery({
     queryKey: ["inputStats", industryOptions],
     queryFn: async () => {
       return queryFn.fetchInputStats(industryOptions);
@@ -65,23 +68,6 @@ export default function SaveValuationPopoutPage({
     }
   };
 
-  // Revenue Growth Values
-  const revGrowthY1 = getInputValue("revGrowthYr1", inputs);
-  const revGrowthY2to5 = getInputValue("revGrowthYr2to5", inputs);
-  const baseRevenue = getInputValue("baseRevenue", fetchedInputs);
-
-  // Industry revenue growth data
-  const industryRevGrowthNext5Years = inputStatsData?.revenue_growth_rate_median;
-
-  // Margins
-  const opMarginYr1 = getInputValue("opMarginYr1", inputs);
-  const opMarginYr10 = getInputValue("opMarginYr10", inputs);
-
-  // Sales to Capital
-  const salesToCapYr1 = getInputValue("salesToCapYr1", inputs);
-  const salesToCapYr2to5 = getInputValue("salesToCapYr2to5", inputs);
-  const salesToCapYr6to10 = getInputValue("salesToCapYr6to10", inputs);
-
   // Calculate sum of PV of FCFF
   const sumOfPVFCFF = valuationOutput.find((output: any) => output.id === "sumOfPVFcff10Yrs")?.value || 0;
 
@@ -89,7 +75,6 @@ export default function SaveValuationPopoutPage({
   const ebitAfterTaxModel = valuationModel.find((m: any) => m.id === "ebitAfterTax");
   const ebitAfterTaxValues = ebitAfterTaxModel?.value || [];
 
-  // Get discount factors for proper PV calculation
   const cumulatedDiscountFactorModel = valuationModel.find((m: any) => m.id === "cumulatedDiscountFactor");
   const cumulatedDiscountFactorValues = cumulatedDiscountFactorModel?.value || [];
 
@@ -99,7 +84,6 @@ export default function SaveValuationPopoutPage({
     // Skip base year (index 0) and take next 10 years
     for (let i = 1; i < Math.min(ebitAfterTaxValues.length, 11); i++) {
       // For each year, multiply EBIT After Tax by the corresponding discount factor
-      // Note: cumulatedDiscountFactor array starts at year 1, so we need to use i-1 as index
       const yearEbitAfterTax = ebitAfterTaxValues[i] || 0;
       const discountFactor = cumulatedDiscountFactorValues[i - 1] || 0;
       sumOfEbitAfterTax += yearEbitAfterTax * discountFactor;
@@ -110,19 +94,91 @@ export default function SaveValuationPopoutPage({
   const reinvestmentEffect = sumOfEbitAfterTax - sumOfPVFCFF;
   const reinvestmentPercentage = sumOfEbitAfterTax !== 0 ? (reinvestmentEffect / sumOfEbitAfterTax) * 100 : 0;
 
-  // WACC values
-  const waccValues = valuationModel.find((m: any) => m.id === "wacc")?.value || [];
-  const initialWacc = waccValues.length > 0 ? waccValues[0] : getInputValue("initialWacc", fetchedInputs);
-  const terminalWacc = waccValues.length > 10 ? waccValues[10] : "N/A";
+  //Calculate
+  const marginalRoic = finCalc.calcMarginalRoic(
+    valuationModel.find((m: any) => m.id === "ebitAfterTax")?.value,
+    roicData.investedCapital
+  );
 
-  // Get industry WACC from input stats
-  const industryWacc = inputStatsData?.cost_of_capital_median;
+  // Get terminal WACC for ROIC comparison
+  const terminalWACC = getModelValue("wacc", 10);
 
-  // ROIC terminal year
-  const roicTerminalYear = getInputValue("roicTerminalYear", fetchedInputs);
+  const generateTemplate = () => {
+    // Get key values for the framework
+    const revGrowthYr1 = getInputValue("revGrowthYr1", inputs);
+    const revGrowthYr2to5 = getInputValue("revGrowthYr2to5", inputs);
+    const termGrowthRate = getInputValue("revGrowthPerpetuity", inputs);
+    const opMargin = getInputValue("opMarginYr1", inputs);
+    const opMarginYr10 = getInputValue("opMarginYr10", inputs);
+    const terminalWACC = valuationOutput?.find((item: any) => item.id === "terminalWACC")?.value || 0;
+    const equityValue = valuationOutput?.find((item: any) => item.id === "equityValueCommonStock")?.value || 0;
+    const currentPrice = getInputValue("currentSharePrice", fetchedInputs);
+    const shareCount = getInputValue("impliedSharesOutstanding", fetchedInputs);
 
-  // Get industry average ROIC
-  const industryRoic = roicData?.roc;
+    // Calculate values
+    const impliedSharePrice = equityValue / shareCount;
+    const valGap = (impliedSharePrice / currentPrice - 1) * 100;
+
+    const framework = `## Growth Story (Revenue)
+    The company is expected to grow revenues at ${revGrowthYr1}% in year 1 and ${revGrowthYr2to5}% in years 2-5, before converging to a terminal growth rate of ${termGrowthRate}%.
+
+    [Explain what drives this growth - new products, market expansion, etc.]
+    [Discuss how this growth compares to ${industryOptions} peers and historical performance]
+    
+    ## Profitability Story (Margin)
+    Starting from a base operating margin of ${
+      typeof opMargin === "number" ? opMargin.toFixed(2) : opMargin
+    }%, the company is expected to reach ${
+      typeof opMarginYr10 === "number" ? opMarginYr10.toFixed(2) : opMarginYr10
+    }% in year 10.
+    
+    [Explain what will drive margin improvement/deterioration - economies of scale, competition, etc.]
+    [Address any operational efficiencies or challenges]
+    
+    ## Growth Efficiency Story
+    The company's Sales to Capital ratio indicates how efficiently it converts invested capital into revenue.
+
+    [Discuss the company's Sales to Capital ratio in Years 1, 2-5, and 6-10]
+    [Explain how these ratios compare to industry averages]
+
+    ## Competitive Advantages
+    The company's Terminal ROIC of ${formatValue(
+      roicData.roic[roicData.roic.length - 1],
+      "percentage"
+    )} and ROIC (Yr 10) of ${formatValue(roicData.roic[roicData.roic.length - 2], "percentage")} 
+
+    The Marginal ROIC of ${formatValue(marginalRoic, "percentage")} is ${
+      marginalRoic > terminalWACC ? "greater than" : "less than"
+    } its Terminal WACC of ${formatValue(terminalWACC, "percentage")}, suggesting that investments are ${
+      marginalRoic > terminalWACC ? "creating" : "destroying"
+    } shareholder value.
+
+    [Describe how ROIC reflects the company's competitive moat]
+    [Discuss threats to maintaining this competitive advantage]
+
+    ## Risk Story
+    The company has a terminal WACC of ${typeof terminalWACC === "number" ? terminalWACC.toFixed(2) : terminalWACC}%.
+    
+    [Discuss specific risks to the business model]
+    [Explain how sensitive the valuation is to key assumptions]
+    
+    ## Valuation Summary
+    Our DCF valuation yields an intrinsic value of $${
+      typeof impliedSharePrice === "number" ? impliedSharePrice.toFixed(2) : impliedSharePrice
+    } per share, compared to the current market price of $${
+      typeof currentPrice === "number" ? currentPrice.toFixed(2) : currentPrice
+    }.
+    
+    The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"} by ${Math.abs(
+      typeof valGap === "number" ? valGap : 0
+    ).toFixed(2)}%.
+    
+    [Explain what catalysts might help the market recognize this value gap]`;
+
+    setDescription(framework);
+    // Switch to preview mode after generating framework
+    setShowPreview(true);
+  };
 
   const handleSave = () => {
     const nowEpochSeconds = Math.floor(Date.now() / 1000);
@@ -135,6 +191,7 @@ export default function SaveValuationPopoutPage({
       valuationModel,
       valuationOutput,
       impliedSharePrice,
+      roic_data: roicData,
       description,
       valuedDate: nowEpochSeconds,
     };
@@ -156,9 +213,162 @@ export default function SaveValuationPopoutPage({
     };
   }, [setIsPopoutOpen]);
 
+  // Enhanced Markdown renderer for the preview
+  const renderMarkdown = (markdown: string) => {
+    if (!markdown) return null;
+
+    // Split the content into lines
+    const lines = markdown.split("\n");
+    const result: JSX.Element[] = [];
+
+    let currentList: string[] = [];
+    let currentListType: "ordered" | "unordered" | null = null;
+
+    // Process each line and convert to JSX
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Check if the line is part of a list
+      const orderedListMatch = line.match(/^\s*(\d+)\.\s(.+)$/);
+      const unorderedListMatch = line.match(/^\s*[-*]\s(.+)$/);
+
+      // Handle ordered list items
+      if (orderedListMatch) {
+        if (currentListType !== "ordered" && currentList.length) {
+          // We were in a different type of list, so finalize the previous list
+          if (currentListType === "unordered") {
+            result.push(
+              <ul key={`ul-${result.length}`} className="list-disc pl-6 mb-4">
+                {currentList.map((item, idx) => (
+                  <li key={idx} className="mb-1">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+          currentList = [];
+        }
+
+        currentListType = "ordered";
+        currentList.push(orderedListMatch[2]);
+      }
+      // Handle unordered list items
+      else if (unorderedListMatch) {
+        if (currentListType !== "unordered" && currentList.length) {
+          // We were in a different type of list, so finalize the previous list
+          if (currentListType === "ordered") {
+            result.push(
+              <ol key={`ol-${result.length}`} className="list-decimal pl-6 mb-4">
+                {currentList.map((item, idx) => (
+                  <li key={idx} className="mb-1">
+                    {item}
+                  </li>
+                ))}
+              </ol>
+            );
+          }
+          currentList = [];
+        }
+
+        currentListType = "unordered";
+        currentList.push(unorderedListMatch[1]);
+      }
+      // Handle non-list content
+      else {
+        // If we were in a list, finalize it
+        if (currentList.length) {
+          if (currentListType === "ordered") {
+            result.push(
+              <ol key={`ol-${result.length}`} className="list-decimal pl-6 mb-4">
+                {currentList.map((item, idx) => (
+                  <li key={idx} className="mb-1">
+                    {item}
+                  </li>
+                ))}
+              </ol>
+            );
+          } else {
+            result.push(
+              <ul key={`ul-${result.length}`} className="list-disc pl-6 mb-4">
+                {currentList.map((item, idx) => (
+                  <li key={idx} className="mb-1">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+          currentList = [];
+          currentListType = null;
+        }
+
+        // Handle headers - check for each header style
+        if (line.trim().startsWith("# ")) {
+          result.push(
+            <h1 key={`h1-${i}`} className="text-2xl font-bold mb-3">
+              {line.trim().substring(2)}
+            </h1>
+          );
+        } else if (line.trim().startsWith("## ")) {
+          result.push(
+            <h2 key={`h2-${i}`} className="text-xl font-semibold mt-4 mb-2">
+              {line.trim().substring(3)}
+            </h2>
+          );
+        } else if (line.trim().startsWith("### ")) {
+          result.push(
+            <h3 key={`h3-${i}`} className="text-lg font-medium mt-4 mb-2">
+              {line.trim().substring(4)}
+            </h3>
+          );
+        }
+        // Handle empty lines
+        else if (line.trim() === "") {
+          result.push(<br key={`br-${i}`} />);
+        }
+        // Regular paragraph
+        else {
+          result.push(
+            <p key={`p-${i}`} className="mb-2">
+              {line}
+            </p>
+          );
+        }
+      }
+    }
+
+    // If we have any remaining list items at the end, finalize that list
+    if (currentList.length) {
+      if (currentListType === "ordered") {
+        result.push(
+          <ol key={`ol-${result.length}`} className="list-decimal pl-6 mb-4">
+            {currentList.map((item, idx) => (
+              <li key={idx} className="mb-1">
+                {item}
+              </li>
+            ))}
+          </ol>
+        );
+      } else {
+        result.push(
+          <ul key={`ul-${result.length}`} className="list-disc pl-6 mb-4">
+            {currentList.map((item, idx) => (
+              <li key={idx} className="mb-1">
+                {item}
+              </li>
+            ))}
+          </ul>
+        );
+      }
+    }
+
+    return result;
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-[800px] h-[700px] overflow-auto relative">
+      <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-[880px] h-[950px] overflow-auto relative">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Valuation Review & Save</h2>
 
@@ -179,21 +389,27 @@ export default function SaveValuationPopoutPage({
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Year 1</div>
-                <div className="text-md font-semibold">{formatValue(revGrowthY1, "percentage")}</div>
+                <div className="text-md font-semibold">
+                  {formatValue(getInputValue("revGrowthYr1", inputs), "percentage")}
+                </div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Years 2-5</div>
-                <div className="text-md font-semibold">{formatValue(revGrowthY2to5, "percentage")}</div>
+                <div className="text-md font-semibold">
+                  {formatValue(getInputValue("revGrowthYr2to5", inputs), "percentage")}
+                </div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Industry Average</div>
-                <div className="text-md font-semibold">{formatValue(industryRevGrowthNext5Years, "percentage")}</div>
+                <div className="text-md font-semibold">
+                  {formatValue(inputStats?.revenue_growth_rate_median, "percentage")}
+                </div>
               </div>
             </div>
 
             <div className="bg-blue-50 p-4 rounded-md">
               <h4 className="font-medium mb-2">Key Questions</h4>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
+              <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>If growth exceeds the industry average, is the company smaller or in a high-growth phase?</li>
                 <li>
                   If growth diverges sharply from recent performance, what justifies this change (e.g., new markets,
@@ -209,7 +425,9 @@ export default function SaveValuationPopoutPage({
             <div className="grid grid-cols-4 gap-4 mb-4">
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Base Year</div>
-                <div className="text-md font-semibold">{formatValue(baseRevenue, "currency")}</div>
+                <div className="text-md font-semibold">
+                  {formatValue(getInputValue("baseRevenue", fetchedInputs), "currency")}
+                </div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Next Year</div>
@@ -227,7 +445,7 @@ export default function SaveValuationPopoutPage({
 
             <div className="bg-blue-50 p-4 rounded-md">
               <h4 className="font-medium mb-2">Key Questions</h4>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
+              <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>What is the total addressable market (TAM) today?</li>
                 <li>How do projected revenues compare to current market leaders?</li>
                 <li>What market share is assumed by Year 10?</li>
@@ -261,7 +479,7 @@ export default function SaveValuationPopoutPage({
 
             <div className="bg-blue-50 p-4 rounded-md">
               <h4 className="font-medium mb-2">Key Questions</h4>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
+              <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>How do margins compare to industry peers?</li>
                 <li>What are the unit economics (cost to produce/sell incremental units)?</li>
                 <li>What competitive dynamics could pressure margins (e.g., pricing wars)?</li>
@@ -271,58 +489,133 @@ export default function SaveValuationPopoutPage({
 
           {/* 4. Reinvestment Efficiency */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-2">4. Check Reinvestment Efficiency</h3>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Sales to Capital (Yr 1)</div>
-                <div className="text-md font-semibold">{formatValue(salesToCapYr1, "number")}</div>
-              </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Sales to Capital (Yr 2-5)</div>
-                <div className="text-md font-semibold">{formatValue(salesToCapYr2to5, "number")}</div>
-              </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Sales to Capital (Yr 6-10)</div>
-                <div className="text-md font-semibold">{formatValue(salesToCapYr6to10, "number")}</div>
+            <h3 className="text-lg font-semibold mb-6 border-b pb-2">4. Check Reinvestment Efficiency</h3>
+
+            {/* 4a. Sales to Capital */}
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-4 text-gray-700 border-l-4 border-blue-500 pl-3">
+                4a. Sales to Capital Ratio
+              </h4>
+              <div className="grid grid-cols-3 gap-4 mb-3">
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">Sales to Capital (Yr 1)</div>
+                  <div className="text-md font-semibold">
+                    {formatValue(getInputValue("salesToCapYr1", inputs), "number")}
+                  </div>
+                </div>
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">Sales to Capital (Yr 2-5)</div>
+                  <div className="text-md font-semibold">
+                    {formatValue(getInputValue("salesToCapYr2to5", inputs), "number")}
+                  </div>
+                </div>
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">Sales to Capital (Yr 6-10)</div>
+                  <div className="text-md font-semibold">
+                    {formatValue(getInputValue("salesToCapYr6to10", inputs), "number")}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">ROIC Terminal Year</div>
-                <div className="text-md font-semibold">{formatValue(roicTerminalYear, "percentage")}</div>
+            {/* 4b. Reinvestment Effect on Cash Flows */}
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-4 text-gray-700 border-l-4 border-green-500 pl-3">
+                4b. Reinvestment Effect on Cash Flows
+              </h4>
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">Sum of PV of EBIT After Tax (10 Years)</div>
+                  <div className="text-md font-semibold">{formatValue(sumOfEbitAfterTax, "currency")}</div>
+                </div>
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">Sum of PV of FCFF (10 Years)</div>
+                  <div className="text-md font-semibold">{formatValue(sumOfPVFCFF, "currency")}</div>
+                </div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Industry Average ROIC</div>
-                <div className="text-md font-semibold">{formatValue(industryRoic, "percentage")}</div>
+              <div className="bg-amber-100 p-3 rounded-md mb-2">
+                <div className="text-sm text-gray-800">Value Effect of Reinvestment (10 Years)</div>
+                <div className="text-md font-semibold">
+                  {formatValue(reinvestmentEffect, "currency")} ({formatValue(reinvestmentPercentage, "percentage")} of
+                  EBIT After Tax)
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Sum of PV of EBIT After Tax (10 Years)</div>
-                <div className="text-md font-semibold">{formatValue(sumOfEbitAfterTax, "currency")}</div>
-              </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Sum of PV of FCFF (10 Years)</div>
-                <div className="text-md font-semibold">{formatValue(sumOfPVFCFF, "currency")}</div>
-              </div>
-            </div>
+            {/* 4c. Return on Invested Capital */}
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-4 text-gray-700 border-l-4 border-purple-500 pl-3">
+                4c. Return on Invested Capital
+              </h4>
+              <div className="grid grid-cols-3 gap-4 mb-3">
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">Marginal ROIC (Yr 1-10)</div>
+                  <div className="text-md font-semibold">{formatValue(marginalRoic, "percentage")}</div>
+                  <div className="text-xs text-gray-500 mt-1"></div>
+                </div>
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">ROIC (Yr 10)</div>
+                  <div className="text-md font-semibold">
+                    {formatValue(roicData.roic[roicData.roic.length - 2], "percentage")}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1"></div>
+                </div>
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">Terminal Year ROIC</div>
+                  <div className="text-md font-semibold">
+                    {formatValue(roicData.roic[roicData.roic.length - 1], "percentage")}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1"></div>
+                </div>
 
-            <div className="bg-amber-100 p-3 rounded-md mb-4">
-              <div className="text-sm text-gray-800">Value Effect of Reinvestment (10 Years)</div>
-              <div className="text-md font-semibold">
-                {formatValue(reinvestmentEffect, "currency")} ({formatValue(reinvestmentPercentage, "percentage")} of
-                EBIT After Tax)
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="text-sm text-gray-600">Industry Average ROIC</div>
+                  <div className="text-md font-semibold">{formatValue(roicStats?.roc, "percentage")}</div>
+                </div>
+              </div>
+
+              <div className="mt-4 mb-6">
+                <div
+                  className={`p-4 rounded-md flex items-start gap-3 ${
+                    marginalRoic > terminalWACC
+                      ? "bg-green-50 border border-green-200"
+                      : "bg-red-50 border border-red-200"
+                  }`}
+                >
+                  {marginalRoic > terminalWACC ? (
+                    <FaCheckCircle className="text-green-500 text-xl flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <FaTimesCircle className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
+                  )}
+                  <div>
+                    <h4 className={`font-medium ${marginalRoic > terminalWACC ? "text-green-700" : "text-red-700"}`}>
+                      {marginalRoic > terminalWACC ? "Creating Value" : "Destroying Value"}
+                    </h4>
+                    <p className="text-sm mt-1">
+                      {marginalRoic > terminalWACC
+                        ? "Investments are generating returns above the WACC, creating shareholder value."
+                        : "Investments are generating returns below the WACC, destroying shareholder value."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Explanation */}
+                <div className="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                  <p>
+                    <strong>What is Marginal ROIC?</strong> Marginal ROIC measures the return generated specifically by
+                    new capital investments.
+                  </p>
+                </div>
               </div>
             </div>
 
             <div className="bg-blue-50 p-4 rounded-md">
               <h4 className="font-medium mb-2">Key Questions</h4>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li>How does the sales to capital ratio compare to industry averages? Is it sustainable?</li>
                 <li>
                   Is your reinvestment <strong>consistent</strong> with your revenue growth forecast? (high revenue
-                  growth should expect significant reinvestment unless asset-light tech companies)
+                  growth should expect significant reinvestment unless in asset-light tech companies)
                 </li>
                 <li>How does terminal ROIC compare to industry average ROIC?</li>
                 <li>Is your terminal ROIC assumption justified by the company's competitive advantages?</li>
@@ -336,45 +629,85 @@ export default function SaveValuationPopoutPage({
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">WACC (Years 1-5)</div>
-                <div className="text-md font-semibold">{formatValue(initialWacc, "percentage")}</div>
+                <div className="text-md font-semibold">
+                  {formatValue(getInputValue("initialWacc", fetchedInputs), "percentage")}
+                </div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Terminal WACC</div>
-                <div className="text-md font-semibold">{formatValue(terminalWacc, "percentage")}</div>
+                <div className="text-md font-semibold">{formatValue(getModelValue("wacc", 10), "percentage")}</div>
               </div>
               <div className="bg-gray-100 p-3 rounded-md">
                 <div className="text-sm text-gray-600">Industry WACC</div>
-                <div className="text-md font-semibold">{formatValue(industryWacc, "percentage")}</div>
+                <div className="text-md font-semibold">
+                  {formatValue(inputStats?.cost_of_capital_median, "percentage")}
+                </div>
               </div>
             </div>
 
             <div className="bg-blue-50 p-4 rounded-md">
               <h4 className="font-medium mb-2">Key Questions</h4>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                <li>How does your cost of capital compare to the industry average?</li>
-                <li>Is the cost of capital changing over time? If so, why?</li>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li>How does your WACC compare to the industry average?</li>
+                <li>Is the WACC changing over time? If so, why?</li>
                 <li>Does the company's risk profile justify a discount or premium to the industry WACC?</li>
               </ul>
             </div>
           </section>
 
-          {/* 6. Description */}
+          {/* 6. Add Your Analysis */}
           <section>
             <h3 className="text-lg font-semibold mb-3 border-b pb-2">6. Add Your Analysis</h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Use this space to document your thoughts on the valuation. Consider addressing the key questions from the
-              sections above or any specific insights about this company&apos;s valuation.
+            <p className="text-sm text-gray-600 mb-4">
+              Describe your investment thesis. A well-structured valuation should be backed with a good story.
             </p>
-            <textarea
-              className="w-full h-32 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-              placeholder="Enter your story for your valuation here..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={generateTemplate}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Generate Template
+                </button>
+
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    className={`px-3 py-1.5 rounded ${
+                      !showPreview ? "bg-gray-800 text-white" : "bg-gray-200 text-gray-800"
+                    }`}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => setShowPreview(true)}
+                    className={`px-3 py-1.5 rounded ${
+                      showPreview ? "bg-gray-800 text-white" : "bg-gray-200 text-gray-800"
+                    }`}
+                  >
+                    Preview
+                  </button>
+                </div>
+              </div>
+
+              {showPreview ? (
+                <div className="w-full h-64 p-4 border rounded-lg overflow-auto bg-white">
+                  <div className="prose max-w-none">{renderMarkdown(description)}</div>
+                </div>
+              ) : (
+                <textarea
+                  className="w-full h-64 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Your complete valuation story will appear here. Click 'Generate Template ' to start, then edit as needed."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              )}
+            </div>
           </section>
         </div>
 
-        <div className="flex justify-center p-4 bg-white border-t">
+        <div className="flex justify-center p-4 bg-white border-t mt-6">
           <button
             onClick={handleSave}
             className="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors"

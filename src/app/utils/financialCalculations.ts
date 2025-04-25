@@ -266,7 +266,7 @@ export function calcROIC(salesToCapY1: number, salesToCapY2To5: number, salesToC
     investedCapital.push(initialInvestedCapital);
 
     // Calculate invested capital for each year based on reinvestment
-    for (let i = 0; i < reinvestment.length; i++) {
+    for (let i = 0; i < reinvestment.length - 1; i++) {
         const newInvestedCapital = investedCapital[i] + reinvestment[i];
         investedCapital.push(newInvestedCapital);
     }
@@ -283,11 +283,14 @@ export function calcROIC(salesToCapY1: number, salesToCapY2To5: number, salesToC
 
     // Terminal year ROIC calculation
     roic.push(roicTerminalYear);
-
     return {
         salesToCap,
         investedCapital,
         roic
     };
 
+}
+
+export function calcMarginalRoic(ebitAfterTax: number[], investedCapital: number[]) {
+    return ((ebitAfterTax[ebitAfterTax.length - 2] - ebitAfterTax[0]) / (investedCapital[investedCapital.length - 1] - investedCapital[0]) * 100)
 }

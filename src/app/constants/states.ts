@@ -143,7 +143,7 @@ export const VALUATION_MODEL = [
     { id: "pvFcff", label: "Present Value of FCFF", value: [] },
 ];
 export const VALUATION_OUTPUT = [
-    { id: "terminalCOC", label: "Terminal Cost of Capital", value: 0 },
+    { id: "terminalWACC", label: "Terminal WACC", value: 0 },
     { id: "sumOfPVFcff10Yrs", label: "Sum of PV of FCFF (10 Years)", value: 0 },
     { id: "terminalValue", label: "Terminal Value", value: 0 },
     { id: "pvTerminalValue", label: "Present Value of Terminal Value", value: 0 },

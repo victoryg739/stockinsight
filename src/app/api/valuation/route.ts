@@ -11,7 +11,8 @@ console.log("Prisma Client Initialized");
 export async function POST(req: NextRequest) {
     if (req.method === 'POST') {
         const body = await req.json();
-        const { symbol, email, inputs, fetchedInputs, stockInfo, valuationModel, valuationOutput, impliedSharePrice, description, valuedDate } = body;
+        const { symbol, email, inputs, fetchedInputs, stockInfo, valuationModel, valuationOutput, impliedSharePrice, roic_data, description, valuedDate } = body;
+        console.log(roic_data)
         try {
             const newValuation = await prisma.valuation.create({
                 data: {
@@ -23,6 +24,7 @@ export async function POST(req: NextRequest) {
                     valuation_model: valuationModel,
                     valuation_output: valuationOutput,
                     implied_share_price: impliedSharePrice,
+                    roic_data,
                     description,
                     valued_date: valuedDate,
                 },

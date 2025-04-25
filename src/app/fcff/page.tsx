@@ -323,7 +323,7 @@ export default function Page() {
   // Update VALUATION_OUTPUT
   valuationOutputRef.current = States.VALUATION_OUTPUT.map((item) => {
     switch (item.id) {
-      case "terminalCOC":
+      case "terminalWACC":
         return { ...item, value: terminalWacc };
       case "sumOfPVFcff10Yrs":
         return { ...item, value: sumOfPvFcff10Yrs };
@@ -540,6 +540,7 @@ export default function Page() {
               valuationOutput={valuationOutputRef.current}
               impliedSharePrice={impliedSharePriceRef.current}
               industryOptions={industryOptions}
+              roicData={roicData}
               mutation={saveValuationMutation}
             />
           )}
