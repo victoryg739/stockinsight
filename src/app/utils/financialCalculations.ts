@@ -108,7 +108,6 @@ export function calcReinvestment(revenue: number[], salesToCapY1: number, salesT
         reinvestment.push((revenue[i] - revenue[i - 1]) / salesToCapY6To10);
     }
 
-    //TODO change terminalWacc should follow Terminal Year ROIC(which can be terminal WACC or custom input)
     //terminal year
     reinvestment.push(ebitAfterTaxTerminalYr * (revGrowthTerminalYr / roicTerminalYear))
 

@@ -213,7 +213,6 @@ export default function SaveValuationPopoutPage({
     };
   }, [setIsPopoutOpen]);
 
-  // Enhanced Markdown renderer for the preview
   const renderMarkdown = (markdown: string) => {
     if (!markdown) return null;
 

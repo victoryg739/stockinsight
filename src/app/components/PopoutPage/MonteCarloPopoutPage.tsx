@@ -509,7 +509,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
     // Process fetchedInputs (system inputs)
     fetchedInputs.forEach((input) => {
       const value = typeof input.value === "string" ? parseFloat(input.value) : (input.value as number);
-      if (["initialWacc", "riskFreeRate"].includes(input.id)) {
+      if (["initialWacc", "riskFreeRate", "roicTerminalYear"].includes(input.id)) {
         vars[input.id] = {
           id: input.id,
           label: input.label,

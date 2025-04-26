@@ -192,7 +192,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 variedBaseInputs.salesToCapYr2to5,
                 variedBaseInputs.salesToCapYr6to10,
                 growthRates[growthRates.length - 1],
-                terminalWacc,
+                variedFetchedInputs.roicTerminalYear, // Use roicTerminalYear instead of terminalWacc
                 ebitAfterTax[ebitAfterTax.length - 1]
             );
 

@@ -133,7 +133,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
       unit: input.unit || "",
     })),
     ...fetchedInputs
-      .filter((input) => ["initialWacc", "riskFreeRate"].includes(input.id))
+      .filter((input) => ["initialWacc", "riskFreeRate", "roicTerminalYear"].includes(input.id))
       .map((input) => ({
         id: input.id,
         label: input.label,
@@ -399,8 +399,8 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
       sCapY1,
       sCapY2to5,
       sCapY6to10,
-      growthRates[growthRates.length - 1], // Use potentially adjusted terminal growth
-      terminalWacc,
+      growthRates[growthRates.length - 1],
+      fetchedInputValues["roicTerminalYear"], // Use roicTerminalYear
       ebitAfterTax[ebitAfterTax.length - 1]
     );
     const fcff = FinCalc.calcFcff(ebitAfterTax, reinvestment);
