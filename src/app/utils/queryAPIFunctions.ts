@@ -9,7 +9,7 @@ export const fetchRiskFreeRate = async (
     handleInputChange: (id: string, newValue: any, type: "inputs" | "fetchedInputs") => void
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/risk-free-rate`);
+        const { data } = await axios.get(`/api/risk-free-rate`);
         handleInputChange("riskFreeRate", data.regularMarketPrice, "fetchedInputs");
         handleInputChange("revGrowthPerpetuity", data.regularMarketPrice, "inputs");
     } catch (error) {
@@ -24,7 +24,7 @@ export const fetchEquityRiskPremium = async (
     handleInputChange: (id: string, newValue: any, type: "inputs" | "fetchedInputs") => void
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/aswath-data/country-risk-premium?country=${country}`);
+        const { data } = await axios.get(`/api/aswath-data/country-risk-premium?country=${country}`);
         const equity_risk_premium = parseFloat(data["equity_risk_premium"]);
         const marginal_tax_rate = parseFloat(data["corporate_tax_rate"]);
         handleInputChange("equityRiskPremium", equity_risk_premium, "fetchedInputs")
@@ -46,7 +46,7 @@ export const fetchIncomeStatement = async (symbol: string,
     handleInputChange: (id: string, newValue: any, type: "inputs" | "fetchedInputs") => void
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/ttm/income-statement?symbol=${symbol}`);
+        const { data } = await axios.get(`/api/ttm/income-statement?symbol=${symbol}`);
 
         // Get the first key (timestamp) from the data object
         const timestampKey = Object.keys(data)[0];
@@ -78,7 +78,7 @@ export const fetchBalanceSheetQuarterly = async (
     handleInputChange: (id: string, newValue: any, type: "inputs" | "fetchedInputs") => void
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/quarterly/balance-sheet?symbol=${symbol}`);
+        const { data } = await axios.get(`/api/quarterly/balance-sheet?symbol=${symbol}`);
         const latestQtr = extractLatestQuarterValues(data);
         if (latestQtr === null) {
             throw ("cannot get latest quarter of balance sheet")
@@ -100,7 +100,7 @@ export const fetchStockInfo = async (
     handleInputChange: (id: string, newValue: any, type: "inputs" | "fetchedInputs" | "stockInfo") => void
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/stock-info?symbol=${symbol}`);
+        const { data } = await axios.get(`/api/stock-info?symbol=${symbol}`);
         const currentPrice = data["currentPrice"];
         const impliedSharesOutstanding = data["impliedSharesOutstanding"];
 
@@ -162,7 +162,7 @@ export const fetchBeta = async (
     industry: string,
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/aswath-data/beta-us?industry=${industry}`);
+        const { data } = await axios.get(`/api/aswath-data/beta-us?industry=${industry}`);
         const unlevered_beta = parseFloat(data["avg_unlevered_beta"]);
         return unlevered_beta
     } catch (error) {
@@ -177,7 +177,7 @@ export const fetchBeta = async (
 //     handleInputChange: (id: string, newValue: any, type: "waccEquity" | "waccDebt") => void
 // ) => {
 //     try {
-//         const { data } = await axios.get(`${BASE_URL}/api/aswath-data/effective-tax-rate?industry=${industry}`);
+//         const { data } = await axios.get(`/api/aswath-data/effective-tax-rate?industry=${industry}`);
 //         const effective_tax_rate = parseFloat(data["effectivetr_avg_across_all_comp"]);
 //         return effective_tax_rate
 //     } catch (error) {
@@ -191,7 +191,7 @@ export const fetchBeta = async (
 export const fetchSyntheticRatingSpread = async (
     rating: string) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/aswath-data/synthetic-rating/get-spread?rating=${rating}`);
+        const { data } = await axios.get(`/api/aswath-data/synthetic-rating/get-spread?rating=${rating}`);
 
         // Convert the data to a number
         const spreadValue = Number(data);
@@ -215,7 +215,7 @@ export const fetchInputStats = async (
 ) => {
     try {
         const encodedIndustry = encodeParams(industry);
-        const { data } = await axios.get(`${BASE_URL}/api/aswath-data/input-stats?industry=${encodedIndustry}`);
+        const { data } = await axios.get(`/api/aswath-data/input-stats?industry=${encodedIndustry}`);
         return data
 
     } catch (error) {
@@ -230,7 +230,7 @@ export const fetchRoic = async (
 ) => {
     try {
         const encodedIndustry = encodeParams(industry);
-        const { data } = await axios.get(`${BASE_URL}/api/aswath-data/roic?industry=${encodedIndustry}`);
+        const { data } = await axios.get(`/api/aswath-data/roic?industry=${encodedIndustry}`);
         return data
 
     } catch (error) {
@@ -244,7 +244,7 @@ export const postValuation = async (
     data: any,
 ) => {
     try {
-        await axios.post(`${BASE_URL}/api/valuation`, data)
+        await axios.post(`/api/valuation`, data)
         return true
     } catch (error) {
         console.error('Error saving valuation:', error);
@@ -259,7 +259,7 @@ export const deleteValuationById = async (
 ) => {
     for (const id of ids) {  // Correctly iterating over the array
         try {
-            await axios.delete(`${BASE_URL}/api/valuation/${id}`)
+            await axios.delete(`/api/valuation/${id}`)
         } catch (error) {
             console.error('Error deleting valuation:', error);
             throw error;
@@ -273,11 +273,11 @@ export const fetchValuations = async (
 ) => {
     try {
         if (symbol === "") {
-            const { data } = await axios.get(`${BASE_URL}/api/valuation`);
+            const { data } = await axios.get(`/api/valuation`);
             return data
 
         } else {
-            const { data } = await axios.get(`${BASE_URL}/api/valuation?symbol=${symbol}`);
+            const { data } = await axios.get(`/api/valuation?symbol=${symbol}`);
             return data
 
         }
@@ -294,7 +294,7 @@ export const fetchValuationById = async (
     id: string,
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/valuation/${id}`);
+        const { data } = await axios.get(`/api/valuation/${id}`);
         return data
 
     } catch (error) {
@@ -310,7 +310,7 @@ export const fetchMarketPrice = async (
     symbol: string,
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/stock-info?symbol=${symbol}`);
+        const { data } = await axios.get(`/api/stock-info?symbol=${symbol}`);
         const currentPrice = data["currentPrice"];
 
         return currentPrice;
@@ -329,7 +329,7 @@ export const fetchDCFHistoricalRev = async (
     symbol: string,
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/discounting-cash-flows/income-statement?symbol=${symbol}`);
+        const { data } = await axios.get(`/api/discounting-cash-flows/income-statement?symbol=${symbol}`);
         const revenue = data.report.slice(0, 10).map((item: any) => {
             const [year, month] = item.date.split("-");
             const yearMonth = `${year}-${month}`;
@@ -348,7 +348,7 @@ export const fetchDCFHistoricalInvestedCap = async (
     symbol: string,
 ) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
+        const { data } = await axios.get(`/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
         const investedCapital = data.report.slice(0, 10).map((item: any) => {
             const itemInvestedCap = item.totalEquity + item.totalDebt - item.cashAndCashEquivalents
 
@@ -374,13 +374,13 @@ export const fetchCompAnalysis = async (symbol: string) => {
             return
         }
 
-        const balanceSheet = await axios.get(`${BASE_URL}/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
+        const balanceSheet = await axios.get(`/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
         if (!balanceSheet.data.report || balanceSheet.data.report.length === 0) {
             throw new Error("No balance sheet data available");
         }
         const balanceSheetCurYear = balanceSheet.data.report[0];
 
-        const incomeStatement = await axios.get(`${BASE_URL}/api/discounting-cash-flows/income-statement?symbol=${symbol}`);
+        const incomeStatement = await axios.get(`/api/discounting-cash-flows/income-statement?symbol=${symbol}`);
         if (!incomeStatement.data.report || incomeStatement.data.report.length === 0) {
             throw new Error("No income statement data available");
         }
@@ -393,7 +393,7 @@ export const fetchCompAnalysis = async (symbol: string) => {
             salesToCap = String(convRound2Dp(revenue / investedCapital));
         }
 
-        const { data } = await axios.get(`${BASE_URL}/api/ttm/income-statement?symbol=${symbol}`);
+        const { data } = await axios.get(`/api/ttm/income-statement?symbol=${symbol}`);
 
         // Get the first key (timestamp) from the data object
         const timestampKey = Object.keys(data)[0];
@@ -403,7 +403,7 @@ export const fetchCompAnalysis = async (symbol: string) => {
 
         const ebitMarginTTM = (incomeStatementYahooTTM["Operating Income"] / incomeStatementYahooTTM["Total Revenue"]) * 100;
 
-        const stockInfo = await axios.get(`${BASE_URL}/api/stock-info?symbol=${symbol}`);
+        const stockInfo = await axios.get(`/api/stock-info?symbol=${symbol}`);
         if (!stockInfo.data) {
             throw new Error("No stock info data available");
         }
