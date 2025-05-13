@@ -320,25 +320,50 @@ export const fetchMarketPrice = async (
         throw error;
     }
 };
+//Financial Modelling Prep API
 
+//deprecated - only limited to a few symbols
+export const fetchFMPKeyMetrics = async (symbol: string): Promise<Array<{
+    freeCashFlowYield: number;
+    returnOnInvestedCapital: number;
+    returnOnEquity: number;
+    netDebtToEBITDA: number;
+    symbol: string;
+    date: string;
+}>> => {
+    try {
+        const { data } = await axios.get(`/api/fmp/key-metrics?symbol=${symbol}`);
 
-//discountedcashflows api
+        // Map all years of data
+        return data.map((metrics: any) => ({
+            symbol: metrics.symbol,
+            date: metrics.date,
+            freeCashFlowYield: metrics.freeCashFlowYield || 0,
+            returnOnInvestedCapital: metrics.roic || 0,
+            returnOnEquity: metrics.roe || 0,
+            netDebtToEBITDA: metrics.netDebtToEBITDA || 0,
+        }));
+    } catch (error) {
+        console.error('Error fetching FMP key metrics:', error);
+        throw error;
+    }
+};
 
 //get historical revenue
 export const fetchDCFHistoricalRev = async (
     symbol: string,
 ) => {
     try {
-        const { data } = await axios.get(`/api/discounting-cash-flows/income-statement?symbol=${symbol}`);
-        const revenue = data.report.slice(0, 10).map((item: any) => {
+        const { data } = await axios.get(`/api/fmp/income-statement?symbol=${symbol}`);
+        const revenue = data.map((item: any) => {
             const [year, month] = item.date.split("-");
             const yearMonth = `${year}-${month}`;
             return { date: yearMonth, revenue: item.revenue }
         });
-        return revenue
 
+        return revenue.reverse();
     } catch (error) {
-        console.error('Error fetching DCF income statement:', error);
+        console.error('Error fetching FMP income statement:', error);
         throw error;
     }
 };
@@ -348,17 +373,21 @@ export const fetchDCFHistoricalInvestedCap = async (
     symbol: string,
 ) => {
     try {
-        const { data } = await axios.get(`/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
-        const investedCapital = data.report.slice(0, 10).map((item: any) => {
-            const itemInvestedCap = item.totalEquity + item.totalDebt - item.cashAndCashEquivalents
+        const { data } = await axios.get(`/api/fmp/balance-sheet?symbol=${symbol}`);
+        const investedCapital = data.map((item: any) => {
+            const totalEquity = item.totalStockholdersEquity;
+            const totalDebt = item.totalDebt;
+            const cash = item.cashAndCashEquivalents;
 
+            const itemInvestedCap = totalEquity + totalDebt - cash;
 
             const [year, month] = item.date.split("-");
             const yearMonth = `${year}-${month}`;
 
             return { date: yearMonth, investedCapital: itemInvestedCap }
         });
-        return investedCapital
+
+        return investedCapital.reverse();
 
     } catch (error) {
         console.error('Error fetching balance sheet quarterly:', error);
@@ -367,57 +396,67 @@ export const fetchDCFHistoricalInvestedCap = async (
 };
 
 
-//get compAnalysis results
+// Get comp analysis results using yfinance API
 export const fetchCompAnalysis = async (symbol: string) => {
     try {
         if (symbol === "") {
-            return
+            return;
         }
 
-        const balanceSheet = await axios.get(`/api/discounting-cash-flows/balance-sheet?symbol=${symbol}`);
-        if (!balanceSheet.data.report || balanceSheet.data.report.length === 0) {
-            throw new Error("No balance sheet data available");
-        }
-        const balanceSheetCurYear = balanceSheet.data.report[0];
-
-        const incomeStatement = await axios.get(`/api/discounting-cash-flows/income-statement?symbol=${symbol}`);
-        if (!incomeStatement.data.report || incomeStatement.data.report.length === 0) {
-            throw new Error("No income statement data available");
-        }
-        const incomeStatementCurYear = incomeStatement.data.report[0];
-
-        let salesToCap = "N/A";
-        if (incomeStatementCurYear.date === balanceSheetCurYear.date) {
-            const investedCapital = balanceSheetCurYear.totalEquity + balanceSheetCurYear.totalDebt - balanceSheetCurYear.cashAndCashEquivalents;
-            const revenue = incomeStatementCurYear.revenue;
-            salesToCap = String(convRound2Dp(revenue / investedCapital));
-        }
-
-        const { data } = await axios.get(`/api/ttm/income-statement?symbol=${symbol}`);
+        // Fetch TTM income statement data
+        const { data: ttmData } = await axios.get(`/api/ttm/income-statement?symbol=${symbol}`);
 
         // Get the first key (timestamp) from the data object
-        const timestampKey = Object.keys(data)[0];
+        const timestampKey = Object.keys(ttmData)[0];
 
         // Access the inner object using the timestamp key
-        const incomeStatementYahooTTM = data[timestampKey];
+        const incomeStatement = ttmData[timestampKey];
 
-        const ebitMarginTTM = (incomeStatementYahooTTM["Operating Income"] / incomeStatementYahooTTM["Total Revenue"]) * 100;
+        // Calculate EBIT margin
+        const ebitMargin = (incomeStatement["Operating Income"] / incomeStatement["Total Revenue"]) * 100;
 
-        const stockInfo = await axios.get(`/api/stock-info?symbol=${symbol}`);
-        if (!stockInfo.data) {
-            throw new Error("No stock info data available");
+        // Fetch stock info
+        const { data: stockInfo } = await axios.get(`/api/stock-info?symbol=${symbol}`);
+
+        // Fetch balance sheet data to calculate ROIC
+        const { data: balanceSheetData } = await axios.get(`/api/quarterly/balance-sheet?symbol=${symbol}`);
+        const latestQtr = extractLatestQuarterValues(balanceSheetData);
+
+        let roic = 0;
+        if (latestQtr) {
+            // Calculate invested capital = Total Equity + Total Debt - Cash
+            const totalEquity = latestQtr["Total Equity Gross Minority Interest"] || 0;
+            const totalDebt = latestQtr["Total Debt"] || 0;
+            const cash = latestQtr["Cash Cash Equivalents And Short Term Investments"] || 0;
+            const investedCapital = totalEquity + totalDebt - cash;
+
+            // Calculate EBIT After Tax using effective tax rate
+            let effectiveTaxRate = 0;
+            if (incomeStatement["Tax Provision"] && incomeStatement["Pretax Income"]) {
+                effectiveTaxRate = (incomeStatement["Tax Provision"] / incomeStatement["Pretax Income"]) * 100;
+                if (effectiveTaxRate < 0) effectiveTaxRate = 0;
+            }
+
+            const ebitAfterTax = incomeStatement["Operating Income"] * (1 - effectiveTaxRate / 100);
+
+            // Calculate ROIC = (EBIT After Tax / Invested Capital) × 100
+            if (investedCapital > 0) {
+                roic = (ebitAfterTax / investedCapital) * 100;
+            }
         }
 
         return {
-            shortName: stockInfo.data.shortName,
-            revenue: incomeStatementYahooTTM["Total Revenue"],
-            ebit: incomeStatementYahooTTM["Operating Income"],
-            ebitMargin: ebitMarginTTM,
-            peRatio: stockInfo.data["trailingPE"],
-            salesToCapital: salesToCap
+            ticker: symbol,
+            shortName: stockInfo.shortName || symbol,
+            revenue: incomeStatement["Total Revenue"] || 0,
+            ebit: incomeStatement["Operating Income"] || 0,
+            ebitMargin: ebitMargin || 0,
+            peRatio: stockInfo.trailingPE || 0,
+            roic: roic
         };
 
     } catch (error) {
+        console.error(`Error fetching comp analysis for ${symbol}:`, error);
         return {
             ticker: symbol,
             shortName: "",
@@ -425,7 +464,7 @@ export const fetchCompAnalysis = async (symbol: string) => {
             ebit: 0,
             ebitMargin: 0,
             peRatio: 0,
-            salesToCapital: "N/A"
+            roic: 0
         };
     }
 };

@@ -31,6 +31,7 @@ import StockInfo from "../components/StockInfo";
 import MonteCarloPopoutPage from "../components/PopoutPage/MonteCarloPopoutPage";
 import SensitivityAnalysisPopoutPage from "../components/PopoutPage/SensitivityAnalysisPopoutPage";
 import AnalysisToolsCarousel from "../components/AnalysisToolsCarousel"; // Import the new carousel component
+import FundamentalDataPopoutPage from "../components/PopoutPage/FundamentalDataPopoutPage";
 
 interface InputField {
   id: string;
@@ -55,6 +56,7 @@ export default function Page() {
   const [sensitivityPopup, setSensitivityPopup] = useState(false);
   const [currencyConverterPopup, setCurrencyConverterPopup] = useState(false);
   const [currencyConverted, setCurrencyConverted] = useState(false);
+  const [fundamentalPopup, setFundamentalPopup] = useState(false);
 
   const [valuationModelLabel, setValuationModelLabel] = useState("");
   const [savePopup, setSavePopup] = useState(false);
@@ -384,6 +386,7 @@ export default function Page() {
           <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Analysis Tools</div>
           {/* Replace the old grid with the new carousel component */}
           <AnalysisToolsCarousel
+            setFundamentalPopup={setFundamentalPopup}
             setMarketPopup={setMarketPopup}
             setMonteCarloPopup={setMonteCarloPopup}
             setSensitivityPopup={setSensitivityPopup}
@@ -509,6 +512,9 @@ export default function Page() {
             <SaveValuationButton setSavePopup={setSavePopup} />
           </div>
           {/* Write the popup pages in parent page to ensure that the darken/blur effect affects the whole page*/}
+          {fundamentalPopup && (
+            <FundamentalDataPopoutPage setIsPopoutOpen={setFundamentalPopup} stockInfo={stockInfo} symbol={symbol} />
+          )}
           {marketPopup && (
             <MarketInsightPopoutPage
               setIsPopoutOpen={setMarketPopup}

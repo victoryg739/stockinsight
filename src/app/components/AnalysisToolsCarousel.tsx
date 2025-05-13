@@ -6,6 +6,7 @@ import { TbAlpha } from "react-icons/tb";
 import { FaDollarSign } from "react-icons/fa";
 
 interface AnalysisToolsCarouselProps {
+  setFundamentalPopup: (value: boolean) => void;
   setMarketPopup: (value: boolean) => void;
   setMonteCarloPopup: (value: boolean) => void;
   setSensitivityPopup: (value: boolean) => void;
@@ -15,6 +16,7 @@ interface AnalysisToolsCarouselProps {
 }
 
 const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
+  setFundamentalPopup,
   setMarketPopup,
   setMonteCarloPopup,
   setSensitivityPopup,
@@ -31,6 +33,11 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
 
   // Define your tools
   const tools = [
+    {
+      name: "Fundamental Data",
+      icon: <MdInsights className="mr-2" />,
+      onClick: () => setFundamentalPopup(true),
+    },
     {
       name: "Market Insight",
       icon: <MdInsights className="mr-2" />,

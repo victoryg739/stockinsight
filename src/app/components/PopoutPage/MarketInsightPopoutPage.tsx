@@ -9,14 +9,7 @@ import * as States from "../../constants/states";
 import { convRound2Dp, convToMillion } from "../../utils/helper";
 import { CiSearch } from "react-icons/ci";
 
-const MarketInsightPopoutPage = ({
-  setIsPopoutOpen,
-  industries,
-  pageInputs,
-  pageFetchedInputs,
-  getPageInputValue,
-  symbol,
-}: any) => {
+const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValue, symbol }: any) => {
   const revenueGrowthRef = useRef(States.INPUT_STATS_REVENUE_GROWTH);
   const operatingMarginRef = useRef(States.INPUT_STATS_OPERATING_MARGIN);
   const salesToCapRef = useRef(States.INPUT_STATS_SALES_TO_CAP);
@@ -27,12 +20,12 @@ const MarketInsightPopoutPage = ({
   const popoutRef = useRef<HTMLDivElement>(null);
 
   const compAnalysisRef = useRef([
-    { ticker: symbol, shortName: "", revenue: 0, ebit: 0, ebitMargin: 0, peRatio: 0, salesToCapital: "N/A" },
-    { ticker: "", shortName: "", revenue: 0, ebit: 0, ebitMargin: 0, peRatio: 0, salesToCapital: "N/A" },
+    { ticker: symbol, shortName: "", revenue: 0, ebit: 0, ebitMargin: 0, peRatio: 0, roic: 0 },
+    { ticker: "", shortName: "", revenue: 0, ebit: 0, ebitMargin: 0, peRatio: 0, roic: 0 },
   ]);
 
   const [averages, setAverages] = useState({
-    avgSalesToCapital: "N/A",
+    avgRoic: "N/A",
     avgPeRatio: "N/A",
     avgEbitMargin: "N/A",
   });
@@ -259,15 +252,16 @@ const MarketInsightPopoutPage = ({
     };
   }, [setIsPopoutOpen]);
 
-  //handle button(search) click in the comp analysis
+  // Update the handleCompAnalysis function
   const handleCompAnalysis = async () => {
     // Wait for all refetch operations to complete
     const results = await Promise.all(compAnalysisQueries.map((query) => query.refetch()));
     const avg = {
       ebitMargin: { value: 0, count: 0 },
       peRatio: { value: 0, count: 0 },
-      salesToCapital: { value: 0, count: 0 },
+      roic: { value: 0, count: 0 },
     };
+
     results.forEach((result, index) => {
       compAnalysisRef.current[index] = {
         ...compAnalysisRef.current[index],
@@ -279,14 +273,13 @@ const MarketInsightPopoutPage = ({
           avg.ebitMargin.count += 1;
           avg.ebitMargin.value += (result.data.ebitMargin - avg.ebitMargin.value) / avg.ebitMargin.count;
         }
-        if (result.data?.peRatio !== undefined) {
+        if (result.data?.peRatio !== undefined && result.data?.peRatio !== 0) {
           avg.peRatio.count += 1;
           avg.peRatio.value += (result.data.peRatio - avg.peRatio.value) / avg.peRatio.count;
         }
-        if (result.data?.salesToCapital !== "N/A" && result.data?.salesToCapital !== undefined) {
-          avg.salesToCapital.count += 1;
-          avg.salesToCapital.value +=
-            (Number(result.data.salesToCapital) - avg.salesToCapital.value) / avg.salesToCapital.count;
+        if (result.data?.roic !== undefined && result.data?.roic !== 0) {
+          avg.roic.count += 1;
+          avg.roic.value += (result.data.roic - avg.roic.value) / avg.roic.count;
         }
       }
     });
@@ -295,11 +288,12 @@ const MarketInsightPopoutPage = ({
     setAverages({
       avgEbitMargin: convRound2Dp(avg.ebitMargin.value),
       avgPeRatio: convRound2Dp(avg.peRatio.value),
-      avgSalesToCapital: convRound2Dp(avg.salesToCapital.value),
+      avgRoic: convRound2Dp(avg.roic.value),
     });
 
     triggerReRender(); // Ensure UI updates
   };
+
   // Run refetch() after mount
   useEffect(() => {
     handleCompAnalysis();
@@ -421,7 +415,7 @@ const MarketInsightPopoutPage = ({
         <div className="mt-16">
           <h3 className="text-xl font-semibold text-center text-gray-800 mb-8">Comp Analysis</h3>
 
-          <div className="overflow-hidden shadow-lg rounded-xl border border-gray-200">
+          <div className="overflow-x-auto shadow-lg rounded-xl border border-gray-200">
             <table className="min-w-full divide-y divide-gray-200 text-left rtl:text-right">
               <thead className="bg-gray-50">
                 <tr>
@@ -431,7 +425,7 @@ const MarketInsightPopoutPage = ({
                   <th className="px-6 py-3 text-sm font-medium text-gray-700 uppercase">EBIT</th>
                   <th className="px-6 py-3 text-sm font-medium text-gray-700 uppercase">EBIT Margin</th>
                   <th className="px-6 py-3 text-sm font-medium text-gray-700 uppercase">P/E</th>
-                  <th className="px-6 py-3 text-sm font-medium text-gray-700 uppercase">Sales To Capital</th>
+                  <th className="px-6 py-3 text-sm font-medium text-gray-700 uppercase">ROIC</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -456,17 +450,17 @@ const MarketInsightPopoutPage = ({
                     <td className="px-6 py-4 text-sm text-gray-800 font-mono">
                       {item.revenue ? `$${convToMillion(item.revenue)}` : "—"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-800  font-mono">
+                    <td className="px-6 py-4 text-sm text-gray-800 font-mono">
                       {item.ebit ? `$${convToMillion(item.ebit)}` : "—"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-800  font-mono">
+                    <td className="px-6 py-4 text-sm text-gray-800 font-mono">
                       {item.ebitMargin ? `${convRound2Dp(item.ebitMargin)}%` : "—"}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-800 font-mono">
                       {item.peRatio ? `${convRound2Dp(item.peRatio)}` : "—"}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-800 font-mono">
-                      {item.salesToCapital !== "N/A" ? `${item.salesToCapital}` : "—"}
+                      {item.roic ? `${convRound2Dp(item.roic)}%` : "—"}
                     </td>
                   </tr>
                 ))}
@@ -479,13 +473,13 @@ const MarketInsightPopoutPage = ({
                   <td className="px-6 py-4 text-sm text-gray-800 font-mono">—</td>
                   <td className="px-6 py-4 text-sm text-gray-800 font-mono">—</td>
                   <td className="px-6 py-4 text-sm text-gray-800 font-mono">
-                    {averages.avgEbitMargin !== "N/A" ? averages.avgEbitMargin : "-"}
+                    {averages.avgEbitMargin !== "N/A" ? `${averages.avgEbitMargin}%` : "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-800 font-mono">
                     {averages.avgPeRatio !== "N/A" ? averages.avgPeRatio : "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-800 font-mono">
-                    {averages.avgSalesToCapital !== "N/A" ? averages.avgSalesToCapital : "-"}
+                    {averages.avgRoic !== "N/A" ? `${averages.avgRoic}%` : "-"}
                   </td>
                 </tr>
               </tbody>
@@ -502,7 +496,7 @@ const MarketInsightPopoutPage = ({
                     ebit: 0,
                     ebitMargin: 0,
                     peRatio: 0,
-                    salesToCapital: "N/A",
+                    roic: 0,
                   });
                   triggerReRender(); // Force re-render
                 }}
