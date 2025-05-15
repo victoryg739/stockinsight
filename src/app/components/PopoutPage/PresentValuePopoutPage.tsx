@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { RxCross1 } from "react-icons/rx";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { convRound2Dp, convToMillionNumber } from "../../utils/helper";
-import Image from "next/image";
+import StockLogo from "../StockLogo";
 
 const PresentValuePopoutPage = ({ setIsPopoutOpen, data, valuationModelLabel, searchedSymbol, stockInfo }: any) => {
   const shortName = stockInfo.find((el: any) => el.id === "shortName").value;
@@ -79,13 +79,8 @@ const PresentValuePopoutPage = ({ setIsPopoutOpen, data, valuationModelLabel, se
       <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-11/12 h-5/6 overflow-auto">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center ">
-            <Image
-              src={`https://img.logo.dev/ticker/${searchedSymbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
-              alt="logo"
-              height={64}
-              width={64}
-              className=""
-            />
+            <StockLogo symbol={searchedSymbol} height={50} width={50} className="mr-2" alt="logo" />
+
             <div className="text-2xl font-bold ml-2">{shortName}</div>
           </div>
           <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 hover:text-gray-700">

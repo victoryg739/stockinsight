@@ -25,7 +25,7 @@ const SearchTicker = ({ symbol, setSymbol, setSymbolBtn, incomeStatementIsFetchi
   } = useQuery({
     queryKey: ["stockSymbols"],
     queryFn: async () => {
-      const { data } = await axios.get("/api/stock-symbols");
+      const { data } = await axios.get("/api/finnhub/stock-symbols");
       return data.symbols as StockSymbol[];
     },
     staleTime: Infinity, // Don't refetch during session

@@ -468,3 +468,38 @@ export const fetchCompAnalysis = async (symbol: string) => {
         };
     }
 };
+
+//annual data from yahoo finance
+
+// Fetch annual income statement from Yahoo Finance
+export const fetchYahooAnnualIncomeStatement = async (symbol: string) => {
+    try {
+        const { data } = await axios.get(`/api/annual/income-statement?symbol=${symbol}`);
+        return data;
+    } catch (error) {
+        console.error('Error fetching Yahoo annual income statement:', error);
+        throw error;
+    }
+};
+
+// Fetch annual balance sheet from Yahoo Finance
+export const fetchYahooAnnualBalanceSheet = async (symbol: string) => {
+    try {
+        const { data } = await axios.get(`/api/annual/balance-sheet?symbol=${symbol}`);
+        return data;
+    } catch (error) {
+        console.error('Error fetching Yahoo annual balance sheet:', error);
+        throw error;
+    }
+};
+
+// Fetch peer companies from Finnhub
+export const fetchFinnhubPeers = async (symbol: string): Promise<string[]> => {
+    try {
+        const { data } = await axios.get(`/api/finnhub/peers?symbol=${symbol}`);
+        return data.peers || [];
+    } catch (error) {
+        console.error('Error fetching Finnhub peers:', error);
+        return [];
+    }
+};

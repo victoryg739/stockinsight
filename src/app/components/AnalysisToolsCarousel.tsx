@@ -1,9 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import { MdInsights, MdCasino, MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { SiMarketo } from "react-icons/si";
-import { AiOutlineStock } from "react-icons/ai";
-import { TbAlpha } from "react-icons/tb";
 import { FaDollarSign } from "react-icons/fa";
+import { BsClipboard2Data } from "react-icons/bs";
 
 interface AnalysisToolsCarouselProps {
   setFundamentalPopup: (value: boolean) => void;
@@ -35,7 +34,7 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
   const tools = [
     {
       name: "Fundamental Data",
-      icon: <MdInsights className="mr-2" />,
+      icon: <BsClipboard2Data className="mr-2" />,
       onClick: () => setFundamentalPopup(true),
     },
     {
@@ -59,21 +58,6 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
       onClick: () => setCurrencyConverterPopup(true),
       disabled: currencyConverted, // Still disable the button
       disabledMessage: "Currency conversion already applied",
-    },
-    {
-      name: "Stock Sentinel",
-      icon: <AiOutlineStock className="mr-2" />,
-      onClick: () => window.open("https://app.stocksentinel.ai/", "_blank", "noopener,noreferrer"),
-    },
-    {
-      name: "Alpha Spread",
-      icon: <TbAlpha className="mr-2" />,
-      onClick: () =>
-        window.open(
-          `https://www.alphaspread.com/security/nasdaq/${symbol}/analyst-estimates`,
-          "_blank",
-          "noopener,noreferrer"
-        ),
     },
   ];
 

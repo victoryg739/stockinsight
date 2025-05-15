@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { RxCross1 } from "react-icons/rx";
-import Image from "next/image";
+import StockLogo from "../StockLogo";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import * as FinCalc from "../../utils/financialCalculations";
 import * as conv from "../../utils/helper";
@@ -493,18 +493,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
         <div className="flex justify-between items-center mb-4 pb-3 border-b">
           <div className="flex items-center flex-shrink-0">
             {/* Conditionally render Image based on searchedSymbol */}
-            {searchedSymbol && (
-              <Image
-                src={`https://img.logo.dev/ticker/${searchedSymbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
-                alt={`${searchedSymbol} logo`}
-                height={32} //
-                width={32}
-                className="mr-2"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            )}
+            {searchedSymbol && <StockLogo symbol={searchedSymbol} height={50} width={50} className="mr-2" alt="logo" />}
             <h2 className="text-lg md:text-xl font-bold truncate">Sensitivity Analysis - {shortName}</h2>
           </div>
           <button

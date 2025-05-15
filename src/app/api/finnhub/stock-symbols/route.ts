@@ -1,4 +1,3 @@
-// app/api/stock-symbols/route.ts
 import { NextResponse } from 'next/server';
 
 // Define a global variable for caching (outside of Next.js cache system)

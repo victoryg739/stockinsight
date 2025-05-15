@@ -5,7 +5,7 @@ import { RxCross1 } from "react-icons/rx";
 import Image from "next/image";
 import * as conv from "../../utils/helper";
 import { MdCurrencyExchange } from "react-icons/md";
-
+import StockLogo from "../StockLogo";
 // List of available currencies for conversion
 const CURRENCIES = [
   { code: "USD", name: "US Dollar", symbol: "$" },
@@ -116,7 +116,7 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
   // State for currency conversion settings
   const [sourceCurrency, setSourceCurrency] = useState<string>(financialCurrency);
   const [targetCurrency, setTargetCurrency] = useState<string>("USD");
- 
+
   // First, get the MRQ date during initialization
   const mrqDate = stockInfo.find((el) => el.id === "mostRecentQuarter")?.value;
   const initialDate =
@@ -380,13 +380,8 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
       <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-11/12 lg:w-3/4 xl:w-2/3 h-5/6 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
-            <Image
-              src={`https://img.logo.dev/ticker/${symbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
-              alt="logo"
-              height={40}
-              width={40}
-              className="mr-2"
-            />
+            <StockLogo symbol={symbol} height={50} width={50} className="mr-2" alt="logo" />
+
             <h2 className="text-2xl font-bold">Currency Converter - {shortName}</h2>
           </div>
           <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 hover:text-gray-700">

@@ -8,6 +8,8 @@ import * as queryFn from "../../utils/queryAPIFunctions";
 import * as States from "../../constants/states";
 import { convRound2Dp, convToMillion } from "../../utils/helper";
 import { CiSearch } from "react-icons/ci";
+import { IoReloadCircle } from "react-icons/io5";
+import { MdContentCopy } from "react-icons/md";
 
 const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValue, symbol }: any) => {
   const revenueGrowthRef = useRef(States.INPUT_STATS_REVENUE_GROWTH);
@@ -16,8 +18,11 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
   const waccRef = useRef(States.INPUT_STATS_WACC);
   const debtToCapRef = useRef(States.INPUT_STATS_DEBT_TO_CAPITAL);
   const roicRef = useRef(States.ROIC_STATS);
-  const [historicalSalesToCap, setHistoricalSalesToCap] = useState<{ date: string; salesToCap: number | string }[]>([]);
   const popoutRef = useRef<HTMLDivElement>(null);
+
+  // State for peer companies
+  const [peerCompanies, setPeerCompanies] = useState<string[]>([]);
+  const [loadingPeers, setLoadingPeers] = useState(false);
 
   const compAnalysisRef = useRef([
     { ticker: symbol, shortName: "", revenue: 0, ebit: 0, ebitMargin: 0, peRatio: 0, roic: 0 },
@@ -29,6 +34,35 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     avgPeRatio: "N/A",
     avgEbitMargin: "N/A",
   });
+
+  // Add function to fetch peers
+  const fetchPeers = async () => {
+    setLoadingPeers(true);
+    try {
+      const peers = await queryFn.fetchFinnhubPeers(symbol);
+      // Filter out the current symbol and limit to first 10 peers
+      const filteredPeers = peers.filter((peer) => peer !== symbol).slice(0, 10);
+
+      setPeerCompanies(filteredPeers);
+    } catch (error) {
+      console.error("Error fetching peers:", error);
+      setPeerCompanies([]);
+    } finally {
+      setLoadingPeers(false);
+    }
+  };
+
+  // Function to copy ticker to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        // Optional: Add a toast notification here
+      })
+      .catch((err) => {
+        console.error("Failed to copy:", err);
+      });
+  };
 
   const handleInputChange = (id: string, newValue: any, type: string): void => {
     const value = newValue === undefined ? 0 : newValue;
@@ -85,28 +119,6 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     // enabled: false,
   });
 
-  const {
-    data: revQuery,
-    refetch: refetchRev,
-    isFetching: revIsFetching,
-  } = useQuery({
-    queryKey: ["historicalRevenue", symbol], // Add symbol to query key
-    queryFn: async () => await queryFn.fetchDCFHistoricalRev(symbol),
-    staleTime: 0,
-    enabled: false, // Disable automatic fetch
-  });
-
-  const {
-    data: investedCapitalQuery,
-    refetch: refetchInvestedCapital,
-    isFetching: investedCapitalIsFetching,
-  } = useQuery({
-    queryKey: ["historicalInvestedCapital", symbol], // Add symbol to query key
-    queryFn: async () => await queryFn.fetchDCFHistoricalInvestedCap(symbol),
-    staleTime: 0,
-    enabled: false,
-  });
-
   const compAnalysisQueries = useQueries({
     queries: compAnalysisRef.current.map((item) => ({
       queryKey: ["compAnalysis", item.ticker], // Unique key per ticker
@@ -120,42 +132,6 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
   // Force re-render mechanism
   const [, forceUpdate] = useState({});
   const triggerReRender = () => forceUpdate({});
-
-  // Add useEffect to trigger refetch when popup opens
-  useEffect(() => {
-    if (symbol) {
-      refetchRev();
-      refetchInvestedCapital();
-    }
-  }, [symbol, refetchRev, refetchInvestedCapital]);
-
-  useEffect(() => {
-    if (revQuery && investedCapitalQuery) {
-      const updatedSalesToCap = [];
-      for (let a = 0; a < revQuery.length; a++) {
-        for (let b = 0; b < investedCapitalQuery.length; b++) {
-          //same date
-          if (revQuery[a].date === investedCapitalQuery[b].date) {
-            const curSalesToCap = revQuery[a].revenue / investedCapitalQuery[a].investedCapital;
-            updatedSalesToCap.push({ date: revQuery[a].date, salesToCap: curSalesToCap });
-          }
-        }
-      }
-      setHistoricalSalesToCap(updatedSalesToCap);
-    }
-  }, [revQuery, investedCapitalQuery]);
-
-  const validSalesToCap = historicalSalesToCap
-    .map((item) => item.salesToCap)
-    .filter((value) => typeof value === "number" && !isNaN(value)) as number[];
-
-  const average =
-    validSalesToCap.length > 0 ? validSalesToCap.reduce((sum, val) => sum + val, 0) / validSalesToCap.length : null;
-
-  const stdDev =
-    validSalesToCap.length > 0 && average !== null
-      ? Math.sqrt(validSalesToCap.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / validSalesToCap.length)
-      : null;
 
   if (inputStatsQuery) {
     // Update Revenue Growth
@@ -294,6 +270,13 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     triggerReRender(); // Ensure UI updates
   };
 
+  // Fetch peers when component mounts
+  useEffect(() => {
+    if (symbol) {
+      fetchPeers();
+    }
+  }, [symbol]);
+
   // Run refetch() after mount
   useEffect(() => {
     handleCompAnalysis();
@@ -322,98 +305,64 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
         <MarketInsightTable data={debtToCapRef.current} />
         <MarketInsightTable data={roicRef.current} />
 
-        <div className="mt-16">
-          <h3 className="text-xl font-semibold mb-4 text-center">Historical Sales to Capital Ratio</h3>
-          <div className="overflow-x-auto rounded-lg shadow">
-            {investedCapitalIsFetching || revIsFetching ? (
-              <div className="w-full bg-white p-4 rounded-lg">
-                <div className="animate-pulse space-y-4">
-                  <div className="h-8 bg-gray-200 rounded w-full"></div>
-                  <div className="h-8 bg-gray-200 rounded w-full"></div>
-                </div>
-              </div>
-            ) : (
-              <table className="min-w-full bg-white border-collapse mt-6">
-                <thead>
-                  <tr className="bg-gray-200">
-                    <th className="py-2 px-4 border-b border-r rounded-tl-lg"></th>
-                    {historicalSalesToCap.map((item, index) => (
-                      <th
-                        key={index}
-                        className={`py-2 px-4 border-b font-semibold text-sm ${
-                          index === historicalSalesToCap.length - 1 ? "rounded-tr-lg" : ""
-                        }`}
-                      >
-                        {item.date}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="py-2 px-4 border-b border-r font-semibold">Sales To Capital</td>
-                    {historicalSalesToCap.map((item, index) => (
-                      <td key={index} className="py-2 px-4 border-b text-center font-mono text-sm">
-                        {typeof item.salesToCap === "number" && !isNaN(item.salesToCap) ? (
-                          <span className="text-emerald-700">
-                            {item.salesToCap.toLocaleString(undefined, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
-                          </span>
-                        ) : (
-                          <span className="text-red-600">N/A</span>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                  {/* Average Row */}
-                  <tr>
-                    <td className="py-2 px-4 border-b border-r font-semibold">Average</td>
-                    <td
-                      colSpan={historicalSalesToCap.length}
-                      className="py-2 px-4 border-b text-center font-mono text-sm"
-                    >
-                      {average !== null ? (
-                        <span className="text-emerald-700">
-                          {average.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </span>
-                      ) : (
-                        <span className="text-red-600">N/A</span>
-                      )}
-                    </td>
-                  </tr>
-                  {/* Standard Deviation Row */}
-                  <tr>
-                    <td className="py-2 px-4 border-b border-r font-semibold rounded-bl-lg">Standard Deviation</td>
-                    <td
-                      colSpan={historicalSalesToCap.length}
-                      className="py-2 px-4 border-b text-center font-mono text-sm rounded-br-lg"
-                    >
-                      {stdDev !== null ? (
-                        <span className="text-emerald-700">
-                          {stdDev.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </span>
-                      ) : (
-                        <span className="text-red-600">N/A</span>
-                      )}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
         {/*Comp Analysis section*/}
         <div className="mt-16">
           <h3 className="text-xl font-semibold text-center text-gray-800 mb-8">Comp Analysis</h3>
+
+          {/* Peer companies display */}
+          <div className="mb-6 mx-4">
+            <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-gray-700">Suggested Peer Companies</h4>
+              </div>
+
+              {loadingPeers ? (
+                <div className="flex items-center justify-center py-4">
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2 text-blue-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span className="text-gray-600">Loading peer companies...</span>
+                </div>
+              ) : peerCompanies.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {peerCompanies.map((peer, index) => (
+                    <div
+                      key={index}
+                      className="inline-flex items-center bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <span className="font-medium text-gray-800">{peer}</span>
+                      <button
+                        onClick={() => copyToClipboard(peer)}
+                        className="ml-2 text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Copy to clipboard"
+                      >
+                        <MdContentCopy className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-2">No peer companies found for {symbol}</p>
+              )}
+            </div>
+          </div>
 
           <div className="overflow-x-auto shadow-lg rounded-xl border border-gray-200">
             <table className="min-w-full divide-y divide-gray-200 text-left rtl:text-right">

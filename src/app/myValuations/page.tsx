@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import StockLogo from "../components/StockLogo";
 import { HiOutlineCollection } from "react-icons/hi";
 // Icons
 import { MdDeleteOutline, MdSearch, MdFilterAlt, MdOutlineSort, MdAdd, MdGridView, MdViewList } from "react-icons/md";
@@ -418,15 +418,7 @@ export default function MyValuationsPage() {
                     <div className="flex justify-between">
                       <div className="flex items-center">
                         <div className="mr-3 relative w-12 h-12">
-                          <Image
-                            src={`https://img.logo.dev/ticker/${item.symbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
-                            alt={`${item.symbol} logo`}
-                            fill
-                            className="rounded-lg"
-                            onError={(e) => {
-                              e.currentTarget.src = "/placeholder-logo.svg";
-                            }}
-                          />
+                          <StockLogo symbol={item.symbol} height={50} width={50} className="mr-2" alt="logo" />
                         </div>
                         <div>
                           <h3 className="font-bold text-xl text-gray-900">{item.symbol}</h3>
@@ -596,15 +588,7 @@ export default function MyValuationsPage() {
                       <td className="pl-6 pr-3 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 relative">
-                            <Image
-                              src={`https://img.logo.dev/ticker/${item.symbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
-                              alt={`${item.symbol} logo`}
-                              fill
-                              className="rounded-lg"
-                              onError={(e) => {
-                                e.currentTarget.src = "/placeholder-logo.svg";
-                              }}
-                            />
+                            <StockLogo symbol={item.symbol} height={50} width={50} className="mr-2" alt="logo" />
                           </div>
                           <div className="ml-4">
                             <div className="font-bold text-gray-900">{item.symbol}</div>

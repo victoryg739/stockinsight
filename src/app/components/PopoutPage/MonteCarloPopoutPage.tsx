@@ -18,7 +18,7 @@ import {
   type LognormalParams,
   type MinExtremeParams,
 } from "../../utils/distributionTypes";
-
+import StockLogo from "../StockLogo";
 const DISTRIBUTION_TYPES: DistributionType[] = [
   "Normal",
   "Uniform",
@@ -644,13 +644,8 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
       <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-11/12 h-5/6 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
-            <Image
-              src={`https://img.logo.dev/ticker/${searchedSymbol}?token=${process.env.NEXT_PUBLIC_LOGODEV}&retina=true`}
-              alt="logo"
-              height={40}
-              width={40}
-              className="mr-2"
-            />
+            <StockLogo symbol={searchedSymbol} height={50} width={50} className="mr-2" alt="logo" />
+
             <h2 className="text-2xl font-bold">Monte Carlo Simulation - {shortName}</h2>
           </div>
           <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 hover:text-gray-700">
