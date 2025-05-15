@@ -70,7 +70,7 @@ const EXCLUDED_BALANCE_FIELDS = [
   "Other Current Borrowings", // Too specific
   "Total Tax Payable", // Redundant with Income Tax Payable
   "Current Debt And Capital Lease Obligation", // Keep just Current Debt
-  "Long Term Debt And Capital Lease Obligation", // Keep just Long Term Debt
+  "Long Term Debt And Capital Lease Obligation", // Keep just Long-term Debt
   "Non Current Deferred Assets", // Keep only Deferred Tax Assets
   "Tangible Book Value", // Not commonly shown
   "Net Tangible Assets", // Not commonly shown
@@ -174,14 +174,14 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
   // Fetch historical revenue data
   const { data: revQuery, isFetching: revIsFetching } = useQuery({
     queryKey: ["historicalRevenue", symbol],
-    queryFn: async () => await queryFn.fetchDCFHistoricalRev(symbol),
+    queryFn: async () => await queryFn.fetchYahooHistoricalRev(symbol),
     enabled: !!symbol,
   });
 
   // Fetch historical invested capital data
   const { data: investedCapitalQuery, isFetching: investedCapitalIsFetching } = useQuery({
     queryKey: ["historicalInvestedCapital", symbol],
-    queryFn: async () => await queryFn.fetchDCFHistoricalInvestedCap(symbol),
+    queryFn: async () => await queryFn.fetchYahooHistoricalInvestedCap(symbol),
     enabled: !!symbol,
   });
 
@@ -372,6 +372,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
       "Non Current Deferred Liabilities": "Deferred Liabilities (Non-Current)",
       // Income Statement Mappings
       "Total Revenue": "Revenue",
+      "Revenue Growth Rate": "Revenue Growth Rate (%)",
       "Reconciled Cost Of Revenue": "Cost of Revenue",
       "Gross Profit": "Gross Profit",
       "Selling General And Administration": "Selling, General and Administrative Expenses",
@@ -381,6 +382,9 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
       "Other Income Expense": "Other Income/Expenses (Net)",
       "Other Non Operating Income Expenses": "Other Non-Operating Income/Expenses",
       "Operating Expense": "Operating Expenses",
+      "Operating Income": "Operating Income",
+      "Operating Income Growth Rate": "Operating Income Growth Rate (%)",
+      "Operating Margin": "Operating Margin (%)",
       "Pretax Income": "Earnings Before Taxes (EBT)",
       "Tax Provision": "Income Tax Expense",
       "Basic EPS": "Earnings per Share (Basic)",
@@ -402,6 +406,14 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
   // Format values for display
   const formatValue = (key: string, value: any): string => {
     if (value === null || value === undefined) return "N/A";
+
+    // Handle percentage fields
+    if (key === "Revenue Growth Rate" || key === "Operating Income Growth Rate" || key === "Operating Margin") {
+      if (typeof value === "number") {
+        return `${value.toFixed(2)}%`;
+      }
+      return "N/A";
+    }
 
     if (PERCENTAGE_FIELDS.includes(key)) {
       return `${conv.convDecimalToPercentage(value)}%`;
@@ -455,6 +467,45 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
 
     // Sort filtered data by date in descending order
     const sortedData = filteredData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // Calculate growth rates and margins for income statement
+    if (!isBalanceSheet && sortedData.length > 0) {
+      // Sort by date ascending for growth calculation
+      const ascendingData = [...sortedData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      for (let i = 0; i < ascendingData.length; i++) {
+        const currentData = ascendingData[i];
+        const previousData = i > 0 ? ascendingData[i - 1] : null;
+
+        // Revenue Growth Rate
+        if (previousData && currentData.values["Total Revenue"] && previousData.values["Total Revenue"]) {
+          const currentRevenue = currentData.values["Total Revenue"];
+          const previousRevenue = previousData.values["Total Revenue"];
+          const growthRate = ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+          currentData.values["Revenue Growth Rate"] = growthRate;
+        } else {
+          currentData.values["Revenue Growth Rate"] = null;
+        }
+
+        // Operating Income Growth Rate
+        if (previousData && currentData.values["Operating Income"] && previousData.values["Operating Income"]) {
+          const currentOperatingIncome = currentData.values["Operating Income"];
+          const previousOperatingIncome = previousData.values["Operating Income"];
+          const growthRate = ((currentOperatingIncome - previousOperatingIncome) / previousOperatingIncome) * 100;
+          currentData.values["Operating Income Growth Rate"] = growthRate;
+        } else {
+          currentData.values["Operating Income Growth Rate"] = null;
+        }
+
+        // Operating Margin
+        if (currentData.values["Operating Income"] && currentData.values["Total Revenue"]) {
+          const operatingMargin = (currentData.values["Operating Income"] / currentData.values["Total Revenue"]) * 100;
+          currentData.values["Operating Margin"] = operatingMargin;
+        } else {
+          currentData.values["Operating Margin"] = null;
+        }
+      }
+    }
 
     // Get all unique fields from all years
     const allFields = new Set<string>();
@@ -543,6 +594,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
         : [
             // Income Statement Order
             "Total Revenue",
+            "Revenue Growth Rate",
             "Reconciled Cost Of Revenue",
             "Gross Profit",
             "Selling General And Administration",
@@ -551,6 +603,8 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
             "EBIT",
             "Other Operating Income Expenses",
             "Operating Income",
+            "Operating Income Growth Rate",
+            "Operating Margin",
             "Interest Income",
             "Interest Expense",
             "Other Income Expense",

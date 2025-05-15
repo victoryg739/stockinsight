@@ -320,8 +320,8 @@ export const fetchMarketPrice = async (
         throw error;
     }
 };
-//Financial Modelling Prep API
 
+//Financial Modelling Prep API
 //deprecated - only limited to a few symbols
 export const fetchFMPKeyMetrics = async (symbol: string): Promise<Array<{
     freeCashFlowYield: number;
@@ -349,52 +349,58 @@ export const fetchFMPKeyMetrics = async (symbol: string): Promise<Array<{
     }
 };
 
-//get historical revenue
-export const fetchDCFHistoricalRev = async (
-    symbol: string,
-) => {
+export const fetchYahooHistoricalRev = async (symbol: string) => {
     try {
-        const { data } = await axios.get(`/api/fmp/income-statement?symbol=${symbol}`);
+        const { data } = await axios.get(`/api/annual/income-statement?symbol=${symbol}`);
+
+        // Yahoo data is already sorted by date descending, so we need to reverse it
         const revenue = data.map((item: any) => {
-            const [year, month] = item.date.split("-");
+            const date = item.date;
+            const [year, month] = date.split("-");
             const yearMonth = `${year}-${month}`;
-            return { date: yearMonth, revenue: item.revenue }
+            return {
+                date: yearMonth,
+                revenue: item.values["Total Revenue"] || 0
+            };
         });
 
+        // Return in ascending order (oldest to newest) like FMP did
         return revenue.reverse();
     } catch (error) {
-        console.error('Error fetching FMP income statement:', error);
+        console.error('Error fetching Yahoo historical revenue:', error);
         throw error;
     }
 };
 
-//get investedCapital
-export const fetchDCFHistoricalInvestedCap = async (
-    symbol: string,
-) => {
+export const fetchYahooHistoricalInvestedCap = async (symbol: string) => {
     try {
-        const { data } = await axios.get(`/api/fmp/balance-sheet?symbol=${symbol}`);
+        const { data } = await axios.get(`/api/annual/balance-sheet?symbol=${symbol}`);
+
         const investedCapital = data.map((item: any) => {
-            const totalEquity = item.totalStockholdersEquity;
-            const totalDebt = item.totalDebt;
-            const cash = item.cashAndCashEquivalents;
+            const values = item.values;
+            const totalEquity = values["Stockholders Equity"] || values["Total Equity Gross Minority Interest"] || 0;
+            const totalDebt = values["Total Debt"] || 0;
+            const cash = values["Cash And Cash Equivalents"] || 0;
 
             const itemInvestedCap = totalEquity + totalDebt - cash;
 
-            const [year, month] = item.date.split("-");
+            const date = item.date;
+            const [year, month] = date.split("-");
             const yearMonth = `${year}-${month}`;
 
-            return { date: yearMonth, investedCapital: itemInvestedCap }
+            return {
+                date: yearMonth,
+                investedCapital: itemInvestedCap
+            };
         });
 
+        // Return in ascending order (oldest to newest) like FMP did
         return investedCapital.reverse();
-
     } catch (error) {
-        console.error('Error fetching balance sheet quarterly:', error);
+        console.error('Error fetching Yahoo historical invested capital:', error);
         throw error;
     }
 };
-
 
 // Get comp analysis results using yfinance API
 export const fetchCompAnalysis = async (symbol: string) => {
