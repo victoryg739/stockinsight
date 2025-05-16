@@ -120,60 +120,60 @@ export default function SaveValuationPopoutPage({
     const valGap = (impliedSharePrice / currentPrice - 1) * 100;
 
     const framework = `## Growth Story (Revenue)
-    The company is expected to grow revenues at ${revGrowthYr1}% in year 1 and ${revGrowthYr2to5}% in years 2-5, before converging to a terminal growth rate of ${termGrowthRate}%.
+The company is expected to grow revenues at ${revGrowthYr1}% in year 1 and ${revGrowthYr2to5}% in years 2-5, before converging to a terminal growth rate of ${termGrowthRate}%.
 
-    [Explain what drives this growth - new products, market expansion, etc.]
-    [Discuss how this growth compares to ${industryOptions} peers and historical performance]
-    
-    ## Profitability Story (Margin)
-    Starting from a base operating margin of ${
+[Explain what drives this growth - new products, market expansion, etc.]
+[Discuss how this growth compares to ${industryOptions} peers and historical performance]
+
+## Profitability Story (Margin)
+Starting from a base operating margin of ${
       typeof opMargin === "number" ? opMargin.toFixed(2) : opMargin
     }%, the company is expected to reach ${
       typeof opMarginYr10 === "number" ? opMarginYr10.toFixed(2) : opMarginYr10
     }% in year 10.
-    
-    [Explain what will drive margin improvement/deterioration - economies of scale, competition, etc.]
-    [Address any operational efficiencies or challenges]
-    
-    ## Growth Efficiency Story
-    The company's Sales to Capital ratio indicates how efficiently it converts invested capital into revenue.
 
-    [Discuss the company's Sales to Capital ratio in Years 1, 2-5, and 6-10]
-    [Explain how these ratios compare to industry averages]
+[Explain what will drive margin improvement/deterioration - economies of scale, competition, etc.]
+[Address any operational efficiencies or challenges]
 
-    ## Competitive Advantages
-    The company's Terminal ROIC of ${formatValue(
+## Growth Efficiency Story
+The company's Sales to Capital ratio indicates how efficiently it converts invested capital into revenue.
+
+[Discuss the company's Sales to Capital ratio in Years 1, 2-5, and 6-10]
+[Explain how these ratios compare to industry averages]
+
+## Competitive Advantages
+The company's Terminal ROIC of ${formatValue(
       roicData.roic[roicData.roic.length - 1],
       "percentage"
     )} and ROIC (Yr 10) of ${formatValue(roicData.roic[roicData.roic.length - 2], "percentage")} 
 
-    The Marginal ROIC of ${formatValue(marginalRoic, "percentage")} is ${
+The Marginal ROIC of ${formatValue(marginalRoic, "percentage")} is ${
       marginalRoic > terminalWACC ? "greater than" : "less than"
     } its Terminal WACC of ${formatValue(terminalWACC, "percentage")}, suggesting that investments are ${
       marginalRoic > terminalWACC ? "creating" : "destroying"
     } shareholder value.
 
-    [Describe how ROIC reflects the company's competitive moat]
-    [Discuss threats to maintaining this competitive advantage]
+[Describe how ROIC reflects the company's competitive moat]
+[Discuss threats to maintaining this competitive advantage]
 
-    ## Risk Story
-    The company has a terminal WACC of ${typeof terminalWACC === "number" ? terminalWACC.toFixed(2) : terminalWACC}%.
-    
-    [Discuss specific risks to the business model]
-    [Explain how sensitive the valuation is to key assumptions]
-    
-    ## Valuation Summary
-    Our DCF valuation yields an intrinsic value of $${
+## Risk Story
+The company has a terminal WACC of ${typeof terminalWACC === "number" ? terminalWACC.toFixed(2) : terminalWACC}%.
+
+[Discuss specific risks to the business model]
+[Explain how sensitive the valuation is to key assumptions]
+
+## Valuation Summary
+Our DCF valuation yields an intrinsic value of $${
       typeof impliedSharePrice === "number" ? impliedSharePrice.toFixed(2) : impliedSharePrice
     } per share, compared to the current market price of $${
       typeof currentPrice === "number" ? currentPrice.toFixed(2) : currentPrice
     }.
-    
-    The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"} by ${Math.abs(
+
+The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"} by ${Math.abs(
       typeof valGap === "number" ? valGap : 0
     ).toFixed(2)}%.
-    
-    [Explain what catalysts might help the market recognize this value gap]`;
+
+[Explain what catalysts might help the market recognize this value gap]`;
 
     setDescription(framework);
     // Switch to preview mode after generating framework

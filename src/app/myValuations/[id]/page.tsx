@@ -39,10 +39,11 @@ export default function Page({ params }: any) {
   });
 
   const { data: marketPriceQuery } = useQuery({
-    queryKey: ["marketPrice"],
+    queryKey: ["marketPrice", valuationQuery?.symbol],
     queryFn: async () => {
       return fetchMarketPrice(valuationQuery.symbol);
     },
+    enabled: !!valuationQuery?.symbol,
   });
 
   const renderMarkdown = (markdown: string) => {

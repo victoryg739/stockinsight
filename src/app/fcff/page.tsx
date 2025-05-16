@@ -523,6 +523,7 @@ export default function Page() {
               pageFetchedInputs={fetchedInputs}
               getPageInputValue={getInputValue}
               symbol={symbol}
+              valuationModelRef={valuationModelRef.current}
             />
           )}
           {presentValuePopup && (

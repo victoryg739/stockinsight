@@ -104,13 +104,25 @@ export const fetchStockInfo = async (
         const currentPrice = data["currentPrice"];
         const impliedSharesOutstanding = data["impliedSharesOutstanding"];
 
+        // Fetch quarterly balance sheet data to get MRQ
+        const { data: quarterlyData } = await axios.get(`/api/quarterly/balance-sheet?symbol=${symbol}`);
 
-        const mrqDateObject = new Date(data["mostRecentQuarter"] * 1000);
-        const mrqFormatted = mrqDateObject.toLocaleDateString();
+        let mrqFormatted = "N/A";
+
+        if (quarterlyData && quarterlyData.length > 0) {
+            // Sort data by date in descending order to get the most recent quarter
+            const sortedData = quarterlyData.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            const latestQuarter = sortedData[0];
+
+            if (latestQuarter && latestQuarter.date) {
+                // Format the date from the quarterly balance sheet
+                const mrqDateObject = new Date(latestQuarter.date);
+                mrqFormatted = mrqDateObject.toLocaleDateString();
+            }
+        }
 
         const lfyDateObject = new Date(data["lastFiscalYearEnd"] * 1000);
         const lfyFormatted = lfyDateObject.toLocaleDateString();
-
 
         handleInputChange("currentSharePrice", currentPrice, "fetchedInputs");
         handleInputChange("impliedSharesOutstanding", impliedSharesOutstanding, "fetchedInputs");
@@ -130,11 +142,10 @@ export const fetchStockInfo = async (
         handleInputChange("nextFiscalYearEnd", data["nextFiscalYearEnd"], "stockInfo");
         handleInputChange("longBusinessSummary", data["longBusinessSummary"], "stockInfo");
 
-
-        return data
+        return data;
 
     } catch (error) {
-        console.error('Error fetching balance sheet quarterly:', error);
+        console.error('Error fetching stock info:', error);
         throw error;
     }
 };
@@ -508,4 +519,15 @@ export const fetchFinnhubPeers = async (symbol: string): Promise<string[]> => {
         console.error('Error fetching Finnhub peers:', error);
         return [];
     }
+};
+
+export const fetchSecFilings = async (symbol: string) => {
+    const response = await fetch(`/api/finnhub/sec-filings?symbol=${symbol}`);
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch SEC filings: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
 };

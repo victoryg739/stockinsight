@@ -89,6 +89,9 @@ const SearchTicker = ({ symbol, setSymbol, setSymbolBtn, incomeStatementIsFetchi
     setSymbol(result.symbol);
     setInputValue(result.symbol);
     setShowSuggestions(false);
+    
+    // Trigger search immediately when a suggestion is clicked
+    setSymbolBtn((prevState: boolean) => !prevState);
   };
 
   // Handle search button click

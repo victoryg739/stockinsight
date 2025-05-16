@@ -101,22 +101,32 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     }
   };
 
-  const { data: inputStatsQuery } = useQuery({
-    queryKey: ["inputStats"],
+  const {
+    data: inputStatsQuery,
+    isLoading: inputStatsLoading,
+    error: inputStatsError,
+  } = useQuery({
+    queryKey: ["inputStats", industries],
     queryFn: async () => {
       const data = queryFn.fetchInputStats(industries);
       return data;
     },
-    // enabled: false,
+    // Add staleTime to prevent stuck data
+    staleTime: 0,
   });
 
-  const { data: roicStatsQuery } = useQuery({
-    queryKey: ["roicStats"],
+  const {
+    data: roicStatsQuery,
+    isLoading: roicStatsLoading,
+    error: roicStatsError,
+  } = useQuery({
+    queryKey: ["roicStats", industries],
     queryFn: async () => {
       const data = queryFn.fetchRoic(industries);
       return data;
     },
-    // enabled: false,
+    // Add staleTime to prevent stuck data
+    staleTime: 0,
   });
 
   const compAnalysisQueries = useQueries({
@@ -282,6 +292,63 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     handleCompAnalysis();
   }, []);
 
+  // Loading state check
+  const isMainDataLoading = inputStatsLoading || roicStatsLoading;
+
+  // Error state check
+  const hasError = inputStatsError || roicStatsError;
+
+  // Loading state
+  if (isMainDataLoading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+        <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-11/12 h-5/6 overflow-auto">
+          <div className="flex justify-center items-center h-full">
+            <svg
+              className="animate-spin h-10 w-10 text-blue-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="ml-3 text-gray-600">Loading industry data...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (hasError) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+        <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-11/12 h-5/6 overflow-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">Market Insight</h2>
+            <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 hover:text-gray-700">
+              <RxCross1 size={24} />
+            </button>
+          </div>
+          <div className="text-red-600 text-center mt-10">
+            <p>Failed to load industry data. Please try again.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-blue-500 px-4 py-2 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Reload
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-11/12 h-5/6 overflow-auto">
@@ -314,6 +381,14 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
             <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-gray-700">Suggested Peer Companies</h4>
+                <button
+                  onClick={fetchPeers}
+                  disabled={loadingPeers}
+                  className="flex items-center text-sm bg-white hover:bg-gray-100 px-3 py-1 rounded-lg transition-colors disabled:opacity-50 shadow-sm"
+                >
+                  <IoReloadCircle className="h-4 w-4 mr-1" />
+                  Refresh
+                </button>
               </div>
 
               {loadingPeers ? (
@@ -361,6 +436,10 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
               ) : (
                 <p className="text-sm text-gray-500 text-center py-2">No peer companies found for {symbol}</p>
               )}
+
+              <p className="text-xs text-gray-500 mt-3 italic">
+                Click on any ticker to copy, then paste it in the table below to analyze
+              </p>
             </div>
           </div>
 

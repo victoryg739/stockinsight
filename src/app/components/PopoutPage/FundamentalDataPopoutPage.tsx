@@ -5,10 +5,15 @@ import { RxCross1 } from "react-icons/rx";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import * as conv from "../../utils/helper";
-import { fetchYahooAnnualIncomeStatement, fetchYahooAnnualBalanceSheet } from "../../utils/queryAPIFunctions";
+import {
+  fetchYahooAnnualIncomeStatement,
+  fetchYahooAnnualBalanceSheet,
+  fetchSecFilings,
+} from "../../utils/queryAPIFunctions";
 import * as queryFn from "../../utils/queryAPIFunctions";
 import { AiOutlineStock } from "react-icons/ai";
 import { TbAlpha } from "react-icons/tb";
+import { FaFileAlt, FaExternalLinkAlt } from "react-icons/fa";
 import StockLogo from "../StockLogo";
 
 interface FundamentalDataPopoutPageProps {
@@ -170,6 +175,39 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
     },
     enabled: !!symbol,
   });
+
+  // Fetch SEC filings data
+  const {
+    data: secFilingsData,
+    isLoading: secFilingsLoading,
+    error: secFilingsError,
+  } = useQuery({
+    queryKey: ["secFilings", symbol],
+    queryFn: async () => {
+      return await fetchSecFilings(symbol);
+    },
+    enabled: !!symbol,
+  });
+
+  // Function to get the most recent filing of a specific type
+  const getMostRecentFiling = (filings: any[], formType: string) => {
+    if (!filings || filings.length === 0) return null;
+
+    // Filter by form type
+    const filteredFilings = filings.filter((filing) => filing.form === formType);
+
+    // Sort by filedDate in descending order
+    const sortedFilings = filteredFilings.sort(
+      (a, b) => new Date(b.filedDate).getTime() - new Date(a.filedDate).getTime()
+    );
+
+    // Return the most recent filing
+    return sortedFilings.length > 0 ? sortedFilings[0] : null;
+  };
+
+  // Get most recent 10-K and 10-Q filings
+  const mostRecent10K = secFilingsData ? getMostRecentFiling(secFilingsData, "10-K") : null;
+  const mostRecent10Q = secFilingsData ? getMostRecentFiling(secFilingsData, "10-Q") : null;
 
   // Fetch historical revenue data
   const { data: revQuery, isFetching: revIsFetching } = useQuery({
@@ -927,7 +965,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
         </div>
 
         {/* Key Financial Ratios Section*/}
-        <div className="">
+        <div className="mb-16">
           <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Key Financial Ratios</h3>
           {keyMetrics && keyMetrics.length > 0 && (
             <div className="overflow-x-auto">
@@ -984,6 +1022,84 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                   </tr>
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+
+        {/* SEC Filings Section */}
+        <div className="mb-16">
+          <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">SEC Filings</h3>
+
+          {secFilingsLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <svg
+                className="animate-spin h-5 w-5 mr-2 text-blue-500"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span className="text-gray-600">Loading SEC filings...</span>
+            </div>
+          ) : secFilingsError ? (
+            <div className="text-red-500 text-center py-4">Failed to load SEC filings.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {mostRecent10K && (
+                <a
+                  href={mostRecent10K.reportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                >
+                  <div className="p-2 bg-blue-100 rounded-full mr-3">
+                    <FaFileAlt className="text-blue-600 h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="font-medium">Annual Report (10-K)</div>
+                    <div className="text-sm text-gray-500">
+                      Filed on {new Date(mostRecent10K.filedDate.split(" ")[0]).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="ml-auto">
+                    <FaExternalLinkAlt className="text-gray-400 h-4 w-4" />
+                  </div>
+                </a>
+              )}
+
+              {mostRecent10Q && (
+                <a
+                  href={mostRecent10Q.reportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                >
+                  <div className="p-2 bg-green-100 rounded-full mr-3">
+                    <FaFileAlt className="text-green-600 h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="font-medium">Quarterly Report (10-Q)</div>
+                    <div className="text-sm text-gray-500">
+                      Filed on {new Date(mostRecent10Q.filedDate.split(" ")[0]).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="ml-auto">
+                    <FaExternalLinkAlt className="text-gray-400 h-4 w-4" />
+                  </div>
+                </a>
+              )}
+
+              {!mostRecent10K && !mostRecent10Q && (
+                <div className="col-span-2 text-center text-gray-500 py-6 bg-gray-50 rounded-lg border border-gray-200">
+                  No recent 10-K or 10-Q filings found for {symbol}.
+                </div>
+              )}
             </div>
           )}
         </div>
