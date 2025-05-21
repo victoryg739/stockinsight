@@ -92,7 +92,7 @@ export function calcTerminalWACC(countryEquityPremium: number, riskFreeRate: num
     return countryEquityPremium + riskFreeRate;
 }
 
-//This reinvestment calculation assumes no lag between reinvesting and generating growth from that reinvestment
+//NOTE: This reinvestment calculation assumes no lag between reinvesting and generating growth from that reinvestment
 export function calcReinvestment(revenue: number[], salesToCapY1: number, salesToCapY2To5: number, salesToCapY6To10: number, revGrowthTerminalYr: number, roicTerminalYear: number, ebitAfterTaxTerminalYr: number): number[] {
     const reinvestment = []
     //yr1

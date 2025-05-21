@@ -15,6 +15,9 @@ import { AiOutlineStock } from "react-icons/ai";
 import { TbAlpha } from "react-icons/tb";
 import { FaFileAlt, FaExternalLinkAlt } from "react-icons/fa";
 import StockLogo from "../StockLogo";
+import Tooltip from "rc-tooltip";
+import { FaRegQuestionCircle } from "react-icons/fa";
+import { FUNDAMENTAL_DEFINITIONS } from "../../utils/fundamentalDataDefinitions";
 
 interface FundamentalDataPopoutPageProps {
   setIsPopoutOpen: (isOpen: boolean) => void;
@@ -341,12 +344,18 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
         // Calculate Debt to Equity
         const debtToEquity = totalEquity !== 0 ? totalDebt / totalEquity : null;
 
+        // Calculate R&D to Revenue
+        const rdExpenses = incomeValues["Research And Development"];
+        const totalRevenue = incomeValues["Total Revenue"];
+        const rdToRevenue = rdExpenses && totalRevenue && totalRevenue !== 0 ? rdExpenses / totalRevenue : null;
+
         return {
           year,
-          netDebtToEBITDA,
+          netDebtToEBITDA, 
           roic,
           roe,
           debtToEquity,
+          rdToRevenue, // New metric added
         };
       })
       .filter(Boolean);
@@ -358,7 +367,11 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (popoutRef.current && !popoutRef.current.contains(event.target as Node)) {
-        setIsPopoutOpen(false);
+        // Check if the click is inside a tooltip
+        const isTooltipClick = (event.target as HTMLElement).closest(".rc-tooltip");
+        if (!isTooltipClick) {
+          setIsPopoutOpen(false);
+        }
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -828,8 +841,27 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                             shouldBeBold(field, false) ? "font-bold" : "font-medium pl-8"
                           } text-gray-900 border-r`}
                         >
-                          {formatFieldName(field)}
+                          <div className="flex items-center">
+                            {formatFieldName(field)}
+                            <Tooltip
+                              placement="right"
+                              overlay={
+                                <div className="max-w-xs bg-gray-800 text-white p-2 rounded shadow-lg">
+                                  {FUNDAMENTAL_DEFINITIONS[field]?.split("\n").map((line, index) => (
+                                    <p key={index} className="text-base">
+                                      {line}
+                                    </p>
+                                  )) || ""}
+                                </div>
+                              }
+                            >
+                              <span className="ml-2 cursor-pointer">
+                                <FaRegQuestionCircle className="text-gray-500" />
+                              </span>
+                            </Tooltip>
+                          </div>
                         </td>
+
                         {incomeTableData.data.map((yearData: any, yearIndex: number) => (
                           <td
                             key={yearIndex}
@@ -874,7 +906,25 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                             shouldBeBold(field, true) ? "font-bold" : "font-medium pl-8"
                           } text-gray-900 border-r`}
                         >
-                          {formatFieldName(field)}
+                          <div className="flex items-center">
+                            {formatFieldName(field)}
+                            <Tooltip
+                              placement="right"
+                              overlay={
+                                <div className="max-w-xs bg-gray-800 text-white p-2 rounded shadow-lg">
+                                  {FUNDAMENTAL_DEFINITIONS[field]?.split("\n").map((line, index) => (
+                                    <p key={index} className="text-base">
+                                      {line}
+                                    </p>
+                                  )) || ""}
+                                </div>
+                              }
+                            >
+                              <span className="ml-2 cursor-pointer">
+                                <FaRegQuestionCircle className="text-gray-500" />
+                              </span>
+                            </Tooltip>
+                          </div>
                         </td>
                         {balanceTableData.data.map((yearData: any, yearIndex: number) => (
                           <td
@@ -1020,12 +1070,19 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                       </td>
                     ))}
                   </tr>
+                  <tr className="bg-white">
+                    <td className="px-4 py-3 text-sm font-bold text-gray-900 border-r">R&D to Revenue</td>
+                    {keyMetrics.map((metric: any, index: number) => (
+                      <td key={index} className="px-4 py-3 text-sm text-gray-600 text-right">
+                        {formatMetricValue(metric.rdToRevenue, true)}
+                      </td>
+                    ))}
+                  </tr>
                 </tbody>
               </table>
             </div>
           )}
         </div>
-
         {/* SEC Filings Section */}
         <div className="mb-16">
           <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">SEC Filings</h3>
