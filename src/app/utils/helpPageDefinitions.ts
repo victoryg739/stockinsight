@@ -87,7 +87,7 @@ export const PRESENT_VALUE_OF_FREE_CASH_FLOW = {
 };
 
 
-export const INVESTMENT_CHECKLIST = {
+export const COMPANY_ANALYSIS = {
     "Understand the business model": {
         definition: ` How does [ticker] generate revenue today? Provide a breakdown of its key products, services, and pricing models, including the percentage contribution of each revenue stream.
 
@@ -197,4 +197,48 @@ export const CORPORATE_LIFECYCLE = {
     - Managing Decline (Low Reinvestment, Focus on Cash Extraction), focus on cutting cost, divesting assets and maximise cash flows
 **Sales to Capital Ratio**: Variable – If restructuring is successful, efficiency improves; otherwise, inefficiencies increase.`,
     }
+};
+
+export const WHEN_TO_SELL = {
+    "Better Opportunity Emerges": {
+        definition: `When a significantly more attractive investment opportunity presents itself that offers better risk-adjusted returns than your current holding.`
+    },
+
+    "Fundamental Deterioration": {
+        definition: `When the core business fundamentals or competitive position of the company has significantly weakened.
+  
+  **Key indicators to monitor:**
+  - **Competitive Advantage Erosion**: The company's moats are being eroded by competitors, new technology, or changing consumer preferences
+  - **Market Share Loss**: Persistent loss of market share to competitors without a clear recovery plan
+  - **Management Quality Decline**: Poor capital allocation decisions, loss of key personnel, or strategic missteps
+  - **Industry Headwinds**: Structural changes in the industry that permanently impair the business model`,
+    },
+
+    "Position Size Management": {
+        definition: `When a single holding becomes too large a percentage of your portfolio, creating concentration risk.
+  
+  **Guidelines:**
+  - Consider trimming when any single position exceeds 20% of your total portfolio
+  - Rebalance periodically to maintain proper diversification
+  - Don't let winners become so large that they dominate your portfolio risk profile
+  - Take some profits from outsized winners to fund new opportunities`,
+    },
+
+    "Significant Overvaluation": {
+        definition: `When the stock becomes significantly overvalued relative to its intrinsic value, typically by 20% or more.
+  
+  **Key considerations:**
+  - Factor in growth prospects and whether current valuations reflect realistic expectations
+  - Remember that markets can remain irrational longer than you expect`,
+    },
+
+    "Large Acquisitions (>30% Market Cap)": {
+        definition: `When your holding company announces a major acquisition exceeding 30% of its market capitalization.
+  
+  **Why this matters:**
+  - Large deals in fast-growing industries often lead to negative returns, while those in slower-growing sectors might fare better
+  - Aswath Damodaran firmly believes that once companies start growing through acquisitions, they cannot stop, and this habit exacts a heavy toll on value creation
+  - If you look at the collective evidence across acquisitions, this is the most value-destructive action a company can take (research by KPMG and McKinsey supports this view)
+  - **Exception**: Companies excelling in programmatic M&A—focusing on many small deals—tend to outperform, suggesting a strategy of gradual growth can be more effective than large transformational deals`,
+    },
 };

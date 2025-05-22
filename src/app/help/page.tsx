@@ -4,8 +4,9 @@ import { FaChevronUp, FaChevronDown, FaCopy } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import {
   PRESENT_VALUE_OF_FREE_CASH_FLOW,
-  INVESTMENT_CHECKLIST,
+  COMPANY_ANALYSIS,
   CORPORATE_LIFECYCLE,
+  WHEN_TO_SELL,
 } from "../utils/helpPageDefinitions";
 import ReactMarkdown from "react-markdown";
 
@@ -63,11 +64,24 @@ export default function HelpPage() {
   // Main sections data structure - makes it easy to add more sections later
   const mainSections = [
     {
-      id: "investmentChecklist",
-      title: "Investment Checklist",
+      id: "investmentPlaybook",
+      title: "Investment Playbook",
       content:
-        "A comprehensive set of criteria to evaluate when considering an investment in a company. These checklists help ensure you've covered key aspects of the business before making an investment decision.",
-      directContent: INVESTMENT_CHECKLIST,
+        "A systematic approach to investment decision-making, covering the essential steps from initial company analysis through portfolio management and exit strategies.",
+      subSections: [
+        {
+          id: "companyAnalysis",
+          title: "Company Analysis (Ask AI)",
+          content: COMPANY_ANALYSIS,
+        },
+        {
+          id: "whenToSell",
+          title: "When to Sell",
+
+          content: WHEN_TO_SELL,
+        },
+        // Can easily add more sub-sections here
+      ],
     },
     {
       id: "fcffModel",
