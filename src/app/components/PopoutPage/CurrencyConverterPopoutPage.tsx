@@ -258,7 +258,7 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
 
       setPreviewData(updatedPreviewData);
     }
-  }, [fetchedInputs, isConverted]);
+  }, [fetchedInputs, isConverted, originalValues, previewData]);
 
   // Update conversion preview when exchange rate changes (but only if not already converted)
   useEffect(() => {
@@ -270,7 +270,7 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
         }))
       );
     }
-  }, [exchangeRate, isConverted]);
+  }, [exchangeRate, isConverted, fetchedInputs]);
 
   // Fetch exchange rate when source/target/date changes
   useEffect(() => {

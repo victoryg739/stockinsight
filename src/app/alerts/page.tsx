@@ -101,7 +101,12 @@ export default function AlertsPage() {
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [alertToDelete, setAlertToDelete] = useState<PriceAlert | null>(null);
 
-  // Fetch price alerts
+  // Debug logging (remove in production)
+  React.useEffect(() => {
+    console.log("Session status:", status);
+    console.log("Session data:", session);
+  }, [status, session]);
+
   const {
     data: alerts,
     isLoading: alertsLoading,
@@ -196,6 +201,13 @@ export default function AlertsPage() {
     },
   });
 
+  // Additional debug logging for alerts data
+  React.useEffect(() => {
+    console.log("Alerts loading:", alertsLoading);
+    console.log("Alerts data:", alerts);
+    console.log("Alerts error:", alertsError);
+  }, [alertsLoading, alerts, alertsError]);
+
   const handleEditAlert = (alert: PriceAlert) => {
     setEditingAlert(alert);
     setIsEditAlertOpen(true);
@@ -244,15 +256,6 @@ export default function AlertsPage() {
     router.push("/");
     return null;
   }
-
-  // Debug logging (remove in production)
-  React.useEffect(() => {
-    console.log("Session status:", status);
-    console.log("Session data:", session);
-    console.log("Alerts loading:", alertsLoading);
-    console.log("Alerts data:", alerts);
-    console.log("Alerts error:", alertsError);
-  }, [status, session, alertsLoading, alerts, alertsError]);
 
   // Loading State Component (using the same design as myValuations)
   const LoadingState = () => (
