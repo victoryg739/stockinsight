@@ -2,6 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/check-price-alerts",
-      "schedule": "15 14 * * *" 
+      "schedule": "15 14 * * *"
+    }
   ]
 }
