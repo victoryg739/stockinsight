@@ -73,7 +73,7 @@ export default function DetailedWacc({
   //invalidate all queries
   useEffect(() => {
     queryClient.refetchQueries();
-  }, [industryOptions, countryOptions, syntheticRatingOptions]);
+  }, [industryOptions, countryOptions, syntheticRatingOptions, queryClient]);
 
   //handle local input changes from page
   const riskFreeRate = getPageInputValue("riskFreeRate", "fetchedInputs");
@@ -133,7 +133,7 @@ export default function DetailedWacc({
   );
   useEffect(() => {
     handlePageInputChange("initialWacc", initialWaccRef.current, "fetchedInputs");
-  }, [initialWaccRef.current]);
+  }, [initialWaccRef.current, handlePageInputChange]);
 
   return (
     <div>

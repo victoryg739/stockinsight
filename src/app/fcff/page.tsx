@@ -168,11 +168,11 @@ export default function Page() {
     incomeStatementRefetch();
     balanceSheetQuartelyRefetch();
     setSearchedSymbol(symbol); // Capture the symbol at search time
-  }, [symbolBtn]);
+  }, [symbolBtn, symbol, stockInfoRefetch, incomeStatementRefetch, balanceSheetQuartelyRefetch]);
 
   useEffect(() => {
     equityRiskPremiumRefectch();
-  }, [countryOptions]);
+  }, [countryOptions, equityRiskPremiumRefectch]);
 
   const SalesToCapAutoFill = () => {
     const totalEquity = getInputValue("totalEquity", fetchedInputs);
@@ -186,7 +186,7 @@ export default function Page() {
       handleInputChange("salesToCapYr1", salesToCap, "inputs");
       handleInputChange("salesToCapYr2to5", salesToCap, "inputs");
       handleInputChange("salesToCapYr6to10", salesToCap, "inputs");
-    }, [salesToCap]);
+    }, [salesToCap, handleInputChange]);
   };
   SalesToCapAutoFill();
 
@@ -227,9 +227,12 @@ export default function Page() {
       countryEquityRiskPremium,
       getInputValue("riskFreeRate", "fetchedInputs")
     );
+    const riskFreeRate = getInputValue("riskFreeRate", "fetchedInputs");
+    const equityRiskPremium = getInputValue("equityRiskPremium", "fetchedInputs");
+
     useEffect(() => {
       handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs");
-    }, [getInputValue("riskFreeRate", "fetchedInputs"), getInputValue("equityRiskPremium", "fetchedInputs")]);
+    }, [terminalWacc, handleInputChange, riskFreeRate, equityRiskPremium]);
   };
   RoicTerminalAutoFill();
   const roicTerminalYear = getInputValue("roicTerminalYear", "fetchedInputs");

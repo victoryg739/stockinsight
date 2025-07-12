@@ -285,12 +285,12 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     if (symbol) {
       fetchPeers();
     }
-  }, [symbol]);
+  }, [symbol, fetchPeers]);
 
   // Run refetch() after mount
   useEffect(() => {
     handleCompAnalysis();
-  }, []);
+  }, [handleCompAnalysis]);
 
   // Loading state check
   const isMainDataLoading = inputStatsLoading || roicStatsLoading;
