@@ -149,3 +149,19 @@ model roic {
   expected_growth_ebit String?
 }
 
+model price_alert {
+  id           Int      @id @default(autoincrement())
+  email        String   @db.VarChar(100)
+  symbol       String   @db.VarChar(10)
+  target_price Decimal  @db.Decimal(10, 2)
+  condition    String   @db.VarChar(10) // 'ABOVE' or 'BELOW'
+  status       String   @db.VarChar(20) @default("ACTIVE") // 'ACTIVE', 'TRIGGERED', 'CANCELLED'
+  created_at   DateTime @default(now())
+  expires_at   DateTime?
+  triggered_at DateTime?
+  
+  @@index([email])
+  @@index([symbol])
+  @@index([status])
+}
+

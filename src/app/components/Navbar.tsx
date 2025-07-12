@@ -3,6 +3,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { BiSolidBinoculars } from "react-icons/bi";
 import { IoIosHome, IoIosCalculator, IoMdHelp } from "react-icons/io";
+import { MdNotifications } from "react-icons/md";
 
 const Navbar = () => {
   const [isNavOpen, setNavOpen] = useState(false);
@@ -116,6 +117,20 @@ const Navbar = () => {
               >
                 <BiSolidBinoculars className="flex-shrink-0" />
                 <span className="whitespace-nowrap">My Valuations</span>
+              </a>
+            </li>
+            <li className="w-full">
+              <a
+                href="/alerts"
+                className={`flex items-center gap-1 py-2 px-2 md:px-3 rounded-lg ${
+                  isActive("/alerts")
+                    ? "text-white bg-blue-600 md:bg-blue-600"
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                } transition-colors w-full md:w-auto text-sm md:text-sm`}
+                aria-current={isActive("/alerts") ? "page" : undefined}
+              >
+                <MdNotifications className="flex-shrink-0" />
+                <span>Alerts</span>
               </a>
             </li>
             <li className="w-full">
