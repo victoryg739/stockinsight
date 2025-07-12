@@ -2,7 +2,6 @@
   "crons": [
     {
       "path": "/api/cron/check-price-alerts",
-      "schedule": "15 14 * * *" // 10:15Pm sg time adjusted for UTC time
-    }
+      "schedule": "15 14 * * *" 
   ]
 }
