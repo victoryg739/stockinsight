@@ -8,36 +8,36 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Function to fetch current market price
 async function fetchMarketPrice(symbol: string): Promise<number | null> {
-    try {
-        // Using the same logic as your existing fetchMarketPrice function
-        const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${process.env.FINNHUB_API_KEY}`);
+  try {
+    // Using the same logic as your existing fetchMarketPrice function
+    const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${process.env.FINNHUB_API_KEY}`);
 
-        if (!response.ok) {
-            console.error(`Failed to fetch price for ${symbol}: ${response.statusText}`);
-            return null;
-        }
-
-        const data = await response.json();
-        return data.c || null; // 'c' is the current price
-    } catch (error) {
-        console.error(`Error fetching price for ${symbol}:`, error);
-        return null;
+    if (!response.ok) {
+      console.error(`Failed to fetch price for ${symbol}: ${response.statusText}`);
+      return null;
     }
+
+    const data = await response.json();
+    return data.c || null; // 'c' is the current price
+  } catch (error) {
+    console.error(`Error fetching price for ${symbol}:`, error);
+    return null;
+  }
 }
 
 // Function to send email notification
 async function sendAlertEmail(userEmail: string, alert: any, currentPrice: number) {
-    const conditionText = alert.condition === "ABOVE" ? "above" : "below";
-    const priceDirection = alert.condition === "ABOVE" ? "📈" : "📉";
+  const conditionText = alert.condition === "ABOVE" ? "above" : "below";
+  const priceDirection = alert.condition === "ABOVE" ? "📈" : "📉";
 
-    try {
-        await resend.emails.send({
-            from: 'StockInsight Alerts <onboarding@resend.dev>', // Resend's testing domain
-            // Alternative: Use your verified Gmail address
-            // from: 'StockInsight Alerts <qwerty7391999@gmail.com>', // Your verified Gmail
-            to: userEmail,
-            subject: `🚨 Price Alert Triggered: ${alert.symbol}`,
-            html: `
+  try {
+    await resend.emails.send({
+      from: 'StockInsight Alerts <onboarding@resend.dev>', // Resend's testing domain
+      // Alternative: Use your verified Gmail address
+      // from: 'StockInsight Alerts <qwerty7391999@gmail.com>', // Your verified Gmail
+      to: userEmail,
+      subject: `🚨 Price Alert Triggered: ${alert.symbol}`,
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
             <h1 style="color: white; margin: 0; font-size: 28px;">StockInsight Alert ${priceDirection}</h1>
@@ -82,12 +82,12 @@ async function sendAlertEmail(userEmail: string, alert: any, currentPrice: numbe
           </div>
         </div>
       `,
-        });
+    });
 
-        console.log(`Alert email sent successfully to ${userEmail} for ${alert.symbol}`);
-    } catch (error) {
-        console.error(`Failed to send email to ${userEmail}:`, error);
-    }
+    console.log(`Alert email sent successfully to ${userEmail} for ${alert.symbol}`);
+  } catch (error) {
+    console.error(`Failed to send email to ${userEmail}:`, error);
+  }
 }
 
 // Alternative Gmail SMTP function (uncomment to use)
@@ -167,113 +167,114 @@ async function sendAlertEmailWithGmail(userEmail: string, alert: any, currentPri
 */
 
 export async function GET(request: NextRequest) {
-    try {
-        console.log("Starting price alert check...");
+  try {
+    console.log("Starting price alert check...");
 
-        // Verify this is a cron job request (optional security measure)
-        const authHeader = request.headers.get('authorization');
-        if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-            console.log("Unauthorized cron request");
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        // Get all active alerts
-        const activeAlerts = await prisma.price_alert.findMany({
-            where: {
-                status: "ACTIVE",
-                OR: [
-                    { expires_at: null },
-                    { expires_at: { gt: new Date() } }
-                ]
-            }
-        });
-
-        console.log(`Found ${activeAlerts.length} active alerts to check`);
-
-        if (activeAlerts.length === 0) {
-            return NextResponse.json({
-                message: "No active alerts to check",
-                checked: 0,
-                triggered: 0
-            });
-        }
-
-        let triggeredCount = 0;
-        const processedSymbols = new Set<string>();
-
-        // Group alerts by symbol to minimize API calls
-        const alertsBySymbol = activeAlerts.reduce((acc, alert) => {
-            if (!acc[alert.symbol]) {
-                acc[alert.symbol] = [];
-            }
-            acc[alert.symbol].push(alert);
-            return acc;
-        }, {} as Record<string, typeof activeAlerts>);
-
-        // Process each symbol
-        for (const [symbol, alerts] of Object.entries(alertsBySymbol)) {
-            try {
-                const currentPrice = await fetchMarketPrice(symbol);
-
-                if (currentPrice === null) {
-                    console.log(`Skipping ${symbol} - could not fetch price`);
-                    continue;
-                }
-
-                console.log(`${symbol}: Current price $${currentPrice}`);
-                processedSymbols.add(symbol);
-
-                // Check each alert for this symbol
-                for (const alert of alerts) {
-                    let shouldTrigger = false;
-
-                    if (alert.condition === "ABOVE" && currentPrice >= alert.target_price) {
-                        shouldTrigger = true;
-                    } else if (alert.condition === "BELOW" && currentPrice <= alert.target_price) {
-                        shouldTrigger = true;
-                    }
-
-                    if (shouldTrigger) {
-                        console.log(`Triggering alert ${alert.id} for ${symbol}: ${currentPrice} ${alert.condition.toLowerCase()} ${alert.target_price}`);
-
-                        // Update alert status to TRIGGERED
-                        await prisma.price_alert.update({
-                            where: { id: alert.id },
-                            data: {
-                                status: "TRIGGERED",
-                                triggered_at: new Date()
-                            }
-                        });
-
-                        // Send email notification
-                        await sendAlertEmail(alert.email, alert, currentPrice);
-
-                        triggeredCount++;
-                    }
-                }
-
-                // Add small delay between API calls to be respectful
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-            } catch (error) {
-                console.error(`Error processing alerts for ${symbol}:`, error);
-            }
-        }
-
-        console.log(`Price alert check completed. Checked ${processedSymbols.size} symbols, triggered ${triggeredCount} alerts`);
-
-        return NextResponse.json({
-            message: "Price alert check completed",
-            checked: processedSymbols.size,
-            triggered: triggeredCount,
-            timestamp: new Date().toISOString()
-        });
-
-    } catch (error) {
-        console.error("Error in price alert cron job:", error);
-        return NextResponse.json(
-            { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
-            { status: 500 }
-        );
+    // Verify this is a cron job request (optional security measure)
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      console.log("Unauthorized cron request");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Get all active alerts
+    const activeAlerts = await prisma.price_alert.findMany({
+      where: {
+        status: "ACTIVE",
+        OR: [
+          { expires_at: null },
+          { expires_at: { gt: new Date() } }
+        ]
+      }
+    });
+
+    console.log(`Found ${activeAlerts.length} active alerts to check`);
+
+    if (activeAlerts.length === 0) {
+      return NextResponse.json({
+        message: "No active alerts to check",
+        checked: 0,
+        triggered: 0
+      });
+    }
+
+    let triggeredCount = 0;
+    const processedSymbols = new Set<string>();
+
+    // Group alerts by symbol to minimize API calls
+    const alertsBySymbol = activeAlerts.reduce((acc, alert) => {
+      if (!acc[alert.symbol]) {
+        acc[alert.symbol] = [];
+      }
+      acc[alert.symbol].push(alert);
+      return acc;
+    }, {} as Record<string, typeof activeAlerts>);
+
+    // Process each symbol
+    for (const [symbol, alerts] of Object.entries(alertsBySymbol)) {
+      try {
+        const currentPrice = await fetchMarketPrice(symbol);
+
+        if (currentPrice === null) {
+          console.log(`Skipping ${symbol} - could not fetch price`);
+          continue;
+        }
+
+        console.log(`${symbol}: Current price $${currentPrice}`);
+        processedSymbols.add(symbol);
+
+        // Check each alert for this symbol
+        for (const alert of alerts) {
+          let shouldTrigger = false;
+          const targetPrice = Number(alert.target_price);
+
+          if (alert.condition === "ABOVE" && currentPrice >= targetPrice) {
+            shouldTrigger = true;
+          } else if (alert.condition === "BELOW" && currentPrice <= targetPrice) {
+            shouldTrigger = true;
+          }
+
+          if (shouldTrigger) {
+            console.log(`Triggering alert ${alert.id} for ${symbol}: ${currentPrice} ${alert.condition.toLowerCase()} ${targetPrice}`);
+
+            // Update alert status to TRIGGERED
+            await prisma.price_alert.update({
+              where: { id: alert.id },
+              data: {
+                status: "TRIGGERED",
+                triggered_at: new Date()
+              }
+            });
+
+            // Send email notification
+            await sendAlertEmail(alert.email, alert, currentPrice);
+
+            triggeredCount++;
+          }
+        }
+
+        // Add small delay between API calls to be respectful
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+      } catch (error) {
+        console.error(`Error processing alerts for ${symbol}:`, error);
+      }
+    }
+
+    console.log(`Price alert check completed. Checked ${processedSymbols.size} symbols, triggered ${triggeredCount} alerts`);
+
+    return NextResponse.json({
+      message: "Price alert check completed",
+      checked: processedSymbols.size,
+      triggered: triggeredCount,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error("Error in price alert cron job:", error);
+    return NextResponse.json(
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
 } 
