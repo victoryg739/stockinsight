@@ -351,7 +351,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
 
         return {
           year,
-          netDebtToEBITDA, 
+          netDebtToEBITDA,
           roic,
           roe,
           debtToEquity,

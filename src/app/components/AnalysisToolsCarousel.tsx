@@ -28,7 +28,7 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
   const [activeButton, setActiveButton] = useState(-1);
-  const [allButtonsVisible, setAllButtonsVisible] = useState(false);
+  const [allButtonsVisible, setAllButtonsVisible] = useState(true); // Start with center alignment
 
   // Define your tools
   const tools = [
@@ -124,10 +124,12 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
 
   // Initialize on mount and update on resize
   useEffect(() => {
-    // Force a reflow to ensure all elements are rendered before calculating
+    // Run immediately, then with a small delay as fallback
+    updateArrowVisibility();
+
     const timer = setTimeout(() => {
       updateArrowVisibility();
-    }, 100);
+    }, 10); // Reduced delay
 
     const handleResize = () => {
       updateArrowVisibility();

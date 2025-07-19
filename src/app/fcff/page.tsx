@@ -61,6 +61,13 @@ export default function Page() {
   const [valuationModelLabel, setValuationModelLabel] = useState("");
   const [savePopup, setSavePopup] = useState(false);
 
+  // Track whether user has manually edited sales to capital fields
+  const [salesToCapManuallyEdited, setSalesToCapManuallyEdited] = useState({
+    salesToCapYr1: false,
+    salesToCapYr2to5: false,
+    salesToCapYr6to10: false,
+  });
+
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -74,7 +81,12 @@ export default function Page() {
     return input ? input.value : 0;
   };
 
-  const handleInputChange = (id: string, newValue: any, type: "inputs" | "fetchedInputs" | "stockInfo"): void => {
+  const handleInputChange = (
+    id: string,
+    newValue: any,
+    type: "inputs" | "fetchedInputs" | "stockInfo",
+    isAutoFill: boolean = false
+  ): void => {
     let value = newValue === undefined ? 0 : newValue;
     // Convert value to string for trimming and validation
     const valueString = value.toString().trim();
@@ -90,6 +102,16 @@ export default function Page() {
         value = Number(value);
       }
     }
+
+    // Track manual edits to sales to capital fields
+    if (
+      type === "inputs" &&
+      !isAutoFill &&
+      (id === "salesToCapYr1" || id === "salesToCapYr2to5" || id === "salesToCapYr6to10")
+    ) {
+      setSalesToCapManuallyEdited((prev) => ({ ...prev, [id]: true }));
+    }
+
     if (type === "inputs") {
       setInputs((prevInputs: any) => prevInputs.map((input: any) => (input.id === id ? { ...input, value } : input)));
     } else if (type === "fetchedInputs") {
@@ -164,6 +186,13 @@ export default function Page() {
     }
     setCurrencyConverted(false);
 
+    // Reset manual edit tracking when searching for a new symbol
+    setSalesToCapManuallyEdited({
+      salesToCapYr1: false,
+      salesToCapYr2to5: false,
+      salesToCapYr6to10: false,
+    });
+
     stockInfoRefetch();
     incomeStatementRefetch();
     balanceSheetQuartelyRefetch();
@@ -174,21 +203,35 @@ export default function Page() {
     equityRiskPremiumRefectch();
   }, [countryOptions, equityRiskPremiumRefectch]);
 
-  const SalesToCapAutoFill = () => {
-    const totalEquity = getInputValue("totalEquity", fetchedInputs);
-    const totalDebt = getInputValue("totalDebt", fetchedInputs);
-    const cash = getInputValue("cash", fetchedInputs);
-    const investedCapital = FinCalc.calcInvestedCapital(totalEquity, totalDebt, cash);
-    const baseRevenue = getInputValue("baseRevenue", fetchedInputs);
-    const salesToCap = FinCalc.calcSalesToCap(baseRevenue, investedCapital);
+  // Auto-fill sales to capital fields only if they haven't been manually edited
+  useEffect(() => {
+    const totalEquity = getInputValue("totalEquity", "fetchedInputs");
+    const totalDebt = getInputValue("totalDebt", "fetchedInputs");
+    const cash = getInputValue("cash", "fetchedInputs");
+    const baseRevenue = getInputValue("baseRevenue", "fetchedInputs");
 
-    useEffect(() => {
-      handleInputChange("salesToCapYr1", salesToCap, "inputs");
-      handleInputChange("salesToCapYr2to5", salesToCap, "inputs");
-      handleInputChange("salesToCapYr6to10", salesToCap, "inputs");
-    }, [salesToCap, handleInputChange]);
-  };
-  SalesToCapAutoFill();
+    // Only calculate and auto-fill if we have the necessary data and fields haven't been manually edited
+    if (totalEquity && totalDebt && baseRevenue) {
+      const investedCapital = FinCalc.calcInvestedCapital(totalEquity, totalDebt, cash);
+      const salesToCap = FinCalc.calcSalesToCap(baseRevenue, investedCapital);
+
+      if (!salesToCapManuallyEdited.salesToCapYr1) {
+        handleInputChange("salesToCapYr1", salesToCap, "inputs", true);
+      }
+      if (!salesToCapManuallyEdited.salesToCapYr2to5) {
+        handleInputChange("salesToCapYr2to5", salesToCap, "inputs", true);
+      }
+      if (!salesToCapManuallyEdited.salesToCapYr6to10) {
+        handleInputChange("salesToCapYr6to10", salesToCap, "inputs", true);
+      }
+    }
+  }, [
+    getInputValue("totalEquity", "fetchedInputs"),
+    getInputValue("totalDebt", "fetchedInputs"),
+    getInputValue("cash", "fetchedInputs"),
+    getInputValue("baseRevenue", "fetchedInputs"),
+    salesToCapManuallyEdited,
+  ]);
 
   const growthY1 = getInputValue("revGrowthYr1", "inputs");
   const growthY2to5 = getInputValue("revGrowthYr2to5", "inputs");
@@ -231,7 +274,7 @@ export default function Page() {
     const equityRiskPremium = getInputValue("equityRiskPremium", "fetchedInputs");
 
     useEffect(() => {
-      handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs");
+      handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs", true);
     }, [terminalWacc, handleInputChange, riskFreeRate, equityRiskPremium]);
   };
   RoicTerminalAutoFill();

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { RxCross1 } from "react-icons/rx";
 import MarketInsightTable from "../MarketInsightTable";
 import { useQueries, useQuery } from "@tanstack/react-query";
@@ -35,8 +35,8 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     avgEbitMargin: "N/A",
   });
 
-  // Add function to fetch peers
-  const fetchPeers = async () => {
+  // Memoize fetchPeers function to prevent infinite loops
+  const fetchPeers = useCallback(async () => {
     setLoadingPeers(true);
     try {
       const peers = await queryFn.fetchFinnhubPeers(symbol);
@@ -50,7 +50,7 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     } finally {
       setLoadingPeers(false);
     }
-  };
+  }, [symbol]);
 
   // Function to copy ticker to clipboard
   const copyToClipboard = (text: string) => {
@@ -143,87 +143,93 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
   const [, forceUpdate] = useState({});
   const triggerReRender = () => forceUpdate({});
 
-  if (inputStatsQuery) {
-    // Update Revenue Growth
-    handleInputChange("revGrowthYr1", getPageInputValue("revGrowthYr1", "inputs") + "%", "revenueGrowth");
-    handleInputChange("revGrowthYr2to5", getPageInputValue("revGrowthYr2to5", "inputs") + "%", "revenueGrowth");
-    handleInputChange(
-      "revenueGrowthFirstQuartile",
-      inputStatsQuery["revenue_growth_rate_first_quartile"] + "%",
-      "revenueGrowth"
-    );
-    handleInputChange("revenueGrowthMedian", inputStatsQuery["revenue_growth_rate_median"] + "%", "revenueGrowth");
-    handleInputChange(
-      "revenueGrowthThirdQuartile",
-      inputStatsQuery["revenue_growth_rate_third_quartile"] + "%",
-      "revenueGrowth"
-    );
+  // Move data processing logic into useEffect to prevent infinite loops
+  useEffect(() => {
+    if (inputStatsQuery) {
+      // Update Revenue Growth
+      handleInputChange("revGrowthYr1", getPageInputValue("revGrowthYr1", "inputs") + "%", "revenueGrowth");
+      handleInputChange("revGrowthYr2to5", getPageInputValue("revGrowthYr2to5", "inputs") + "%", "revenueGrowth");
+      handleInputChange(
+        "revenueGrowthFirstQuartile",
+        inputStatsQuery["revenue_growth_rate_first_quartile"] + "%",
+        "revenueGrowth"
+      );
+      handleInputChange("revenueGrowthMedian", inputStatsQuery["revenue_growth_rate_median"] + "%", "revenueGrowth");
+      handleInputChange(
+        "revenueGrowthThirdQuartile",
+        inputStatsQuery["revenue_growth_rate_third_quartile"] + "%",
+        "revenueGrowth"
+      );
 
-    // Update Operating Margin
-    handleInputChange("opMarginYr1", getPageInputValue("opMarginYr1", "inputs") + "%", "operatingMargin");
-    handleInputChange("opMarginYr10", getPageInputValue("opMarginYr10", "inputs") + "%", "operatingMargin");
-    handleInputChange(
-      "operatingMarginFirstQuartile",
-      inputStatsQuery["pre_tax_operating_margin_first_quartile"] + "%",
-      "operatingMargin"
-    );
-    handleInputChange(
-      "operatingMarginMedian",
-      inputStatsQuery["pre_tax_operating_margin_median"] + "%",
-      "operatingMargin"
-    );
-    handleInputChange(
-      "operatingMarginThirdQuartile",
-      inputStatsQuery["pre_tax_operating_margin_third_quartile"] + "%",
-      "operatingMargin"
-    );
+      // Update Operating Margin
+      handleInputChange("opMarginYr1", getPageInputValue("opMarginYr1", "inputs") + "%", "operatingMargin");
+      handleInputChange("opMarginYr10", getPageInputValue("opMarginYr10", "inputs") + "%", "operatingMargin");
+      handleInputChange(
+        "operatingMarginFirstQuartile",
+        inputStatsQuery["pre_tax_operating_margin_first_quartile"] + "%",
+        "operatingMargin"
+      );
+      handleInputChange(
+        "operatingMarginMedian",
+        inputStatsQuery["pre_tax_operating_margin_median"] + "%",
+        "operatingMargin"
+      );
+      handleInputChange(
+        "operatingMarginThirdQuartile",
+        inputStatsQuery["pre_tax_operating_margin_third_quartile"] + "%",
+        "operatingMargin"
+      );
 
-    // Update Sales to Capital
-    handleInputChange("salesToCapYr1", getPageInputValue("salesToCapYr1", "inputs"), "salesToCap");
-    handleInputChange("salesToCapYr2to5", getPageInputValue("salesToCapYr2to5", "inputs"), "salesToCap");
-    handleInputChange("salesToCapYr6to10", getPageInputValue("salesToCapYr6to10", "inputs"), "salesToCap");
-    handleInputChange(
-      "salesToCapitalFirstQuartile",
-      inputStatsQuery["sales_to_invested_capital_first_quartile"],
-      "salesToCap"
-    );
-    handleInputChange("salesToCapitalMedian", inputStatsQuery["sales_to_invested_capital_median"], "salesToCap");
-    handleInputChange(
-      "salesToCapitalThirdQuartile",
-      inputStatsQuery["sales_to_invested_capital_third_quartile"],
-      "salesToCap"
-    );
+      // Update Sales to Capital
+      handleInputChange("salesToCapYr1", getPageInputValue("salesToCapYr1", "inputs"), "salesToCap");
+      handleInputChange("salesToCapYr2to5", getPageInputValue("salesToCapYr2to5", "inputs"), "salesToCap");
+      handleInputChange("salesToCapYr6to10", getPageInputValue("salesToCapYr6to10", "inputs"), "salesToCap");
+      handleInputChange(
+        "salesToCapitalFirstQuartile",
+        inputStatsQuery["sales_to_invested_capital_first_quartile"],
+        "salesToCap"
+      );
+      handleInputChange("salesToCapitalMedian", inputStatsQuery["sales_to_invested_capital_median"], "salesToCap");
+      handleInputChange(
+        "salesToCapitalThirdQuartile",
+        inputStatsQuery["sales_to_invested_capital_third_quartile"],
+        "salesToCap"
+      );
 
-    // Update WACC
-    handleInputChange("initialWacc", convRound2Dp(getPageInputValue("initialWacc", "fetchedInputs")) + "%", "wacc");
-    handleInputChange("costOfCapitalFirstQuartile", inputStatsQuery["cost_of_capital_first_quartile"] + "%", "wacc");
-    handleInputChange("costOfCapitalMedian", inputStatsQuery["cost_of_capital_median"] + "%", "wacc");
-    handleInputChange("costOfCapitalThirdQuartile", inputStatsQuery["cost_of_capital_third_quartile"] + "%", "wacc");
+      // Update WACC
+      handleInputChange("initialWacc", convRound2Dp(getPageInputValue("initialWacc", "fetchedInputs")) + "%", "wacc");
+      handleInputChange("costOfCapitalFirstQuartile", inputStatsQuery["cost_of_capital_first_quartile"] + "%", "wacc");
+      handleInputChange("costOfCapitalMedian", inputStatsQuery["cost_of_capital_median"] + "%", "wacc");
+      handleInputChange("costOfCapitalThirdQuartile", inputStatsQuery["cost_of_capital_third_quartile"] + "%", "wacc");
 
-    // Update Debt to Capital Ratio
-    const totalEquity = getPageInputValue("totalEquity", "fetchedInputs");
-    const totalDebt = getPageInputValue("totalDebt", "fetchedInputs");
-    const debtToEquity = convRound2Dp(totalDebt / (totalDebt + totalEquity));
+      // Update Debt to Capital Ratio
+      const totalEquity = getPageInputValue("totalEquity", "fetchedInputs");
+      const totalDebt = getPageInputValue("totalDebt", "fetchedInputs");
+      const debtToEquity = convRound2Dp(totalDebt / (totalDebt + totalEquity));
 
-    handleInputChange("debtToCapital", debtToEquity, "debtToCap");
-    handleInputChange(
-      "debtToCapitalFirstQuartile",
-      inputStatsQuery["debt_to_capital_ratio_first_quartile"],
-      "debtToCap"
-    );
-    handleInputChange("debtToCapitalMedian", inputStatsQuery["debt_to_capital_ratio_median"], "debtToCap");
-    handleInputChange(
-      "debtToCapitalThirdQuartile",
-      inputStatsQuery["debt_to_capital_ratio_third_quartile"],
-      "debtToCap"
-    );
-  }
+      handleInputChange("debtToCapital", debtToEquity, "debtToCap");
+      handleInputChange(
+        "debtToCapitalFirstQuartile",
+        inputStatsQuery["debt_to_capital_ratio_first_quartile"],
+        "debtToCap"
+      );
+      handleInputChange("debtToCapitalMedian", inputStatsQuery["debt_to_capital_ratio_median"], "debtToCap");
+      handleInputChange(
+        "debtToCapitalThirdQuartile",
+        inputStatsQuery["debt_to_capital_ratio_third_quartile"],
+        "debtToCap"
+      );
+    }
+  }, [inputStatsQuery, getPageInputValue]);
 
-  if (roicStatsQuery) {
-    handleInputChange("roic", roicStatsQuery["roc"] + "%", "roic");
-    handleInputChange("reinvestmentRate", roicStatsQuery["reinvestment_rate"] + "%", "roic");
-    handleInputChange("expectedGrowthEbit", roicStatsQuery["expected_growth_ebit"] + "%", "roic");
-  }
+  // Move ROIC data processing into useEffect
+  useEffect(() => {
+    if (roicStatsQuery) {
+      handleInputChange("roic", roicStatsQuery["roc"] + "%", "roic");
+      handleInputChange("reinvestmentRate", roicStatsQuery["reinvestment_rate"] + "%", "roic");
+      handleInputChange("expectedGrowthEbit", roicStatsQuery["expected_growth_ebit"] + "%", "roic");
+    }
+  }, [roicStatsQuery]);
 
   // Close when clicking outside the popout
   useEffect(() => {
@@ -238,8 +244,8 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     };
   }, [setIsPopoutOpen]);
 
-  // Update the handleCompAnalysis function
-  const handleCompAnalysis = async () => {
+  // Memoize handleCompAnalysis function to prevent infinite loops
+  const handleCompAnalysis = useCallback(async () => {
     // Wait for all refetch operations to complete
     const results = await Promise.all(compAnalysisQueries.map((query) => query.refetch()));
     const avg = {
@@ -278,16 +284,16 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     });
 
     triggerReRender(); // Ensure UI updates
-  };
+  }, [compAnalysisQueries]);
 
-  // Fetch peers when component mounts
+  // Fetch peers when component mounts - remove fetchPeers from dependency array
   useEffect(() => {
     if (symbol) {
       fetchPeers();
     }
   }, [symbol, fetchPeers]);
 
-  // Run refetch() after mount
+  // Run refetch() after mount - remove handleCompAnalysis from dependency array
   useEffect(() => {
     handleCompAnalysis();
   }, [handleCompAnalysis]);

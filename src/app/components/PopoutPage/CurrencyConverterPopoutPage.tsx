@@ -36,7 +36,12 @@ interface CurrencyConverterPopoutPageProps {
   symbol: string;
   stockInfo: any[];
   fetchedInputs: any[];
-  handleInputChange?: (id: string, newValue: any, type: "inputs" | "fetchedInputs" | "stockInfo") => void;
+  handleInputChange?: (
+    id: string,
+    newValue: any,
+    type: "inputs" | "fetchedInputs" | "stockInfo",
+    isAutoFill?: boolean
+  ) => void;
   setCurrencyConverted?: (converted: boolean) => void;
 }
 
@@ -340,7 +345,7 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
         const convertedValue = originalValue * exchangeRate;
 
         // Update the value using the provided handler
-        handleInputChange(id, convertedValue, "fetchedInputs");
+        handleInputChange(id, convertedValue, "fetchedInputs", true);
       }
     });
 
