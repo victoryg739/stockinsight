@@ -75,7 +75,7 @@ const SearchTicker = ({ symbol, setSymbol, setSymbolBtn, incomeStatementIsFetchi
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
-    setSymbol(value);
+    // Don't update symbol here - only update when search button is clicked or suggestion is selected
 
     if (value.length >= 2) {
       setShowSuggestions(true);
@@ -89,13 +89,14 @@ const SearchTicker = ({ symbol, setSymbol, setSymbolBtn, incomeStatementIsFetchi
     setSymbol(result.symbol);
     setInputValue(result.symbol);
     setShowSuggestions(false);
-    
+
     // Trigger search immediately when a suggestion is clicked
     setSymbolBtn((prevState: boolean) => !prevState);
   };
 
   // Handle search button click
   const handleSearch = () => {
+    setSymbol(inputValue); // Set the symbol to trigger search
     setSymbolBtn((prevState: boolean) => !prevState);
     setShowSuggestions(false);
   };

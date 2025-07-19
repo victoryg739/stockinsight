@@ -29,6 +29,9 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     { ticker: "", shortName: "", revenue: 0, ebit: 0, ebitMargin: 0, peRatio: 0, roic: 0 },
   ]);
 
+  // State to store input values separately from the analysis data
+  const [inputTickers, setInputTickers] = useState<string[]>([symbol, ""]);
+
   const [averages, setAverages] = useState({
     avgRoic: "N/A",
     avgPeRatio: "N/A",
@@ -129,15 +132,12 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     staleTime: 0,
   });
 
-  const compAnalysisQueries = useQueries({
-    queries: compAnalysisRef.current.map((item) => ({
-      queryKey: ["compAnalysis", item.ticker], // Unique key per ticker
-      queryFn: () => queryFn.fetchCompAnalysis(item.ticker),
-      enabled: false,
-    })),
-  });
+  // State to control when to fetch data
+  const [shouldFetch, setShouldFetch] = useState(false);
+  const [isFetchingCompAnalysis, setIsFetchingCompAnalysis] = useState(false);
 
-  const isFetchingCompAnalysis = compAnalysisQueries.some((query) => query.isFetching);
+  // We don't use useQueries anymore to avoid auto-fetching
+  // Instead, we'll manually fetch data when the search button is clicked
 
   // Force re-render mechanism
   const [, forceUpdate] = useState({});
@@ -244,59 +244,86 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
     };
   }, [setIsPopoutOpen]);
 
-  // Memoize handleCompAnalysis function to prevent infinite loops
+  // Handle comp analysis - only called when search button is clicked
   const handleCompAnalysis = useCallback(async () => {
-    // Wait for all refetch operations to complete
-    const results = await Promise.all(compAnalysisQueries.map((query) => query.refetch()));
-    const avg = {
-      ebitMargin: { value: 0, count: 0 },
-      peRatio: { value: 0, count: 0 },
-      roic: { value: 0, count: 0 },
-    };
+    setIsFetchingCompAnalysis(true);
 
-    results.forEach((result, index) => {
-      compAnalysisRef.current[index] = {
-        ...compAnalysisRef.current[index],
-        ...result.data, // Merge fetched data
+    try {
+      // Update compAnalysisRef with current input tickers before fetching
+      inputTickers.forEach((ticker, index) => {
+        if (compAnalysisRef.current[index]) {
+          compAnalysisRef.current[index].ticker = ticker;
+        }
+      });
+
+      // Manually fetch data for each ticker
+      const fetchPromises = inputTickers.map(async (ticker) => {
+        if (ticker && ticker.trim() !== "") {
+          return await queryFn.fetchCompAnalysis(ticker);
+        }
+        return null;
+      });
+
+      const results = await Promise.all(fetchPromises);
+
+      const avg = {
+        ebitMargin: { value: 0, count: 0 },
+        peRatio: { value: 0, count: 0 },
+        roic: { value: 0, count: 0 },
       };
 
-      if (result.data?.ticker !== "") {
-        if (result.data?.ebitMargin !== undefined) {
-          avg.ebitMargin.count += 1;
-          avg.ebitMargin.value += (result.data.ebitMargin - avg.ebitMargin.value) / avg.ebitMargin.count;
-        }
-        if (result.data?.peRatio !== undefined && result.data?.peRatio !== 0) {
-          avg.peRatio.count += 1;
-          avg.peRatio.value += (result.data.peRatio - avg.peRatio.value) / avg.peRatio.count;
-        }
-        if (result.data?.roic !== undefined && result.data?.roic !== 0) {
-          avg.roic.count += 1;
-          avg.roic.value += (result.data.roic - avg.roic.value) / avg.roic.count;
-        }
-      }
-    });
+      results.forEach((result, index) => {
+        if (result && compAnalysisRef.current[index]) {
+          compAnalysisRef.current[index] = {
+            ...compAnalysisRef.current[index],
+            ...result, // Merge fetched data
+          };
 
-    // Update the averages state
-    setAverages({
-      avgEbitMargin: convRound2Dp(avg.ebitMargin.value),
-      avgPeRatio: convRound2Dp(avg.peRatio.value),
-      avgRoic: convRound2Dp(avg.roic.value),
-    });
+          if (result.ticker !== "") {
+            if (result.ebitMargin !== undefined) {
+              avg.ebitMargin.count += 1;
+              avg.ebitMargin.value += (result.ebitMargin - avg.ebitMargin.value) / avg.ebitMargin.count;
+            }
+            if (result.peRatio !== undefined && result.peRatio !== 0) {
+              avg.peRatio.count += 1;
+              avg.peRatio.value += (result.peRatio - avg.peRatio.value) / avg.peRatio.count;
+            }
+            if (result.roic !== undefined && result.roic !== 0) {
+              avg.roic.count += 1;
+              avg.roic.value += (result.roic - avg.roic.value) / avg.roic.count;
+            }
+          }
+        }
+      });
 
-    triggerReRender(); // Ensure UI updates
-  }, [compAnalysisQueries]);
+      // Update the averages state
+      setAverages({
+        avgEbitMargin: convRound2Dp(avg.ebitMargin.value),
+        avgPeRatio: convRound2Dp(avg.peRatio.value),
+        avgRoic: convRound2Dp(avg.roic.value),
+      });
 
-  // Fetch peers when component mounts - remove fetchPeers from dependency array
+      triggerReRender(); // Ensure UI updates
+    } catch (error) {
+      console.error("Error fetching comp analysis:", error);
+    } finally {
+      setIsFetchingCompAnalysis(false);
+    }
+  }, [inputTickers]);
+
+  // Fetch peers when component mounts or symbol changes
   useEffect(() => {
     if (symbol) {
       fetchPeers();
     }
-  }, [symbol, fetchPeers]);
+  }, [symbol]); // Removed fetchPeers from dependency to prevent infinite loop
 
-  // Run refetch() after mount - remove handleCompAnalysis from dependency array
+  // Update inputTickers when symbol changes
   useEffect(() => {
-    handleCompAnalysis();
-  }, [handleCompAnalysis]);
+    setInputTickers([symbol, ""]);
+  }, [symbol]);
+
+  // Don't automatically run analysis on mount - let users click search button
 
   // Loading state check
   const isMainDataLoading = inputStatsLoading || roicStatsLoading;
@@ -468,9 +495,11 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
                     {/* Editable Ticker Input */}
                     <td className="px-6 py-4 w-28">
                       <input
-                        defaultValue={item.ticker}
+                        value={inputTickers[index] || ""}
                         onChange={(e) => {
-                          compAnalysisRef.current[index].ticker = e.target.value;
+                          const newTickers = [...inputTickers];
+                          newTickers[index] = e.target.value;
+                          setInputTickers(newTickers);
                         }}
                         className="text-sm font-medium text-gray-800 w-full border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left"
                         placeholder="Enter ticker"
@@ -532,6 +561,7 @@ const MarketInsightPopoutPage = ({ setIsPopoutOpen, industries, getPageInputValu
                     peRatio: 0,
                     roic: 0,
                   });
+                  setInputTickers([...inputTickers, ""]); // Add new empty ticker to state
                   triggerReRender(); // Force re-render
                 }}
                 className="flex items-center gap-2 transition-colors text-blue-600 hover:text-blue-800"
