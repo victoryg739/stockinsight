@@ -68,6 +68,12 @@ export default function Page() {
     salesToCapYr6to10: false,
   });
 
+  // Track whether user has manually edited roic terminal year field
+  const [roicTerminalYearManuallyEdited, setRoicTerminalYearManuallyEdited] = useState(false);
+
+  // Track whether user has manually edited initial WACC
+  const [initialWaccManuallyEdited, setInitialWaccManuallyEdited] = useState(false);
+
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -110,6 +116,16 @@ export default function Page() {
       (id === "salesToCapYr1" || id === "salesToCapYr2to5" || id === "salesToCapYr6to10")
     ) {
       setSalesToCapManuallyEdited((prev) => ({ ...prev, [id]: true }));
+    }
+
+    // Track manual edits to roic terminal year field
+    if (type === "fetchedInputs" && !isAutoFill && id === "roicTerminalYear") {
+      setRoicTerminalYearManuallyEdited(true);
+    }
+
+    // Track manual edits to initial WACC
+    if (type === "fetchedInputs" && !isAutoFill && id === "initialWacc") {
+      setInitialWaccManuallyEdited(true);
     }
 
     if (type === "inputs") {
@@ -192,6 +208,8 @@ export default function Page() {
       salesToCapYr2to5: false,
       salesToCapYr6to10: false,
     });
+    setRoicTerminalYearManuallyEdited(false);
+    setInitialWaccManuallyEdited(false);
 
     stockInfoRefetch();
     incomeStatementRefetch();
@@ -274,8 +292,11 @@ export default function Page() {
     const equityRiskPremium = getInputValue("equityRiskPremium", "fetchedInputs");
 
     useEffect(() => {
-      handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs", true);
-    }, [terminalWacc, handleInputChange, riskFreeRate, equityRiskPremium]);
+      // Only auto-fill if the field hasn't been manually edited
+      if (!roicTerminalYearManuallyEdited) {
+        handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs", true);
+      }
+    }, [terminalWacc, handleInputChange, riskFreeRate, equityRiskPremium, roicTerminalYearManuallyEdited]);
   };
   RoicTerminalAutoFill();
   const roicTerminalYear = getInputValue("roicTerminalYear", "fetchedInputs");
@@ -522,6 +543,7 @@ export default function Page() {
               handlePageInputChange={handleInputChange}
               countryOptions={countryOptions}
               industryOptions={industryOptions}
+              initialWaccManuallyEdited={initialWaccManuallyEdited}
             />
           </div>
           {/*Valuation Header */}

@@ -15,6 +15,7 @@ export default function DetailedWacc({
   handlePageInputChange,
   industryOptions,
   countryOptions,
+  initialWaccManuallyEdited,
 }: any) {
   // Get QueryClient from the context
   const queryClient = useQueryClient();
@@ -132,8 +133,10 @@ export default function DetailedWacc({
     costOfDebtRef.current
   );
   useEffect(() => {
-    handlePageInputChange("initialWacc", initialWaccRef.current, "fetchedInputs");
-  }, [initialWaccRef.current, handlePageInputChange]);
+    if (!initialWaccManuallyEdited) {
+      handlePageInputChange("initialWacc", initialWaccRef.current, "fetchedInputs", true);
+    }
+  }, [initialWaccRef.current, handlePageInputChange, initialWaccManuallyEdited]);
 
   return (
     <div>
