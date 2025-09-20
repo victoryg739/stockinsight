@@ -3,6 +3,9 @@ import { PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
 // Alternative: import nodemailer from "nodemailer";
 
+// Prevent caching for cron jobs
+export const dynamic = 'force-dynamic';
+
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -171,11 +174,11 @@ export async function GET(request: NextRequest) {
     console.log("Starting price alert check...");
 
     // Verify this is a cron job request (optional security measure)
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      console.log("Unauthorized cron request");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // const authHeader = request.headers.get('authorization');
+    // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    //   console.log("Unauthorized cron request");
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     // Get all active alerts
     const activeAlerts = await prisma.price_alert.findMany({
