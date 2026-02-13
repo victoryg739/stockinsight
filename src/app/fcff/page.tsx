@@ -301,15 +301,23 @@ export default function Page() {
   RoicTerminalAutoFill();
   const roicTerminalYear = getInputValue("roicTerminalYear", "fetchedInputs");
 
-  const reinvestment = FinCalc.calcReinvestment(
-    revenue,
-    sCapY1,
-    sCapY2to5,
-    sCapY6to10,
-    growthTerminal,
-    roicTerminalYear,
-    ebitAfterTax[ebitAfterTax.length - 1]
-  );
+  // Calculate reinvestment with error handling for initial empty state
+  let reinvestment: number[];
+  try {
+    reinvestment = FinCalc.calcReinvestment(
+      revenue,
+      sCapY1,
+      sCapY2to5,
+      sCapY6to10,
+      growthTerminal,
+      roicTerminalYear,
+      ebitAfterTax[ebitAfterTax.length - 1]
+    );
+  } catch (error) {
+    // On initial load or invalid inputs, use empty array
+    // This prevents errors when user hasn't filled in all inputs yet
+    reinvestment = Array(11).fill(0);
+  }
 
   //For ROIC table
   const roicData = FinCalc.calcROIC(

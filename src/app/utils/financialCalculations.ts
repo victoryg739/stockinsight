@@ -94,6 +94,20 @@ export function calcTerminalWACC(countryEquityPremium: number, riskFreeRate: num
 
 //NOTE: This reinvestment calculation assumes no lag between reinvesting and generating growth from that reinvestment
 export function calcReinvestment(revenue: number[], salesToCapY1: number, salesToCapY2To5: number, salesToCapY6To10: number, revGrowthTerminalYr: number, roicTerminalYear: number, ebitAfterTaxTerminalYr: number): number[] {
+    // BUG FIX: Validate sales-to-capital ratios are not zero (division by zero)
+    if (salesToCapY1 === 0) {
+        throw new Error('Sales-to-capital ratio for Year 1 cannot be zero');
+    }
+    if (salesToCapY2To5 === 0) {
+        throw new Error('Sales-to-capital ratio for Years 2-5 cannot be zero');
+    }
+    if (salesToCapY6To10 === 0) {
+        throw new Error('Sales-to-capital ratio for Years 6-10 cannot be zero');
+    }
+    if (roicTerminalYear === 0) {
+        throw new Error('ROIC for terminal year cannot be zero');
+    }
+
     const reinvestment = []
     //yr1
     reinvestment.push((revenue[1] - revenue[0]) / salesToCapY1);
@@ -200,6 +214,11 @@ export function calcCostOfEquity(riskFreeRate: number, leveredBeta: number, equi
 }
 
 export function calcMarketValueDebt(interestExpense: number, preTaxCostOfDebt: number, averageMaturity: number, totalDebt: number) {
+    // BUG FIX: Validate pre-tax cost of debt is not zero (division by zero)
+    if (preTaxCostOfDebt === 0) {
+        throw new Error('Pre-tax cost of debt cannot be zero');
+    }
+
     // Convert pre-tax cost of debt from percentage to decimal
     const costDecimal = preTaxCostOfDebt / 100;
 

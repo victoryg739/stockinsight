@@ -18,75 +18,19 @@ model beta_us {
 }
 
 model country_risk_premium {
-  country              String  @id(map: "country_equity_risk_premium_pk") @db.VarChar
-  adj_default_spread   String? @db.VarChar
-  equity_risk_premium  String? @db.VarChar
-  country_risk_premium String? @db.VarChar
-  corporate_tax_rate   String? @db.VarChar
-  moody_rating         String? @db.VarChar
+  country                    String  @id @db.VarChar(255)
+  adj_default_spread         String? @db.VarChar(255)
+  equity_risk_premium        String? @db.VarChar(255)
+  country_risk_premium       String? @db.VarChar(255)
+  corporate_tax_rate         String? @db.VarChar(255)
+  moody_rating               String? @db.VarChar(255)
+  sovereign_cds              String? @db.VarChar(255)
+  erp_based_on_sovereign_cds String? @db.VarChar(255)
 }
 
 model data_last_update {
   data_name   String    @id @db.VarChar(255)
   last_update DateTime? @db.Date
-}
-
-model ebit_growth {
-  industry             String  @id @db.VarChar(255)
-  no_of_firms          String? @db.VarChar(255)
-  roc                  String? @db.VarChar(255)
-  reinvestment_rate    String? @db.VarChar(255)
-  expected_growth_ebit String? @db.VarChar(255)
-}
-
-model pe_ratio_us {
-  industry                                           String  @id @db.VarChar(255)
-  no_of_firms                                        String? @db.VarChar(255)
-  perc_money_losing_firms_trailing                   String? @db.VarChar(255)
-  current_pe                                         String? @db.VarChar(255)
-  trailing_pe                                        String? @db.VarChar(255)
-  forward_pe                                         String? @db.VarChar(255)
-  agg_mkt_cap_net_income                             String? @db.VarChar(255)
-  agg_mkt_cap_trailing_net_income_money_making_firms String? @db.VarChar(255)
-  expected_growth_next_5_yrs                         String? @db.VarChar(255)
-  peg_ratio                                          String? @db.VarChar(255)
-}
-
-model rev_growth_rate {
-  industry                         String  @id @db.VarChar(255)
-  no_of_firms                      String? @db.VarChar(255)
-  cagr_net_income_last_5_years     String? @db.VarChar(255)
-  cagr_net_rev_last_5_years        String? @db.VarChar(255)
-  expected_growth_rev_next_2_years String? @db.VarChar(255)
-  expected_growth_rev_next_5_years String? @db.VarChar(255)
-  expected_growth_eps_next_5_years String? @db.VarChar(255)
-}
-
-model sales_to_cap_us {
-  industry                String  @id @db.VarChar(255)
-  no_of_firms             String? @db.VarChar(255)
-  capex                   String? @db.VarChar(255)
-  depre_amort             String? @db.VarChar(255)
-  capex_depre             String? @db.VarChar(255)
-  acquisitions            String? @db.VarChar(255)
-  net_r_and_d             String? @db.VarChar(255)
-  net_capex_sales         String? @db.VarChar(255)
-  net_capex_ebit_aftertax String? @db.VarChar(255)
-  sales_invested_capital  String? @db.VarChar(255)
-}
-
-model effective_tax_rate {
-  industry                                 String  @id @db.VarChar(255)
-  no_of_firms                              String? @db.VarChar(255)
-  total_taxable_income                     String? @db.VarChar(255)
-  total_taxes_paid_accrual                 String? @db.VarChar(255)
-  total_cash_taxes_paid                    String? @db.VarChar(255)
-  cash_taxes_accrual_taxes                 String? @db.VarChar(255)
-  effectivetr_avg_across_all_comp          String? @db.VarChar(255)
-  effectivetr_avg_across_money_making_comp String? @db.VarChar(255)
-  effectivetr_agg_tax_rate                 String? @db.VarChar(255)
-  cashtr_avg_across_money_making_comp      String? @db.VarChar(255)
-  cashtr_agg_tax_rate                      String? @db.VarChar(255)
 }
 
 model default_spread_large_firm {
@@ -101,6 +45,28 @@ model default_spread_small_firm {
   max    String? @db.VarChar(255)
   rating String  @id @db.VarChar(255)
   spread String? @db.VarChar(255)
+}
+
+model ebit_growth {
+  industry             String  @id @db.VarChar(255)
+  no_of_firms          String? @db.VarChar(255)
+  roc                  String? @db.VarChar(255)
+  reinvestment_rate    String? @db.VarChar(255)
+  expected_growth_ebit String? @db.VarChar(255)
+}
+
+model effective_tax_rate {
+  industry                                 String  @id @db.VarChar(255)
+  no_of_firms                              String? @db.VarChar(255)
+  total_taxable_income                     String? @db.VarChar(255)
+  total_taxes_paid_accrual                 String? @db.VarChar(255)
+  total_cash_taxes_paid                    String? @db.VarChar(255)
+  cash_taxes_accrual_taxes                 String? @db.VarChar(255)
+  effectivetr_avg_across_all_comp          String? @db.VarChar(255)
+  effectivetr_avg_across_money_making_comp String? @db.VarChar(255)
+  effectivetr_agg_tax_rate                 String? @db.VarChar(255)
+  cashtr_avg_across_money_making_comp      String? @db.VarChar(255)
+  cashtr_agg_tax_rate                      String? @db.VarChar(255)
 }
 
 model input_stats {
@@ -126,6 +92,66 @@ model input_stats {
   debt_to_capital_ratio_third_quartile     Float? @db.Real
 }
 
+model pe_ratio_us {
+  industry                                           String  @id @db.VarChar(255)
+  no_of_firms                                        String? @db.VarChar(255)
+  perc_money_losing_firms_trailing                   String? @db.VarChar(255)
+  current_pe                                         String? @db.VarChar(255)
+  trailing_pe                                        String? @db.VarChar(255)
+  forward_pe                                         String? @db.VarChar(255)
+  agg_mkt_cap_net_income                             String? @db.VarChar(255)
+  agg_mkt_cap_trailing_net_income_money_making_firms String? @db.VarChar(255)
+  expected_growth_next_5_yrs                         String? @db.VarChar(255)
+  peg_ratio                                          String? @db.VarChar(255)
+}
+
+model price_alert {
+  id           Int       @id @default(autoincrement())
+  email        String    @db.VarChar(100)
+  symbol       String    @db.VarChar(10)
+  target_price Decimal   @db.Decimal(10, 2)
+  condition    String    @db.VarChar(10)
+  status       String    @default("ACTIVE") @db.VarChar(20)
+  created_at   DateTime  @default(now())
+  expires_at   DateTime?
+  triggered_at DateTime?
+
+  @@index([email])
+  @@index([status])
+  @@index([symbol])
+}
+
+model rev_growth_rate {
+  industry                         String  @id @db.VarChar(255)
+  no_of_firms                      String? @db.VarChar(255)
+  cagr_net_income_last_5_years     String? @db.VarChar(255)
+  cagr_net_rev_last_5_years        String? @db.VarChar(255)
+  expected_growth_rev_next_2_years String? @db.VarChar(255)
+  expected_growth_rev_next_5_years String? @db.VarChar(255)
+  expected_growth_eps_next_5_years String? @db.VarChar(255)
+}
+
+model roic {
+  industry             String  @id @db.VarChar(255)
+  no_of_firms          String? @db.VarChar(255)
+  roc                  String? @db.VarChar(255)
+  reinvestment_rate    String? @db.VarChar(255)
+  expected_growth_ebit String? @db.VarChar(255)
+}
+
+model sales_to_cap_us {
+  industry                String  @id @db.VarChar(255)
+  no_of_firms             String? @db.VarChar(255)
+  capex                   String? @db.VarChar(255)
+  depre_amort             String? @db.VarChar(255)
+  capex_depre             String? @db.VarChar(255)
+  acquisitions            String? @db.VarChar(255)
+  net_r_and_d             String? @db.VarChar(255)
+  net_capex_sales         String? @db.VarChar(255)
+  net_capex_ebit_aftertax String? @db.VarChar(255)
+  sales_invested_capital  String? @db.VarChar(255)
+}
+
 model valuation {
   id                  Int      @id @default(autoincrement())
   symbol              String?  @db.VarChar(50)
@@ -136,32 +162,7 @@ model valuation {
   valuation_model     Json?
   valuation_output    Json?
   implied_share_price Decimal? @db.Decimal(10, 2)
-  roic_data            Json? 
+  roic_data           Json?
   description         String?
   valued_date         Int?
 }
-
-model roic {
-  industry           String   @id
-  no_of_firms        String?
-  roc                String?
-  reinvestment_rate  String?
-  expected_growth_ebit String?
-}
-
-model price_alert {
-  id           Int      @id @default(autoincrement())
-  email        String   @db.VarChar(100)
-  symbol       String   @db.VarChar(10)
-  target_price Decimal  @db.Decimal(10, 2)
-  condition    String   @db.VarChar(10) // 'ABOVE' or 'BELOW'
-  status       String   @db.VarChar(20) @default("ACTIVE") // 'ACTIVE', 'TRIGGERED', 'CANCELLED'
-  created_at   DateTime @default(now())
-  expires_at   DateTime?
-  triggered_at DateTime?
-  
-  @@index([email])
-  @@index([symbol])
-  @@index([status])
-}
-

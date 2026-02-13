@@ -107,12 +107,17 @@ export default function DetailedWacc({
   marketDebtRef.current = financialCalculations.calcMarketValueDebt(interestExpense, preTaxCostOfDebt, 3, totalDebt);
 
   //calculate levered beta
-  const leveredBeta = financialCalculations.calcLeveredBeta(
-    unleveredBeta,
-    marginalTaxRate,
-    marketEquityRef.current,
-    marketDebtRef.current
-  );
+  let leveredBeta = 0;
+  // Only calculate levered beta when market equity is positive to avoid
+  // triggering the division-by-zero safeguard in calcLeveredBeta on first load.
+  if (marketEquityRef.current > 0) {
+    leveredBeta = financialCalculations.calcLeveredBeta(
+      unleveredBeta,
+      marginalTaxRate,
+      marketEquityRef.current,
+      marketDebtRef.current
+    );
+  }
   handleInputChange("leveredBeta", leveredBeta, "waccEquity");
 
   //calculate cost of equity
