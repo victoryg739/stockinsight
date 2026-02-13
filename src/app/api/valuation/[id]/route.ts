@@ -1,16 +1,11 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-
-const prisma = new PrismaClient({
-    log: ['query', 'info', 'warn', 'error'],
-});
-console.log("Prisma Client Initialized");
-
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const id = Number(params.id);
+    const { id: idParam } = await params;
+    const id = Number(idParam);
 
     try {
         const valuation = await prisma.valuation.findUnique({
@@ -29,9 +24,10 @@ export async function GET(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const id = Number(params.id);
+    const { id: idParam } = await params;
+    const id = Number(idParam);
     console.log(`Deleting valuation with ID: ${id}`);
 
     try {

@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 // Alternative: import nodemailer from "nodemailer";
 
 // Prevent caching for cron jobs
 export const dynamic = 'force-dynamic';
 
-const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Function to fetch current market price

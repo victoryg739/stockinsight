@@ -10,7 +10,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown, className
 
   // Split the content into lines
   const lines = markdown.split("\n");
-  const result: JSX.Element[] = [];
+  const result: React.ReactElement[] = [];
 
   let currentList: string[] = [];
   let currentListType: "ordered" | "unordered" | null = null;

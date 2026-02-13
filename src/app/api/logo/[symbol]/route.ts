@@ -5,9 +5,10 @@ export const runtime = 'edge'; // Use edge runtime for better performance
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { symbol: string } }
+    { params }: { params: Promise<{ symbol: string }> }
 ) {
-    const symbol = params.symbol.toUpperCase();
+    const { symbol: symbolParam } = await params;
+    const symbol = symbolParam.toUpperCase();
     const logoDevToken = process.env.LOGODEV_API_KEY || process.env.NEXT_PUBLIC_LOGODEV; // Use server-side token if available
 
     if (!logoDevToken) {

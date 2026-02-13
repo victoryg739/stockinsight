@@ -1,14 +1,8 @@
 // pages/api/saveValuation.js
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-
-const prisma = new PrismaClient({
-    log: ['query', 'info', 'warn', 'error'],
-});
-console.log("Prisma Client Initialized");
-
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
 
@@ -73,8 +67,6 @@ export async function POST(req: NextRequest) {
 
     }
 }
-
-
 export async function GET(req: NextRequest) {
     const session = await getServerSession();
 
@@ -116,5 +108,3 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to retrieve valuation data' }, { status: 500 });
     }
 }
-
-

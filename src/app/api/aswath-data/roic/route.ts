@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient({
-    log: ['query', 'info', 'warn', 'error'],
-});
-console.log("Prisma Client Initialized");
+import { prisma } from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
@@ -25,7 +20,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(roicData);
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
-    } finally {
-        await prisma.$disconnect();
     }
 }

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useState } from "react";
+import { useState, use } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { fetchMarketPrice, fetchValuationById } from "@/app/utils/queryAPIFunctions";
@@ -17,7 +17,8 @@ import { useSession } from "next-auth/react";
 import PresentValuePopoutPage from "@/app/components/PopoutPage/PresentValuePopoutPage";
 import ROICTable from "@/app/components/ROICTable";
 
-export default function Page({ params }: any) {
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -34,7 +35,7 @@ export default function Page({ params }: any) {
   } = useQuery({
     queryKey: ["valuation"],
     queryFn: async () => {
-      return fetchValuationById(params.id);
+      return fetchValuationById(id);
     },
   });
 
@@ -51,7 +52,7 @@ export default function Page({ params }: any) {
 
     // Split the content into lines
     const lines = markdown.split("\n");
-    const result: JSX.Element[] = [];
+    const result: React.ReactElement[] = [];
 
     let currentList: string[] = [];
     let currentListType: "ordered" | "unordered" | null = null;

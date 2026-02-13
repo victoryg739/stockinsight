@@ -81,7 +81,7 @@ const mainSections: MainSection[] = [
   },
 ];
 
-export default function HelpPage(): JSX.Element {
+export default function HelpPage(): React.ReactElement {
   const [openSections, setOpenSections] = useState<OpenSections>({
     mainSections: {},
     subSections: {},
@@ -114,7 +114,7 @@ export default function HelpPage(): JSX.Element {
     );
   };
 
-  const renderRichText = (text?: string): JSX.Element | null => {
+  const renderRichText = (text?: string): React.ReactElement | null => {
     if (!text) return null;
 
     const htmlText = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/__(.*?)__/g, "<u>$1</u>");
@@ -122,7 +122,7 @@ export default function HelpPage(): JSX.Element {
     return <span dangerouslySetInnerHTML={{ __html: htmlText }} />;
   };
 
-  const renderTermDetails = (term: string, details: TermDetails, sectionType = "terms"): JSX.Element => {
+  const renderTermDetails = (term: string, details: TermDetails, sectionType = "terms"): React.ReactElement => {
     const contentToCopy = [
       details.definition,
       details.formula ? `Formula: ${details.formula}` : null,

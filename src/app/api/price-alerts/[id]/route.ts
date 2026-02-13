@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // DELETE - Delete a specific price alert
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession();
@@ -16,7 +14,8 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const alertId = parseInt(params.id);
+        const { id } = await params;
+        const alertId = parseInt(id);
 
         if (isNaN(alertId)) {
             return NextResponse.json({ error: "Invalid alert ID" }, { status: 400 });
@@ -54,7 +53,7 @@ export async function DELETE(
 // PUT - Update a specific price alert
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession();
@@ -63,7 +62,8 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const alertId = parseInt(params.id);
+        const { id } = await params;
+        const alertId = parseInt(id);
 
         if (isNaN(alertId)) {
             return NextResponse.json({ error: "Invalid alert ID" }, { status: 400 });
