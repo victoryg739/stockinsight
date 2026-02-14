@@ -148,7 +148,8 @@ export default function Page() {
   const { data: riskFreeRateData } = useQuery({
     queryKey: ["riskFreeRate"],
     queryFn: async () => {
-      queryFn.fetchRiskFreeRate(handleInputChange);
+      await queryFn.fetchRiskFreeRate(handleInputChange);
+      return null;
     },
   });
 
@@ -156,7 +157,8 @@ export default function Page() {
   const { refetch: equityRiskPremiumRefectch } = useQuery({
     queryKey: ["equityRiskPremium"],
     queryFn: async () => {
-      return queryFn.fetchEquityRiskPremium(encodeParams(countryOptions), handleInputChange);
+      await queryFn.fetchEquityRiskPremium(encodeParams(countryOptions), handleInputChange);
+      return null;
     },
     enabled: false,
   });
@@ -164,7 +166,8 @@ export default function Page() {
   const { refetch: stockInfoRefetch, isError: stockInfoIsError } = useQuery({
     queryKey: ["stockInfo"],
     queryFn: async () => {
-      queryFn.fetchStockInfo(symbol, handleInputChange);
+      await queryFn.fetchStockInfo(symbol, handleInputChange);
+      return null;
     },
     enabled: false,
   });
@@ -185,7 +188,8 @@ export default function Page() {
   const { refetch: balanceSheetQuartelyRefetch } = useQuery({
     queryKey: ["balanceSheetQuartely"],
     queryFn: async () => {
-      queryFn.fetchBalanceSheetQuarterly(symbol, handleInputChange);
+      await queryFn.fetchBalanceSheetQuarterly(symbol, handleInputChange);
+      return null;
     },
     enabled: false,
   });
@@ -296,7 +300,8 @@ export default function Page() {
       if (!roicTerminalYearManuallyEdited) {
         handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs", true);
       }
-    }, [terminalWacc, handleInputChange, riskFreeRate, equityRiskPremium, roicTerminalYearManuallyEdited]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [terminalWacc, riskFreeRate, equityRiskPremium, roicTerminalYearManuallyEdited]);
   };
   RoicTerminalAutoFill();
   const roicTerminalYear = getInputValue("roicTerminalYear", "fetchedInputs");

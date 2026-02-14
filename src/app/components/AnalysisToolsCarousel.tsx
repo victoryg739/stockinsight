@@ -140,7 +140,8 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
       window.removeEventListener("resize", handleResize);
       clearTimeout(timer);
     };
-  }, [updateArrowVisibility]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Listen for scroll events to update arrow visibility
   useEffect(() => {
@@ -149,7 +150,8 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
       scrollContainer.addEventListener("scroll", updateArrowVisibility);
       return () => scrollContainer.removeEventListener("scroll", updateArrowVisibility);
     }
-  }, [updateArrowVisibility]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Get visible width of buttons container
   const getVisibleWidth = () => {

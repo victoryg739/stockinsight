@@ -141,7 +141,8 @@ export default function DetailedWacc({
     if (!initialWaccManuallyEdited) {
       handlePageInputChange("initialWacc", initialWaccRef.current, "fetchedInputs", true);
     }
-  }, [initialWaccRef.current, handlePageInputChange, initialWaccManuallyEdited]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialWaccRef.current, initialWaccManuallyEdited]);
 
   return (
     <div>
