@@ -7,7 +7,8 @@ import StockLogo from "../components/StockLogo";
 import { HiOutlineCollection } from "react-icons/hi";
 // Icons
 import { MdDeleteOutline, MdSearch, MdFilterAlt, MdOutlineSort, MdAdd, MdGridView, MdViewList } from "react-icons/md";
-import { FaArrowUp, FaArrowDown, FaCalendarAlt } from "react-icons/fa";
+import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaExclamationCircle } from "react-icons/fa";
+import { FiClock } from "react-icons/fi";
 
 // Components
 import Navbar from "../components/Navbar";
@@ -109,6 +110,62 @@ export default function MyValuationsPage() {
   const getMostRecentQuarter = (stockInfo: any[]): string => {
     const mrqInfo = stockInfo.find((item: any) => item.id === "mostRecentQuarter");
     return mrqInfo ? mrqInfo.value : "N/A";
+  };
+
+  // Parse a locale date string (DD/MM/YYYY or MM/DD/YYYY) into a Date
+  const parseMrqDate = (dateStr: string): Date | null => {
+    if (!dateStr || dateStr === "N/A") return null;
+    const parts = dateStr.split("/");
+    if (parts.length !== 3) return null;
+    const [a, b, year] = parts.map(Number);
+    // MRQ is always end-of-quarter: month is 3,6,9,12. Use that to detect format.
+    if ([3, 6, 9, 12].includes(b)) {
+      // a=day, b=month (DD/MM/YYYY)
+      return new Date(year, b - 1, a);
+    } else if ([3, 6, 9, 12].includes(a)) {
+      // a=month, b=day (MM/DD/YYYY)
+      return new Date(year, a - 1, b);
+    }
+    // Fallback: try Date constructor
+    return new Date(dateStr);
+  };
+
+  // Get quarter label from MRQ date string (e.g., "Q4 2025")
+  const getQuarterLabel = (mrqDateStr: string): string => {
+    const date = parseMrqDate(mrqDateStr);
+    if (!date || isNaN(date.getTime())) return mrqDateStr;
+    const month = date.getMonth() + 1;
+    const quarter = Math.ceil(month / 3);
+    return `Q${quarter} ${date.getFullYear()}`;
+  };
+
+  // Get staleness: how many new quarters have been reported since the valuation was saved?
+  // Compares today vs saved date — if 4+ months have passed, at least one new quarter's report is likely out
+  const getStaleStatus = (valuedDateEpoch: number): { quartersBehind: number; level: "fresh" | "yellow" | "red" } => {
+    const savedDate = new Date(valuedDateEpoch * 1000);
+    const now = new Date();
+    const monthsSinceSave = (now.getFullYear() - savedDate.getFullYear()) * 12 + (now.getMonth() - savedDate.getMonth());
+    // A quarter's report typically drops ~4 months after the previous quarter end
+    const quartersBehind = Math.max(0, Math.floor((monthsSinceSave - 1) / 3));
+    if (quartersBehind >= 3) return { quartersBehind, level: "red" };
+    if (quartersBehind >= 1) return { quartersBehind, level: "yellow" };
+    return { quartersBehind: 0, level: "fresh" };
+  };
+
+  // Relative time format (e.g., "2d ago", "3mo ago")
+  const getRelativeTime = (epochTimestamp: number): string => {
+    const now = Math.floor(Date.now() / 1000);
+    const diffSec = now - epochTimestamp;
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDays = Math.floor(diffHr / 24);
+    const diffMonths = Math.floor(diffDays / 30);
+    const diffYears = Math.floor(diffDays / 365);
+    if (diffDays < 1) return "Today";
+    if (diffDays === 1) return "1d ago";
+    if (diffDays < 30) return `${diffDays}d ago`;
+    if (diffMonths < 12) return `${diffMonths}mo ago`;
+    return `${diffYears}y ago`;
   };
 
   // Sort valuations
@@ -438,13 +495,30 @@ export default function MyValuationsPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-2 mt-4">
-                      <div className="flex items-center text-xs text-gray-500">
-                        <FaCalendarAlt className="mr-1" />
-                        <span>{formatValuationDate(item.valued_date)}</span>
+                    <div className="flex flex-col gap-1.5 mt-4">
+                      <div className="flex items-center text-sm text-gray-700" title={formatValuationDate(item.valued_date)}>
+                        <FaCalendarAlt className="mr-1.5 text-indigo-400 text-xs" />
+                        <span className="font-medium">Saved {getRelativeTime(item.valued_date)}</span>
                       </div>
-                      <div className="text-xs mt-2 text-gray-500">
-                        Last MRQ: <span className="font-medium">{mrq}</span>
+                      <div className="flex items-center flex-wrap gap-1.5">
+                        <FiClock className="text-gray-400 text-xs" />
+                        <span className="text-xs text-gray-500">Last Qtr: {getQuarterLabel(mrq)}</span>
+                        {(() => {
+                          const stale = getStaleStatus(item.valued_date);
+                          if (stale.level === "fresh") return null;
+                          return (
+                            <span
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                stale.level === "red"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-amber-100 text-amber-700"
+                              }`}
+                            >
+                              <FaExclamationCircle className="mr-0.5" />
+                              {stale.level === "red" ? `${stale.quartersBehind}+ qtrs old` : `${stale.quartersBehind} qtr${stale.quartersBehind > 1 ? "s" : ""} old`}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -481,6 +555,18 @@ export default function MyValuationsPage() {
                         <span className="ml-1 text-sm">{isUndervalued ? "Undervalued" : "Overvalued"}</span>
                       </div>
                     </div>
+
+                    {getStaleStatus(item.valued_date).level !== "fresh" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/fcff?symbol=${item.symbol}`);
+                        }}
+                        className="mt-2 w-full text-center text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg py-1.5 transition-colors"
+                      >
+                        Re-value with latest data
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -541,7 +627,7 @@ export default function MyValuationsPage() {
                     onClick={() => toggleSort("mrq")}
                   >
                     <div className="flex items-center justify-end">
-                      <span>Last MRQ</span>
+                      <span>Last Qtr</span>
                       {sortField === "mrq" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
                     </div>
                   </th>
@@ -551,7 +637,7 @@ export default function MyValuationsPage() {
                     onClick={() => toggleSort("valued_date")}
                   >
                     <div className="flex items-center justify-end">
-                      <span>Date</span>
+                      <span>Saved</span>
                       {sortField === "valued_date" && (
                         <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
                       )}
@@ -621,11 +707,29 @@ export default function MyValuationsPage() {
                       </td>
 
                       <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-500 font-medium">
-                        {mrq}
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>{getQuarterLabel(mrq)}</span>
+                          {(() => {
+                            const stale = getStaleStatus(item.valued_date);
+                            if (stale.level === "fresh") return null;
+                            return (
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                  stale.level === "red"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-amber-100 text-amber-700"
+                                }`}
+                              >
+                                <FaExclamationCircle className="mr-0.5" />
+                                {stale.level === "red" ? `${stale.quartersBehind}+ qtrs old` : `${stale.quartersBehind} qtr${stale.quartersBehind > 1 ? "s" : ""} old`}
+                              </span>
+                            );
+                          })()}
+                        </div>
                       </td>
 
-                      <td className="px-5 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                        {formatValuationDate(item.valued_date)}
+                      <td className="px-5 py-4 whitespace-nowrap text-right text-sm text-gray-500" title={formatValuationDate(item.valued_date)}>
+                        {getRelativeTime(item.valued_date)}
                       </td>
                     </tr>
                   );
