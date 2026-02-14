@@ -17,6 +17,11 @@ const SearchTicker = ({ symbol, setSymbol, setSymbolBtn, incomeStatementIsFetchi
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionRef = useRef<HTMLDivElement>(null);
 
+  // Sync inputValue when symbol is set externally (e.g., restored from URL/storage)
+  useEffect(() => {
+    if (symbol) setInputValue(symbol);
+  }, [symbol]);
+
   // Fetch ALL stock symbols once
   const {
     data: stockSymbols,

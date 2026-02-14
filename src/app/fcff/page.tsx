@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Navbar from "../components/Navbar";
 import SearchTicker from "../components/SearchTicker";
 import InputBox from "../components/InputBox";
@@ -26,12 +26,13 @@ import * as queryFn from "../utils/queryAPIFunctions";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import StockInfo from "../components/StockInfo";
 import MonteCarloPopoutPage from "../components/PopoutPage/MonteCarloPopoutPage";
 import SensitivityAnalysisPopoutPage from "../components/PopoutPage/SensitivityAnalysisPopoutPage";
 import AnalysisToolsCarousel from "../components/AnalysisToolsCarousel"; // Import the new carousel component
 import FundamentalDataPopoutPage from "../components/PopoutPage/FundamentalDataPopoutPage";
+import { saveValuationState, loadValuationState } from "../hooks/useValuationStateStorage";
 
 interface InputField {
   id: string;
@@ -42,6 +43,28 @@ interface InputField {
 }
 
 export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div>
+          <Navbar />
+          <div className="flex flex-col justify-center items-center h-screen">
+            <Image src="/loading.svg" alt="Loading icon" height={400} width={400} className="object-contain mb-4" />
+            <p className="font-semibold text-lg text-center mt-5">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <FCFFPageContent />
+    </Suspense>
+  );
+}
+
+function FCFFPageContent() {
+  const searchParams = useSearchParams();
+  const urlSymbol = searchParams.get("symbol") || "";
+  const urlFresh = searchParams.get("fresh") === "1";
+
   const [symbol, setSymbol] = useState("");
   //This state is to capture symbol only when search button is pressed
   const [searchedSymbol, setSearchedSymbol] = useState("");
@@ -80,6 +103,11 @@ export default function Page() {
   const [inputs, setInputs] = useState(States.INPUT_FIELDS);
   const [fetchedInputs, setFetchedInputs] = useState<any>(States.FETCHED_INPUT_FIELDS);
   const [stockInfo, setStockInfo] = useState(States.STOCK_INFO);
+
+  // State restoration tracking
+  const restoredFromStorageRef = useRef(false);
+  const [hasRestoredState, setHasRestoredState] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const getInputValue = (id: string, type: "inputs" | "fetchedInputs"): number => {
     const inputArray = type === "inputs" ? inputs : fetchedInputs;
@@ -200,11 +228,64 @@ export default function Page() {
     },
   });
 
+  // Initialize/restore from URL search params (runs on mount and on back/forward navigation)
+  const prevUrlSymbolRef = useRef<string | null>(null);
+  useEffect(() => {
+    // Skip if urlSymbol hasn't changed (prevents re-running after our own router.push)
+    if (prevUrlSymbolRef.current === urlSymbol) return;
+    prevUrlSymbolRef.current = urlSymbol;
+
+    if (!urlSymbol) {
+      // No symbol in URL — reset to blank page
+      setSymbol("");
+      setSearchedSymbol("");
+      setInputs(States.INPUT_FIELDS);
+      setFetchedInputs(States.FETCHED_INPUT_FIELDS);
+      setStockInfo(States.STOCK_INFO);
+      setHasRestoredState(false);
+      return;
+    }
+
+    const saved = !urlFresh ? loadValuationState(urlSymbol) : null;
+    if (saved) {
+      // Restore all state from sessionStorage
+      restoredFromStorageRef.current = true;
+      setHasRestoredState(true);
+      setSymbol(saved.symbol);
+      setSearchedSymbol(saved.symbol);
+      setInputs(saved.inputs);
+      setFetchedInputs(saved.fetchedInputs);
+      setStockInfo(saved.stockInfo);
+      setCountryOptions(saved.countryOptions);
+      setIndustryOptions(saved.industryOptions);
+      setSalesToCapManuallyEdited(saved.salesToCapManuallyEdited);
+      setRoicTerminalYearManuallyEdited(saved.roicTerminalYearManuallyEdited);
+      setInitialWaccManuallyEdited(saved.initialWaccManuallyEdited);
+    } else {
+      // Symbol in URL but no saved state — trigger a fresh fetch
+      setSymbol(urlSymbol);
+      setSymbolBtn((prev) => !prev);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlSymbol]);
+
   useEffect(() => {
     if (!symbol.trim()) {
       return;
     }
+
+    // Skip fetching if we just restored from sessionStorage
+    if (restoredFromStorageRef.current) {
+      restoredFromStorageRef.current = false;
+      return;
+    }
+
     setCurrencyConverted(false);
+
+    // Reset inputs and fetched data to defaults when switching tickers
+    setInputs(States.INPUT_FIELDS);
+    setFetchedInputs(States.FETCHED_INPUT_FIELDS);
+    setStockInfo(States.STOCK_INFO);
 
     // Reset manual edit tracking when searching for a new symbol
     setSalesToCapManuallyEdited({
@@ -219,11 +300,53 @@ export default function Page() {
     incomeStatementRefetch();
     balanceSheetQuartelyRefetch();
     setSearchedSymbol(symbol); // Capture the symbol at search time
+
+    // Update URL to reflect the searched symbol (push so back/forward works between tickers)
+    router.push(`/fcff?symbol=${symbol}`, { scroll: false });
   }, [symbolBtn, symbol, stockInfoRefetch, incomeStatementRefetch, balanceSheetQuartelyRefetch]);
 
   useEffect(() => {
     equityRiskPremiumRefectch();
   }, [countryOptions, equityRiskPremiumRefectch]);
+
+  // Save state to sessionStorage (debounced)
+  useEffect(() => {
+    if (!searchedSymbol) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      saveValuationState(searchedSymbol, {
+        symbol: searchedSymbol,
+        inputs,
+        fetchedInputs,
+        stockInfo,
+        countryOptions,
+        industryOptions,
+        salesToCapManuallyEdited,
+        roicTerminalYearManuallyEdited,
+        initialWaccManuallyEdited,
+      });
+    }, 500);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [
+    searchedSymbol,
+    inputs,
+    fetchedInputs,
+    stockInfo,
+    countryOptions,
+    industryOptions,
+    salesToCapManuallyEdited,
+    roicTerminalYearManuallyEdited,
+    initialWaccManuallyEdited,
+  ]);
 
   // Auto-fill sales to capital fields only if they haven't been manually edited
   useEffect(() => {
@@ -425,7 +548,8 @@ export default function Page() {
   });
 
   if (status === "unauthenticated") {
-    return router.push("/"); // Redirect to homepage
+    router.push("/"); // Redirect to homepage
+    return null;
   }
   return (
     <div>
@@ -442,12 +566,12 @@ export default function Page() {
           <Image src="/growth.svg" alt="growth icon" height={500} width={500} className="object-contain mb-4" />
           <p className=" font-medium text-lg text-center mt-5"> Search for the stock ticker you want to view</p>
         </div>
-      ) : incomeStatementStatus === "error" ? (
+      ) : !hasRestoredState && incomeStatementStatus === "error" ? (
         <div className="flex flex-col justify-center items-center h-screen">
           <Image src="/error.svg" alt="Error icon" height={500} width={500} className="object-contain mb-4" />
           <p className="text-red-700 font-medium text-lg text-center mt-5">No such symbol. Please enter valid symbol</p>
         </div>
-      ) : incomeStatementIsFetching || status === "loading" ? (
+      ) : !hasRestoredState && (incomeStatementIsFetching || status === "loading") ? (
         <div className="flex flex-col justify-center items-center h-screen">
           <Image src="/loading.svg" alt="Loading icon" height={400} width={400} className="object-contain mb-4" />
           <p className="font-semibold text-lg text-center mt-5">Loading...</p>

@@ -560,7 +560,7 @@ export default function MyValuationsPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          router.push(`/fcff?symbol=${item.symbol}`);
+                          router.push(`/fcff?symbol=${item.symbol}&fresh=1`);
                         }}
                         className="mt-2 w-full text-center text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg py-1.5 transition-colors"
                       >
