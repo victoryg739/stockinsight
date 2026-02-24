@@ -180,6 +180,7 @@ export function calcSumOfPvFcff10Yrs(pvFcff: number[]): number {
 }
 
 export function calcTerminalValue(terminalValueFcff: number, wacc: number, terminalRevGrowth: number): number {
+    if (wacc === terminalRevGrowth) return 0;
     return terminalValueFcff / (wacc - terminalRevGrowth) * 100;
 }
 

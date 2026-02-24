@@ -3,7 +3,10 @@ import { convRound2Dp } from "../utils/helper";
 
 const ImpliedValue = ({ title, value, currentPrice }: any) => {
   // Calculate the valuation difference using the new formula
-  const valuationDiff = (value / currentPrice - 1) * 100;
+  const valuationDiff =
+    currentPrice > 0 && isFinite(value) && !isNaN(value)
+      ? (value / currentPrice - 1) * 100
+      : 0;
   const isOvervalued = valuationDiff < 0; // Negative value indicates overvaluation
   const absValuationDiff = Math.abs(valuationDiff).toFixed(1);
 

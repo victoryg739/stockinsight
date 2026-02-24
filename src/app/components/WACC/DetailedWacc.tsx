@@ -131,18 +131,20 @@ export default function DetailedWacc({
   equityWeightRef.current = financialCalculations.calcWaccEquityWeight(marketEquityRef.current, marketDebtRef.current);
   debtWeightRef.current = financialCalculations.calcWaccDebtWeight(marketEquityRef.current, marketDebtRef.current);
 
-  initialWaccRef.current = financialCalculations.calcInitialWacc(
+  const computedInitialWacc = financialCalculations.calcInitialWacc(
     equityWeightRef.current,
     debtWeightRef.current,
     costOfEquityRef.current,
     costOfDebtRef.current
   );
+  initialWaccRef.current = computedInitialWacc;
+
   useEffect(() => {
     if (!initialWaccManuallyEdited) {
-      handlePageInputChange("initialWacc", initialWaccRef.current, "fetchedInputs", true);
+      handlePageInputChange("initialWacc", computedInitialWacc, "fetchedInputs", true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialWaccRef.current, initialWaccManuallyEdited]);
+  }, [computedInitialWacc, initialWaccManuallyEdited]);
 
   return (
     <div>
