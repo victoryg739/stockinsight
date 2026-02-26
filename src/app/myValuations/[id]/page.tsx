@@ -237,6 +237,27 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
         <div className="col-span-3 text-center">
           <span className="font-bold mr-2">Valued Date: </span>
           {epochToDateTime(valuationQuery.valued_date)}
+          {valuationQuery.tags && valuationQuery.tags.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 mt-3">
+              {valuationQuery.tags.map((tag: string) => {
+                const styleMap: Record<string, string> = {
+                  "Base Case":    "bg-blue-100 text-blue-700 border-blue-200",
+                  "Bull Case":    "bg-green-100 text-green-700 border-green-200",
+                  "Bear Case":    "bg-red-100 text-red-700 border-red-200",
+                  "Conservative": "bg-amber-100 text-amber-700 border-amber-200",
+                  "Aggressive":   "bg-purple-100 text-purple-700 border-purple-200",
+                };
+                return (
+                  <span
+                    key={tag}
+                    className={`px-3 py-1 rounded-full text-sm font-medium border ${styleMap[tag] ?? "bg-gray-100 text-gray-600 border-gray-200"}`}
+                  >
+                    {tag}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="col-span-3 row-start-2 text-sm text-gray-500 italic text-right">

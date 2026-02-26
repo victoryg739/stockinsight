@@ -139,6 +139,17 @@ export default function MyValuationsPage() {
     return `Q${quarter} ${date.getFullYear()}`;
   };
 
+  const getTagStyle = (tag: string) => {
+    switch (tag) {
+      case "Base Case":    return "bg-blue-100 text-blue-700";
+      case "Bull Case":    return "bg-green-100 text-green-700";
+      case "Bear Case":    return "bg-red-100 text-red-700";
+      case "Conservative": return "bg-amber-100 text-amber-700";
+      case "Aggressive":   return "bg-purple-100 text-purple-700";
+      default:             return "bg-gray-100 text-gray-600";
+    }
+  };
+
   // Get staleness: how many new quarters have been reported since the valuation was saved?
   // Compares today vs saved date — if 4+ months have passed, at least one new quarter's report is likely out
   const getStaleStatus = (valuedDateEpoch: number): { quartersBehind: number; level: "fresh" | "yellow" | "red" } => {
@@ -496,9 +507,23 @@ export default function MyValuationsPage() {
                     </div>
 
                     <div className="flex flex-col gap-1.5 mt-4">
-                      <div className="flex items-center text-sm text-gray-700" title={formatValuationDate(item.valued_date)}>
-                        <FaCalendarAlt className="mr-1.5 text-indigo-400 text-xs" />
-                        <span className="font-medium">Saved {getRelativeTime(item.valued_date)}</span>
+                      <div className="flex items-center justify-between text-sm text-gray-700" title={formatValuationDate(item.valued_date)}>
+                        <div className="flex items-center">
+                          <FaCalendarAlt className="mr-1.5 text-indigo-400 text-xs" />
+                          <span className="font-medium">Saved {getRelativeTime(item.valued_date)}</span>
+                        </div>
+                        {item.tags && item.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 justify-end">
+                            {item.tags.map((tag: string) => (
+                              <span
+                                key={tag}
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${getTagStyle(tag)}`}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center flex-wrap gap-1.5">
                         <FiClock className="text-gray-400 text-xs" />
@@ -633,6 +658,12 @@ export default function MyValuationsPage() {
                   </th>
                   <th
                     scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-44"
+                  >
+                    Tags
+                  </th>
+                  <th
+                    scope="col"
                     className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-40"
                     onClick={() => toggleSort("valued_date")}
                   >
@@ -726,6 +757,23 @@ export default function MyValuationsPage() {
                             );
                           })()}
                         </div>
+                      </td>
+
+                      <td className="px-3 py-4">
+                        {item.tags && item.tags.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {item.tags.map((tag: string) => (
+                              <span
+                                key={tag}
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${getTagStyle(tag)}`}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
                       </td>
 
                       <td className="px-5 py-4 whitespace-nowrap text-right text-sm text-gray-500" title={formatValuationDate(item.valued_date)}>

@@ -22,6 +22,28 @@ export default function SaveValuationPopoutPage({
 }: any) {
   const [description, setDescription] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [customTagInput, setCustomTagInput] = useState("");
+
+  const PRESET_TAGS = [
+    { label: "Base Case", style: "bg-blue-100 text-blue-700 border-blue-300" },
+    { label: "Bull Case", style: "bg-green-100 text-green-700 border-green-300" },
+    { label: "Bear Case", style: "bg-red-100 text-red-700 border-red-300" },
+    { label: "Conservative", style: "bg-amber-100 text-amber-700 border-amber-300" },
+    { label: "Aggressive", style: "bg-purple-100 text-purple-700 border-purple-300" },
+  ];
+
+  const togglePresetTag = (label: string) => {
+    setTags((prev) => prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]);
+  };
+
+  const addCustomTag = () => {
+    const trimmed = customTagInput.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags((prev) => [...prev, trimmed]);
+    }
+    setCustomTagInput("");
+  };
   const popoutRef = useRef<HTMLDivElement>(null);
 
   // Get industry from stockInfo for API calls
@@ -193,6 +215,7 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
       impliedSharePrice,
       roic_data: roicData,
       description,
+      tags,
       valuedDate: nowEpochSeconds,
     };
 
@@ -654,9 +677,77 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
             </div>
           </section>
 
-          {/* 6. Add Your Analysis */}
+          {/* Tag Your Valuation */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-2">6. Add Your Analysis</h3>
+            <h3 className="text-lg font-semibold mb-3 border-b pb-2">6. Tag Your Valuation</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Add scenario tags to quickly identify this valuation&apos;s outlook. Select presets or create your own.
+            </p>
+
+            {/* Preset tags */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {PRESET_TAGS.map(({ label, style }) => (
+                <button
+                  key={label}
+                  onClick={() => togglePresetTag(label)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                    tags.includes(label)
+                      ? style + " ring-2 ring-offset-1 ring-current"
+                      : "bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-400"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom tag input */}
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={customTagInput}
+                onChange={(e) => setCustomTagInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addCustomTag()}
+                placeholder="Add custom tag..."
+                className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={addCustomTag}
+                className="px-3 py-1.5 bg-gray-800 text-white rounded-lg text-sm hover:bg-gray-700 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+
+            {/* Selected tags */}
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => {
+                  const preset = PRESET_TAGS.find((p) => p.label === tag);
+                  return (
+                    <span
+                      key={tag}
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${
+                        preset ? preset.style : "bg-gray-100 text-gray-600 border-gray-300"
+                      }`}
+                    >
+                      {tag}
+                      <button
+                        onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                        className="ml-0.5 hover:opacity-70 font-bold"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* 7. Add Your Analysis */}
+          <section>
+            <h3 className="text-lg font-semibold mb-3 border-b pb-2">7. Add Your Analysis</h3>
             <p className="text-sm text-gray-600 mb-4">
               Describe your investment thesis. A well-structured valuation should be backed with a good story.
             </p>
