@@ -123,6 +123,7 @@ Evaluating Moat Strength:
     },
 
     { id: "equityRiskPremium", label: "Country Equity Risk Premium", question: "Equity risk premiums (ERP) represent the price of risk in the equity market", value: 0, unit: "%" },
+    { id: "matureMarketErp", label: "Mature Market ERP", question: "The equity risk premium for a mature market, used to compute the terminal WACC", value: 0, unit: "%" },
     { id: "riskFreeRate", label: "Risk Free Rate", question: "The risk-free rate is the theoretical rate of return on an investment with zero risk. Set to 10 year treasury yield rate", value: 0, unit: "%" },
     { id: "impliedSharesOutstanding", label: "Shares Outstanding", question: "Shares outstanding are the stock that is held by a company's shareholders on the open market", value: 0, unit: "Shares" },
     { id: "currentSharePrice", label: "Current Share Price", question: "Current share price of the stock", value: 0, unit: "$" }
@@ -228,7 +229,6 @@ export const ROIC_STATS = [
     { id: "", label: "", value: "Return on Invested Capital", isHeader: true },
     { id: "roic", label: "ROIC", value: 0 },
     { id: "reinvestmentRate", label: "Reinvestment Rate", value: 0 },
-    { id: "expectedGrowthEbit", label: "Expected Growth EBIT", value: 0 },
 ];
 export const STOCK_INFO = [
     { id: "shortName", label: "Company Name", value: "", keyStats: false },

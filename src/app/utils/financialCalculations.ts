@@ -88,11 +88,12 @@ export function calcEbitAfterTax(ebit: number[], tax: number[]): number[] {
 }
 
 
-export function calcTerminalWACC(countryEquityPremium: number, riskFreeRate: number) {
-    return countryEquityPremium + riskFreeRate;
+export function calcTerminalWACC(matureMarketErp: number, riskFreeRate: number) {
+    return matureMarketErp + riskFreeRate;
 }
 
-//NOTE: This reinvestment calculation assumes no lag between reinvesting and generating growth from that reinvestment
+//NOTE: Reinvestment in year k funds NEXT year's growth (lead convention), matching Damodaran's spreadsheet.
+// revenue[] has 12 elements: [base, yr1, yr2, ..., yr10, terminal]
 export function calcReinvestment(revenue: number[], salesToCapY1: number, salesToCapY2To5: number, salesToCapY6To10: number, revGrowthTerminalYr: number, roicTerminalYear: number, ebitAfterTaxTerminalYr: number): number[] {
     // BUG FIX: Validate sales-to-capital ratios are not zero (division by zero)
     if (salesToCapY1 === 0) {
@@ -109,17 +110,17 @@ export function calcReinvestment(revenue: number[], salesToCapY1: number, salesT
     }
 
     const reinvestment = []
-    //yr1
-    reinvestment.push((revenue[1] - revenue[0]) / salesToCapY1);
+    //yr1: invest in year 1 to fund year 2 growth
+    reinvestment.push((revenue[2] - revenue[1]) / salesToCapY1);
 
-    //yr 2 to 5
+    //yr 2 to 5: invest in year i to fund year i+1 growth
     for (let i = 2; i <= 5; i++) {
-        reinvestment.push((revenue[i] - revenue[i - 1]) / salesToCapY2To5);
+        reinvestment.push((revenue[i + 1] - revenue[i]) / salesToCapY2To5);
     }
 
-    //yr 6 to 10
+    //yr 6 to 10: invest in year i to fund year i+1 growth (revenue[11] = terminal year revenue)
     for (let i = 6; i <= 10; i++) {
-        reinvestment.push((revenue[i] - revenue[i - 1]) / salesToCapY6To10);
+        reinvestment.push((revenue[i + 1] - revenue[i]) / salesToCapY6To10);
     }
 
     //terminal year
@@ -201,6 +202,8 @@ export function calcEquityValueCommonStock(equityValue: number, valueOfOptions: 
 }
 
 export function calcImpliedSharePrice(calcEquityValueCommonStock: number, impliedSharesOutstanding: number): number {
+    console.log("calcEquityValueCommonStock: " + calcEquityValueCommonStock);
+    console.log("impliedSharesOutstanding: " + impliedSharesOutstanding);
     return calcEquityValueCommonStock / impliedSharesOutstanding;
 }
 

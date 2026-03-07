@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-export const fetchCache = 'auto'
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
@@ -7,7 +6,7 @@ export async function GET(req: NextRequest) {
     const url = `https://valuation-yfinance.vercel.app/stock_info/${symbol}`;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         const data = await response.json();
 
         if (!data || Object.keys(data).length === 0) {

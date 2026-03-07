@@ -9,8 +9,7 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        //doesnt matter which table you use small/large firm has same spread
-        const data = await prisma.default_spread_large_firm.findUnique({
+        const data = await prisma.xl_synthetic_rating_large_firm.findUnique({
             where: { rating: rating },
         });
 

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const fetchCache = 'auto';
-
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const symbol = searchParams.get('symbol');
@@ -19,7 +17,7 @@ export async function GET(req: NextRequest) {
     const url = `https://financialmodelingprep.com/api/v3/key-metrics-ttm/${symbol}?apikey=${apiKey}`;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         
         if (!response.ok) {
             return NextResponse.json({

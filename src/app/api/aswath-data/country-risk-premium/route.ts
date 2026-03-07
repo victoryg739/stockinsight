@@ -10,14 +10,24 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const betaUsData = await prisma.country_risk_premium.findUnique({
+        const data = await prisma.xl_country_equity_risk_premium.findUnique({
             where: { country: country },
         });
 
-        if (!betaUsData) {
+        if (!data) {
             return NextResponse.json({ error: 'No data found for the provided country' }, { status: 404 });
         }
-        return NextResponse.json(betaUsData);
+        // Values stored as decimal fractions — multiply ×100 to return percentages.
+        // parseFloat+toFixed avoids JS floating-point drift (e.g. 0.0423*100 = 4.2299...95)
+        const pct = (v: number | null) => v != null ? parseFloat((v * 100).toFixed(4)) : null;
+        return NextResponse.json({
+            ...data,
+            equity_risk_premium:  pct(data.equity_risk_premium),
+            country_risk_premium: pct(data.country_risk_premium),
+            adj_default_spread:   pct(data.adj_default_spread),
+            corporate_tax_rate:   pct(data.corporate_tax_rate),
+            mature_market_erp:    pct(data.mature_market_erp),
+        });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
     }

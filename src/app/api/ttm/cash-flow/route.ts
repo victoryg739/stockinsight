@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-export const fetchCache = 'auto'
+
 
 
 export async function GET(req: NextRequest) {
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const url = `https://valuation-yfinance.vercel.app/ttm_cash_flow${symbol}`;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         const data = await response.json();
 
         if (!data || Object.keys(data).length === 0) {

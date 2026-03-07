@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-export const fetchCache = 'auto'
 
 export async function GET(req: NextRequest) {
     const dcfKey = process.env.DISCOUNTING_CASH_FLOWS_KEY
@@ -9,7 +8,7 @@ export async function GET(req: NextRequest) {
 
     const url = `https://discountingcashflows.com/api/balance-sheet-statement/?ticker=${symbol}&period=annual&key=${dcfKey}`
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         const data = await response.json();
 
         if (!data || Object.keys(data).length === 0) {

@@ -182,7 +182,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             const ebitAfterTax = FinCalc.calcEbitAfterTax(ebit, taxRate);
 
             const terminalWacc = FinCalc.calcTerminalWACC(
-                variedFetchedInputs.equityRiskPremium,
+                variedFetchedInputs.matureMarketErp,
                 variedFetchedInputs.riskFreeRate
             );
 

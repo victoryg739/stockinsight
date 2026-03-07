@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const inputStats = await prisma.input_stats.findUnique({
+        const inputStats = await prisma.xl_input_stats.findUnique({
             where: { industry: industry },
         });
 

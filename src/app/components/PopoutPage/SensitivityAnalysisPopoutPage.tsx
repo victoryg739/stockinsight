@@ -319,7 +319,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
     const cash = fetchedInputValues["cash"];
     const impliedSharesOutstanding = fetchedInputValues["impliedSharesOutstanding"];
     const initialWacc = fetchedInputValues["initialWacc"];
-    const equityRiskPremium = fetchedInputValues["equityRiskPremium"];
+    const matureMarketErp = fetchedInputValues["matureMarketErp"];
 
     // Add checks for missing/invalid inputs before calculations
     const requiredInputs: Record<string, number> = {
@@ -343,7 +343,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
       cash,
       impliedSharesOutstanding,
       initialWacc,
-      equityRiskPremium,
+      matureMarketErp,
     };
 
     for (const key in requiredInputs) {
@@ -379,7 +379,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
     const ebit = FinCalc.calcEbit(revenue, ebitMargin);
     const taxRate = FinCalc.calcTaxRate(effectiveTaxRate, marginalTaxRate);
     const ebitAfterTax = FinCalc.calcEbitAfterTax(ebit, taxRate);
-    const terminalWacc = FinCalc.calcTerminalWACC(equityRiskPremium, riskFreeRate);
+    const terminalWacc = FinCalc.calcTerminalWACC(matureMarketErp, riskFreeRate);
 
     // Check for terminal WACC less than or equal to terminal growth
     if (terminalWacc <= growthRates[growthRates.length - 1]) {

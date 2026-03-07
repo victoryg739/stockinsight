@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Dropdown from "../DropDown";
 import { countries, industries, syntheticRatings } from "../../constants/dropdown";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import WaccFormula from "./WaccFormula";
 import * as queryFn from "../../utils/queryAPIFunctions";
 import * as States from "../../constants/states";
@@ -17,8 +17,6 @@ export default function DetailedWacc({
   countryOptions,
   initialWaccManuallyEdited,
 }: any) {
-  // Get QueryClient from the context
-  const queryClient = useQueryClient();
   const [syntheticRatingOptions, setSyntheticRatingOptions] = useState("Aaa/AAA");
   const spread = useRef(0.59);
 
@@ -47,9 +45,9 @@ export default function DetailedWacc({
     }
   };
 
-  //GET unlevered beta
+  //GET unlevered beta — include industryOptions in queryKey so React Query re-fetches on industry change
   const { data: betaQuery } = useQuery({
-    queryKey: ["beta"],
+    queryKey: ["beta", industryOptions],
     queryFn: async () => {
       const data = queryFn.fetchBeta(encodeParams(industryOptions));
       return data;
@@ -59,9 +57,9 @@ export default function DetailedWacc({
     handleInputChange("unleveredBeta", betaQuery, "waccEquity");
   }
 
-  //GET synthetic ratings spread
+  //GET synthetic ratings spread — include syntheticRatingOptions in queryKey so React Query re-fetches on rating change
   const { data: syntheticRatingQuery } = useQuery({
-    queryKey: ["syntheticRatingSpread"],
+    queryKey: ["syntheticRatingSpread", syntheticRatingOptions],
     queryFn: async () => {
       return queryFn.fetchSyntheticRatingSpread(syntheticRatingOptions);
     },
@@ -70,11 +68,6 @@ export default function DetailedWacc({
   if (syntheticRatingQuery) {
     spread.current = syntheticRatingQuery;
   }
-
-  //invalidate all queries
-  useEffect(() => {
-    queryClient.refetchQueries();
-  }, [industryOptions, countryOptions, syntheticRatingOptions, queryClient]);
 
   //handle local input changes from page
   const riskFreeRate = getPageInputValue("riskFreeRate", "fetchedInputs");
@@ -176,7 +169,7 @@ export default function DetailedWacc({
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{item.value}</div>
+                <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value)}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
             )}
@@ -215,7 +208,7 @@ export default function DetailedWacc({
               </div>
             ) : item.id === "preTaxCostOfDebt" ? (
               <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value)}</div>
+                <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value) + "%"}</div>
                 <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
               </div>
             ) : item.id === "marginalTaxRate" ? (

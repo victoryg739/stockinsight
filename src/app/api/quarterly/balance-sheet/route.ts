@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const fetchCache = 'auto'
+
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const url = `https://valuation-yfinance.vercel.app/quarterly_balance_sheet/${symbol}`;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         const data = await response.json();
 
         if (!data || Object.keys(data).length === 0) {
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 //     const url = `https://valuation-yfinance.vercel.app/quarterly_balance_sheet/${symbol}`;
 
 //     try {
-//         const response = await fetch(url);
+//         const response = await fetch(url, { cache: 'no-store' });
 //         const data = await response.json();
 
 //         if (!data || Object.keys(data).length === 0) {
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 // async function fetchAlphaVantageData(symbol: string, apiKey: string) {
 //     const url = `https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol=${symbol}&apikey=${apiKey}`;
 
-//     const response = await fetch(url);
+//     const response = await fetch(url, { cache: 'no-store' });
 //     const data = await response.json();
 
 //     if (data.Information) {

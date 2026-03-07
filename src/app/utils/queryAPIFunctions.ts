@@ -27,8 +27,10 @@ export const fetchEquityRiskPremium = async (
         const { data } = await axios.get(`/api/aswath-data/country-risk-premium?country=${country}`);
         const equity_risk_premium = parseFloat(data["equity_risk_premium"]);
         const marginal_tax_rate = parseFloat(data["corporate_tax_rate"]);
+        const mature_market_erp = parseFloat(data["mature_market_erp"]);
         handleInputChange("equityRiskPremium", equity_risk_premium, "fetchedInputs")
         handleInputChange("marginalTaxRate", marginal_tax_rate, "fetchedInputs")
+        handleInputChange("matureMarketErp", mature_market_erp, "fetchedInputs")
 
     } catch (error) {
         console.error('Error fetching equity risk premium:', error);
@@ -202,7 +204,7 @@ export const fetchBeta = async (
 export const fetchSyntheticRatingSpread = async (
     rating: string) => {
     try {
-        const { data } = await axios.get(`/api/aswath-data/synthetic-rating/get-spread?rating=${rating}`);
+        const { data } = await axios.get(`/api/aswath-data/synthetic-rating/get-spread?rating=${encodeURIComponent(rating)}`);
 
         // Convert the data to a number
         const spreadValue = Number(data);
@@ -212,7 +214,9 @@ export const fetchSyntheticRatingSpread = async (
             throw new Error('Invalid spread value received from the server');
         }
 
-        return (spreadValue)
+        // DB stores spread as a decimal fraction (e.g. 0.0059 = 0.59%) —
+        // multiply by 100 so the value is in percentage points, consistent with riskFreeRate
+        return (spreadValue * 100)
     } catch (error) {
         console.error('Error fetching equity risk premium:', error);
         throw error;
@@ -247,6 +251,28 @@ export const fetchRoic = async (
     } catch (error) {
         console.error('Error fetching roic from aswath data:', error);
         throw error;
+    }
+};
+
+export const fetchIndustryAveragesUS = async (industry: string) => {
+    try {
+        const encodedIndustry = encodeParams(industry);
+        const { data } = await axios.get(`/api/aswath-data/industry-averages-us?industry=${encodedIndustry}`);
+        return data;
+    } catch (error) {
+        console.error('Error fetching US industry averages:', error);
+        return null;
+    }
+};
+
+export const fetchIndustryAveragesGlobal = async (industry: string) => {
+    try {
+        const encodedIndustry = encodeParams(industry);
+        const { data } = await axios.get(`/api/aswath-data/industry-averages-global?industry=${encodedIndustry}`);
+        return data;
+    } catch (error) {
+        console.error('Error fetching global industry averages:', error);
+        return null;
     }
 };
 

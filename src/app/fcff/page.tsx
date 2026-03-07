@@ -108,6 +108,13 @@ function FCFFPageContent() {
   const restoredFromStorageRef = useRef(false);
   const [hasRestoredState, setHasRestoredState] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTestTickerRef = useRef(false);
+  // True after the initial TEST ERP fetch (for matureMarketErp) has fired;
+  // subsequent country changes should do a full ERP update
+  const testErpInitialFetchedRef = useRef(false);
+  // Tracks the last symbol loaded by symbolBtn useEffect so the URL effect
+  // doesn't trigger a redundant second load (which would reset initialWacc to 0)
+  const loadedSymbolRef = useRef("");
 
   const getInputValue = (id: string, type: "inputs" | "fetchedInputs"): number => {
     const inputArray = type === "inputs" ? inputs : fetchedInputs;
@@ -119,7 +126,7 @@ function FCFFPageContent() {
     id: string,
     newValue: any,
     type: "inputs" | "fetchedInputs" | "stockInfo",
-    isAutoFill: boolean = false
+    isAutoFill: boolean = false,
   ): void => {
     let value = newValue === undefined ? 0 : newValue;
     // Convert value to string for trimming and validation
@@ -160,11 +167,11 @@ function FCFFPageContent() {
       setInputs((prevInputs: any) => prevInputs.map((input: any) => (input.id === id ? { ...input, value } : input)));
     } else if (type === "fetchedInputs") {
       setFetchedInputs((prevFetchedInputs: any) =>
-        prevFetchedInputs.map((input: any) => (input.id === id ? { ...input, value } : input))
+        prevFetchedInputs.map((input: any) => (input.id === id ? { ...input, value } : input)),
       );
     } else if (type === "stockInfo") {
       setStockInfo((prevStockInfo: any) =>
-        prevStockInfo.map((input: any) => (input.id === id ? { ...input, value } : input))
+        prevStockInfo.map((input: any) => (input.id === id ? { ...input, value } : input)),
       );
     }
   };
@@ -173,9 +180,10 @@ function FCFFPageContent() {
   const valuationModelRef: any = useRef(States.VALUATION_MODEL);
   const valuationOutputRef: any = useRef(States.VALUATION_OUTPUT);
 
-  const { data: riskFreeRateData } = useQuery({
+  const { data: riskFreeRateData, refetch: riskFreeRateRefetch } = useQuery({
     queryKey: ["riskFreeRate"],
     queryFn: async () => {
+      if (isTestTickerRef.current) return null;
       await queryFn.fetchRiskFreeRate(handleInputChange);
       return null;
     },
@@ -185,6 +193,16 @@ function FCFFPageContent() {
   const { refetch: equityRiskPremiumRefectch } = useQuery({
     queryKey: ["equityRiskPremium"],
     queryFn: async () => {
+      if (isTestTickerRef.current && !testErpInitialFetchedRef.current) {
+        // Initial TEST load: only fetch matureMarketErp — keep hardcoded ERP and marginalTaxRate
+        testErpInitialFetchedRef.current = true;
+        const matureMarketErpOnly = (id: string, value: any, type: any) => {
+          if (id === "matureMarketErp") handleInputChange(id, value, type);
+        };
+        await queryFn.fetchEquityRiskPremium("United%20States", matureMarketErpOnly);
+        return null;
+      }
+      // Subsequent fetches (user changed country): full update for all fields
       await queryFn.fetchEquityRiskPremium(encodeParams(countryOptions), handleInputChange);
       return null;
     },
@@ -262,6 +280,8 @@ function FCFFPageContent() {
       setRoicTerminalYearManuallyEdited(saved.roicTerminalYearManuallyEdited);
       setInitialWaccManuallyEdited(saved.initialWaccManuallyEdited);
     } else {
+      // Skip if the symbolBtn useEffect already loaded this symbol (router.push triggers this effect)
+      if (loadedSymbolRef.current.toUpperCase() === urlSymbol.toUpperCase()) return;
       // Symbol in URL but no saved state — trigger a fresh fetch
       setSymbol(urlSymbol);
       setSymbolBtn((prev) => !prev);
@@ -296,14 +316,68 @@ function FCFFPageContent() {
     setRoicTerminalYearManuallyEdited(false);
     setInitialWaccManuallyEdited(false);
 
+    // TEST ticker: skip all API calls and prefill hardcoded values for source-of-truth comparison
+    if (symbol.toUpperCase() === "TEST") {
+      isTestTickerRef.current = true;
+      handleInputChange("baseRevenue", 10_000_000, "fetchedInputs");
+      handleInputChange("baseEbitMargin", 10, "fetchedInputs");
+      handleInputChange("totalEquity", 10_000_000, "fetchedInputs");
+      handleInputChange("totalDebt", 10_000_000, "fetchedInputs");
+      handleInputChange("cash", 10_000_000, "fetchedInputs");
+      handleInputChange("minorityInterest", 0, "fetchedInputs");
+      handleInputChange("interestExpense", 10_000_000, "fetchedInputs");
+      handleInputChange("effectiveTaxRate", 17.5, "fetchedInputs");
+      handleInputChange("marginalTaxRate", 25, "fetchedInputs");
+      handleInputChange("equityRiskPremium", 5, "fetchedInputs");
+      handleInputChange("riskFreeRate", 4, "fetchedInputs");
+      handleInputChange("currentSharePrice", 100, "fetchedInputs");
+      handleInputChange("impliedSharesOutstanding", 10_000_000, "fetchedInputs");
+      handleInputChange("revGrowthYr1", 10, "inputs", true);
+      handleInputChange("revGrowthYr2to5", 10, "inputs", true);
+      handleInputChange("revGrowthPerpetuity", 4, "inputs", true);
+      handleInputChange("opMarginYr1", 10, "inputs", true);
+      handleInputChange("opMarginYr10", 10, "inputs", true);
+      handleInputChange("salesToCapYr1", 2, "inputs", true);
+      handleInputChange("salesToCapYr2to5", 2, "inputs", true);
+      handleInputChange("salesToCapYr6to10", 2, "inputs", true);
+      setSalesToCapManuallyEdited({ salesToCapYr1: true, salesToCapYr2to5: true, salesToCapYr6to10: true });
+      handleInputChange("yrsConvergence", 5, "inputs", true);
+      handleInputChange("shortName", "Test Company Inc.", "stockInfo");
+      handleInputChange("country", "United States", "stockInfo");
+      handleInputChange("currency", "USD", "stockInfo");
+      handleInputChange("industry", "Advertising", "stockInfo");
+      handleInputChange("sector", "Technology", "stockInfo");
+      setCountryOptions("United States");
+      setIndustryOptions("Advertising");
+      testErpInitialFetchedRef.current = false; // next fetch is the initial TEST load (matureMarketErp only)
+      equityRiskPremiumRefectch(); // fetches matureMarketErp only on first call; full update on subsequent
+      setSearchedSymbol(symbol);
+      loadedSymbolRef.current = symbol;
+      router.push(`/fcff?symbol=${symbol}`, { scroll: false });
+      return;
+    }
+
+    isTestTickerRef.current = false;
     stockInfoRefetch();
     incomeStatementRefetch();
     balanceSheetQuartelyRefetch();
+    // Re-fetch global market rates since state was reset to 0 above
+    riskFreeRateRefetch();
+    equityRiskPremiumRefectch();
     setSearchedSymbol(symbol); // Capture the symbol at search time
+    loadedSymbolRef.current = symbol;
 
     // Update URL to reflect the searched symbol (push so back/forward works between tickers)
     router.push(`/fcff?symbol=${symbol}`, { scroll: false });
-  }, [symbolBtn, symbol, stockInfoRefetch, incomeStatementRefetch, balanceSheetQuartelyRefetch]);
+  }, [
+    symbolBtn,
+    symbol,
+    stockInfoRefetch,
+    incomeStatementRefetch,
+    balanceSheetQuartelyRefetch,
+    riskFreeRateRefetch,
+    equityRiskPremiumRefectch,
+  ]);
 
   useEffect(() => {
     equityRiskPremiumRefectch();
@@ -391,7 +465,7 @@ function FCFFPageContent() {
   const marginalTaxRate = getInputValue("marginalTaxRate", "fetchedInputs");
 
   // Placeholder values for missing inputs
-  const countryEquityRiskPremium = getInputValue("equityRiskPremium", "fetchedInputs");
+  const matureMarketErp = getInputValue("matureMarketErp", "fetchedInputs");
 
   const growthRates = FinCalc.calcRevenueGrowth(growthY1, growthY2to5, growthTerminal);
   const revenue = FinCalc.calcRevenue(getInputValue("baseRevenue", "fetchedInputs"), growthRates);
@@ -399,34 +473,21 @@ function FCFFPageContent() {
     getInputValue("baseEbitMargin", "fetchedInputs"),
     ebitY1,
     ebitY10,
-    yearOfConvergence
+    yearOfConvergence,
   );
   const ebit = FinCalc.calcEbit(revenue, ebitMargin);
   const taxRate = FinCalc.calcTaxRate(effectiveTaxRate, marginalTaxRate);
   const ebitAfterTax = FinCalc.calcEbitAfterTax(ebit, taxRate);
-  const terminalWacc = FinCalc.calcTerminalWACC(
-    countryEquityRiskPremium,
-    getInputValue("riskFreeRate", "fetchedInputs")
-  );
+  const terminalWacc = FinCalc.calcTerminalWACC(matureMarketErp, getInputValue("riskFreeRate", "fetchedInputs"));
 
-  const RoicTerminalAutoFill = () => {
-    //we use terminal WACC however in Aswath spreadsheet is year 10 WACC however of both the value is always the same
-    const terminalWacc = FinCalc.calcTerminalWACC(
-      countryEquityRiskPremium,
-      getInputValue("riskFreeRate", "fetchedInputs")
-    );
-    const riskFreeRate = getInputValue("riskFreeRate", "fetchedInputs");
-    const equityRiskPremium = getInputValue("equityRiskPremium", "fetchedInputs");
-
-    useEffect(() => {
-      // Only auto-fill if the field hasn't been manually edited
-      if (!roicTerminalYearManuallyEdited) {
-        handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs", true);
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [terminalWacc, riskFreeRate, equityRiskPremium, roicTerminalYearManuallyEdited]);
-  };
-  RoicTerminalAutoFill();
+  // Auto-fill ROIC terminal year from terminal WACC when not manually edited
+  // (terminal WACC = country ERP + risk-free rate, same as year-10 WACC in Aswath's model)
+  useEffect(() => {
+    if (!roicTerminalYearManuallyEdited) {
+      handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs", true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [terminalWacc, roicTerminalYearManuallyEdited]);
   const roicTerminalYear = getInputValue("roicTerminalYear", "fetchedInputs");
 
   // Calculate reinvestment with error handling for initial empty state
@@ -439,7 +500,7 @@ function FCFFPageContent() {
       sCapY6to10,
       growthTerminal,
       roicTerminalYear,
-      ebitAfterTax[ebitAfterTax.length - 1]
+      ebitAfterTax[ebitAfterTax.length - 1],
     );
   } catch (error) {
     // On initial load or invalid inputs, use empty array
@@ -457,7 +518,7 @@ function FCFFPageContent() {
     getInputValue("cash", "fetchedInputs"),
     reinvestment,
     ebitAfterTax,
-    roicTerminalYear
+    roicTerminalYear,
   );
   const fcff = FinCalc.calcFcff(ebitAfterTax, reinvestment);
   const wacc = FinCalc.calcWACC(getInputValue("initialWacc", "fetchedInputs"), terminalWacc);
@@ -471,12 +532,12 @@ function FCFFPageContent() {
   const terminalValue = FinCalc.calcTerminalValue(
     fcff[fcff.length - 1],
     wacc[wacc.length - 1],
-    growthRates[growthRates.length - 1]
+    growthRates[growthRates.length - 1],
   );
 
   const pvTerminalValue = FinCalc.calcPVTerminalValue(
     terminalValue,
-    cumulatedDiscountFactor[cumulatedDiscountFactor.length - 1]
+    cumulatedDiscountFactor[cumulatedDiscountFactor.length - 1],
   );
 
   const enterpriseValue = FinCalc.calcEnterpriseValue(pvTerminalValue, sumOfPvFcff10Yrs);
@@ -486,13 +547,13 @@ function FCFFPageContent() {
     0,
     // getFetchedInputValue("minorityInterest"),
     getInputValue("cash", "fetchedInputs"),
-    0
+    0,
   );
 
   const equityValueCommonStock = FinCalc.calcEquityValueCommonStock(equityValue, 0);
   const impliedSharePrice = FinCalc.calcImpliedSharePrice(
     equityValueCommonStock,
-    getInputValue("impliedSharesOutstanding", "fetchedInputs")
+    getInputValue("impliedSharesOutstanding", "fetchedInputs"),
   );
   impliedSharePriceRef.current = impliedSharePrice;
   // Update VALUATION_MODEL

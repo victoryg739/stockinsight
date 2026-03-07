@@ -151,6 +151,106 @@ model sales_to_cap_us {
   sales_invested_capital  String? @db.VarChar(255)
 }
 
+model xl_country_equity_risk_premium {
+  country              String  @id @db.VarChar(255)
+  moody_rating         String? @db.VarChar(255)
+  adj_default_spread   Float?  @db.Real
+  equity_risk_premium  Float?  @db.Real
+  country_risk_premium Float?  @db.Real
+  corporate_tax_rate   Float?  @db.Real
+  mature_market_erp    Float?  @db.Real
+}
+
+model xl_industry_averages_us {
+  industry                    String  @id @db.VarChar(255)
+  num_firms                   Int?
+  revenue_growth_rate_5y      Float?  @db.Real
+  pretax_operating_margin     Float?  @db.Real
+  aftertax_roc                Float?  @db.Real
+  effective_tax_rate          Float?  @db.Real
+  unlevered_beta              Float?  @db.Real
+  levered_beta                Float?  @db.Real
+  cost_of_equity              Float?  @db.Real
+  std_dev_stock_price         Float?  @db.Real
+  pretax_cost_of_debt         Float?  @db.Real
+  market_debt_to_capital      Float?  @db.Real
+  cost_of_capital             Float?  @db.Real
+  sales_to_capital            Float?  @db.Real
+  ev_to_sales                 Float?  @db.Real
+  ev_to_ebitda                Float?  @db.Real
+  ev_to_ebit                  Float?  @db.Real
+  price_to_book               Float?  @db.Real
+  trailing_pe                 Float?  @db.Real
+  noncash_wc_pct_revenue      Float?  @db.Real
+  capex_pct_revenue           Float?  @db.Real
+  net_capex_pct_revenue       Float?  @db.Real
+  reinvestment_rate           Float?  @db.Real
+  roe                         Float?  @db.Real
+  dividend_payout_ratio       Float?  @db.Real
+  equity_reinvestment_rate    Float?  @db.Real
+  pretax_operating_margin_adj Float?  @db.Real
+}
+
+model xl_industry_averages_global {
+  industry                    String  @id @db.VarChar(255)
+  num_firms                   Int?
+  revenue_growth_rate_5y      Float?  @db.Real
+  pretax_operating_margin     Float?  @db.Real
+  aftertax_roc                Float?  @db.Real
+  effective_tax_rate          Float?  @db.Real
+  unlevered_beta              Float?  @db.Real
+  levered_beta                Float?  @db.Real
+  cost_of_equity              Float?  @db.Real
+  std_dev_stock_price         Float?  @db.Real
+  pretax_cost_of_debt         Float?  @db.Real
+  market_debt_to_capital      Float?  @db.Real
+  cost_of_capital             Float?  @db.Real
+  sales_to_capital            Float?  @db.Real
+  ev_to_sales                 Float?  @db.Real
+  ev_to_ebitda                Float?  @db.Real
+  ev_to_ebit                  Float?  @db.Real
+  price_to_book               Float?  @db.Real
+  trailing_pe                 Float?  @db.Real
+  noncash_wc_pct_revenue      Float?  @db.Real
+  capex_pct_revenue           Float?  @db.Real
+  net_capex_pct_revenue       Float?  @db.Real
+  reinvestment_rate           Float?  @db.Real
+  roe                         Float?  @db.Real
+  dividend_payout_ratio       Float?  @db.Real
+  equity_reinvestment_rate    Float?  @db.Real
+  pretax_operating_margin_adj Float?  @db.Real
+}
+
+model xl_input_stats {
+  industry                                 String @id
+  count                                    Int?
+  revenue_growth_rate_first_quartile       Float? @db.Real
+  revenue_growth_rate_median               Float? @db.Real
+  revenue_growth_rate_third_quartile       Float? @db.Real
+  pre_tax_operating_margin_first_quartile  Float? @db.Real
+  pre_tax_operating_margin_median          Float? @db.Real
+  pre_tax_operating_margin_third_quartile  Float? @db.Real
+  sales_to_invested_capital_first_quartile Float? @db.Real
+  sales_to_invested_capital_median         Float? @db.Real
+  sales_to_invested_capital_third_quartile Float? @db.Real
+  cost_of_capital_first_quartile           Float? @db.Real
+  cost_of_capital_median                   Float? @db.Real
+  cost_of_capital_third_quartile           Float? @db.Real
+  beta_first_quartile                      Float? @db.Real
+  beta_median                              Float? @db.Real
+  beta_third_quartile                      Float? @db.Real
+  debt_to_capital_ratio_first_quartile     Float? @db.Real
+  debt_to_capital_ratio_median             Float? @db.Real
+  debt_to_capital_ratio_third_quartile     Float? @db.Real
+}
+
+model xl_synthetic_rating_large_firm {
+  min_coverage String? @db.VarChar(255)
+  max_coverage String? @db.VarChar(255)
+  rating       String  @id @db.VarChar(255)
+  spread       String? @db.VarChar(255)
+}
+
 model valuation {
   id                  Int      @id @default(autoincrement())
   symbol              String?  @db.VarChar(50)
