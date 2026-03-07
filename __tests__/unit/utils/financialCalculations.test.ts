@@ -65,8 +65,8 @@ describe('Financial Calculations', () => {
       const revenue = [1000, 1100, 1210, 1331, 1464, 1610, 1771, 1948, 2143, 2357, 2593, 2852];
       const result = calcReinvestment(revenue, 2, 2.5, 3, 3, 10, 1000);
 
-      // Year 1: (1100 - 1000) / 2 = 50
-      expect(result[0]).toBeCloseTo(50, 1);
+      // Year 1 (lead convention): (1210 - 1100) / 2 = 55
+      expect(result[0]).toBeCloseTo(55, 1);
 
       // Should return 11 elements (years 1-10 + terminal)
       expect(result).toHaveLength(11);
@@ -84,8 +84,8 @@ describe('Financial Calculations', () => {
       const revenue = [1000, 900, 850, 800, 750];
       const result = calcReinvestment(revenue, 2, 2.5, 3, 3, 10, 1000);
 
-      // Year 1: (900 - 1000) / 2 = -50 (disinvestment)
-      expect(result[0]).toBeCloseTo(-50, 1);
+      // Year 1 (lead convention): (850 - 900) / 2 = -25 (disinvestment)
+      expect(result[0]).toBeCloseTo(-25, 1);
     });
 
     it('should calculate terminal year reinvestment correctly', () => {

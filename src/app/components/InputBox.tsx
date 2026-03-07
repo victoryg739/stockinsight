@@ -1,7 +1,5 @@
 import React from "react";
-import { FaRegQuestionCircle } from "react-icons/fa";
-import Tooltip from "rc-tooltip";
-import "rc-tooltip/assets/bootstrap.css"; // Keep this for basic tooltip styling
+import CustomTooltip from "./CustomTooltip";
 
 const InputBox = ({ id, label, value, question, unit, onChange, firstElement }: any) => {
   const isValidNumber = (val: any) => {
@@ -14,24 +12,7 @@ const InputBox = ({ id, label, value, question, unit, onChange, firstElement }: 
         <label htmlFor={id} className="block text-xs font-medium text-gray-700 mb-1">
           {label}
         </label>
-        <Tooltip
-          placement="right"
-          overlay={
-            <div className="max-w-xs bg-gray-800 text-white p-2 rounded shadow-lg">
-              <p className="text-sm">
-                {question.split("\n").map((line: String, index: any) => (
-                  <React.Fragment key={index}>
-                    <div style={{ marginBottom: "6px" }}>{line}</div>
-                  </React.Fragment>
-                ))}
-              </p>
-            </div>
-          }
-        >
-          <span className="ml-2 cursor-pointer">
-            <FaRegQuestionCircle className="text-gray-500" />
-          </span>
-        </Tooltip>
+        <CustomTooltip content={question} placement="right" />
       </div>
       <div className="relative inline-block w-full">
         <input

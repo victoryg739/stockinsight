@@ -181,7 +181,6 @@ export function calcSumOfPvFcff10Yrs(pvFcff: number[]): number {
 }
 
 export function calcTerminalValue(terminalValueFcff: number, wacc: number, terminalRevGrowth: number): number {
-    if (wacc === terminalRevGrowth) return 0;
     return terminalValueFcff / (wacc - terminalRevGrowth) * 100;
 }
 
@@ -210,6 +209,9 @@ export function calcImpliedSharePrice(calcEquityValueCommonStock: number, implie
 //Section: Calculate WACC
 
 export function calcLeveredBeta(unleveredBeta: number, marginalTaxRate: number, marketEquity: number, marketDebt: number) {
+    if (marketEquity === 0) {
+        throw new Error('Market equity cannot be zero');
+    }
     return unleveredBeta * (1 + (1 - marginalTaxRate / 100) * (marketDebt / marketEquity));
 }
 

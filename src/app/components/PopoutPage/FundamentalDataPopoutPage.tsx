@@ -15,8 +15,7 @@ import { AiOutlineStock } from "react-icons/ai";
 import { TbAlpha } from "react-icons/tb";
 import { FaFileAlt, FaExternalLinkAlt } from "react-icons/fa";
 import StockLogo from "../StockLogo";
-import Tooltip from "rc-tooltip";
-import { FaRegQuestionCircle } from "react-icons/fa";
+import CustomTooltip from "../CustomTooltip";
 import { FUNDAMENTAL_DEFINITIONS } from "../../utils/fundamentalDataDefinitions";
 
 interface FundamentalDataPopoutPageProps {
@@ -843,22 +842,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                         >
                           <div className="flex items-center">
                             {formatFieldName(field)}
-                            <Tooltip
-                              placement="right"
-                              overlay={
-                                <div className="max-w-xs bg-gray-800 text-white p-2 rounded shadow-lg">
-                                  {FUNDAMENTAL_DEFINITIONS[field]?.split("\n").map((line, index) => (
-                                    <p key={index} className="text-base">
-                                      {line}
-                                    </p>
-                                  )) || ""}
-                                </div>
-                              }
-                            >
-                              <span className="ml-2 cursor-pointer">
-                                <FaRegQuestionCircle className="text-gray-500" />
-                              </span>
-                            </Tooltip>
+                            <CustomTooltip content={FUNDAMENTAL_DEFINITIONS[field] || ""} placement="right" />
                           </div>
                         </td>
 
@@ -908,22 +892,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                         >
                           <div className="flex items-center">
                             {formatFieldName(field)}
-                            <Tooltip
-                              placement="right"
-                              overlay={
-                                <div className="max-w-xs bg-gray-800 text-white p-2 rounded shadow-lg">
-                                  {FUNDAMENTAL_DEFINITIONS[field]?.split("\n").map((line, index) => (
-                                    <p key={index} className="text-base">
-                                      {line}
-                                    </p>
-                                  )) || ""}
-                                </div>
-                              }
-                            >
-                              <span className="ml-2 cursor-pointer">
-                                <FaRegQuestionCircle className="text-gray-500" />
-                              </span>
-                            </Tooltip>
+                            <CustomTooltip content={FUNDAMENTAL_DEFINITIONS[field] || ""} placement="right" />
                           </div>
                         </td>
                         {balanceTableData.data.map((yearData: any, yearIndex: number) => (
