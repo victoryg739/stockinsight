@@ -266,3 +266,8 @@ model valuation {
   valued_date         Int?
   tags                Json?
 }
+
+model user_preferences {
+  email     String  @id @db.VarChar(100)
+  dark_mode Boolean @default(false)
+}

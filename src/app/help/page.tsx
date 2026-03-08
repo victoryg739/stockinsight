@@ -134,7 +134,7 @@ export default function HelpPage(): React.ReactElement {
     const contentId = `${sectionType}-${term.replace(/\s+/g, "-").toLowerCase()}`;
 
     return (
-      <div className="p-3 border-t border-gray-200" key={contentId}>
+      <div className="p-3 border-t border-gray-200 dark:border-gray-600 dark:text-gray-200" key={contentId}>
         <div className="mb-5 mt-3 relative group">
           <button
             onClick={() => handleCopy(contentToCopy, contentId)}
@@ -167,35 +167,35 @@ export default function HelpPage(): React.ReactElement {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">Help Center</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Help Center</h1>
           {mainSections.map((section) => (
-            <div key={section.id} className="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+            <div key={section.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md mb-6 overflow-hidden">
               <div
-                className="flex justify-between items-center p-6 bg-gray-50 cursor-pointer"
+                className="flex justify-between items-center p-6 bg-gray-50 dark:bg-gray-700 cursor-pointer"
                 onClick={() => toggleSection("mainSections", section.id)}
               >
-                <h2 className="text-xl font-semibold text-gray-800">{section.title}</h2>
-                {isSectionOpen("mainSections", section.id) ? <FaChevronUp size={20} /> : <FaChevronDown size={20} />}
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{section.title}</h2>
+                {isSectionOpen("mainSections", section.id) ? <FaChevronUp size={20} className="text-gray-500 dark:text-gray-300" /> : <FaChevronDown size={20} className="text-gray-500 dark:text-gray-300" />}
               </div>
               {isSectionOpen("mainSections", section.id) && (
-                <div className="p-6 border-t border-gray-200">
+                <div className="p-6 border-t border-gray-200 dark:border-gray-600">
                   <div className="mb-6">
-                    <p className="text-gray-600">{section.content}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{section.content}</p>
                   </div>
                   {section.directContent &&
                     Object.entries(section.directContent).map(([term, details]) => (
-                      <div key={term} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div key={term} className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                         <div
-                          className="flex justify-between items-center p-3 bg-gray-50 cursor-pointer"
+                          className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 cursor-pointer"
                           onClick={() => toggleSection("termSections", term)}
                         >
-                          <h4 className="font-medium text-gray-800">{term}</h4>
+                          <h4 className="font-medium text-gray-800 dark:text-white">{term}</h4>
                           {isSectionOpen("termSections", term) ? (
-                            <FaChevronUp size={14} />
+                            <FaChevronUp size={14} className="text-gray-500 dark:text-gray-300" />
                           ) : (
-                            <FaChevronDown size={14} />
+                            <FaChevronDown size={14} className="text-gray-500 dark:text-gray-300" />
                           )}
                         </div>
                         {isSectionOpen("termSections", term) && renderTermDetails(term, details, "checklist")}
@@ -203,34 +203,34 @@ export default function HelpPage(): React.ReactElement {
                     ))}
                   {section.subSections &&
                     section.subSections.map((sub) => (
-                      <div key={sub.id} className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                      <div key={sub.id} className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden mt-4">
                         <div
-                          className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer"
+                          className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 cursor-pointer"
                           onClick={() => toggleSection("subSections", sub.id)}
                         >
-                          <h3 className="font-medium text-gray-800">{sub.title}</h3>
+                          <h3 className="font-medium text-gray-800 dark:text-white">{sub.title}</h3>
                           {isSectionOpen("subSections", sub.id) ? (
-                            <FaChevronUp size={16} />
+                            <FaChevronUp size={16} className="text-gray-500 dark:text-gray-300" />
                           ) : (
-                            <FaChevronDown size={16} />
+                            <FaChevronDown size={16} className="text-gray-500 dark:text-gray-300" />
                           )}
                         </div>
                         {isSectionOpen("subSections", sub.id) && (
-                          <div className="p-4 border-t border-gray-200">
+                          <div className="p-4 border-t border-gray-200 dark:border-gray-600">
                             {typeof sub.content === "string" ? (
-                              <p className="text-gray-600">{sub.content}</p>
+                              <p className="text-gray-600 dark:text-gray-300">{sub.content}</p>
                             ) : (
                               Object.entries(sub.content).map(([term, details]) => (
-                                <div key={term} className="border border-gray-200 rounded-lg overflow-hidden mb-2">
+                                <div key={term} className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden mb-2">
                                   <div
-                                    className="flex justify-between items-center p-3 bg-gray-50 cursor-pointer"
+                                    className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 cursor-pointer"
                                     onClick={() => toggleSection("termSections", term)}
                                   >
-                                    <h4 className="font-medium text-gray-800">{term}</h4>
+                                    <h4 className="font-medium text-gray-800 dark:text-white">{term}</h4>
                                     {isSectionOpen("termSections", term) ? (
-                                      <FaChevronUp size={14} />
+                                      <FaChevronUp size={14} className="text-gray-500 dark:text-gray-300" />
                                     ) : (
-                                      <FaChevronDown size={14} />
+                                      <FaChevronDown size={14} className="text-gray-500 dark:text-gray-300" />
                                     )}
                                   </div>
                                   {isSectionOpen("termSections", term) && renderTermDetails(term, details)}

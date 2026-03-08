@@ -260,21 +260,19 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           )}
         </div>
 
-        <div className="col-span-3 row-start-2 text-sm text-gray-500 italic text-right">
+        <div className="col-span-3 row-start-2 text-sm text-gray-500 dark:text-gray-400 italic text-right">
           Note: All data are snapshots except for the Current Price
         </div>
       </div>
       <div
-        className=" mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
-           border"
+        className="mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
       >
         <StockInfo stockInfo={valuationQuery.stock_info} searchedSymbol={valuationQuery.symbol} />
       </div>
-      <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Inputs</div>
+      <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider dark:text-white">Inputs</div>
       {/* Container */}
       <div
-        className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
-           border"
+        className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
       >
         <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10 ">
           {valuationQuery.inputs.map((input: any, index: number) => (
@@ -294,7 +292,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
         <div className="text-center mt-10">
           <button
             onClick={() => setShowMoreInputs((prevState) => !prevState)}
-            className="bg-black hover:bg-gray-700 text-white py-2 px-3 rounded"
+            className="bg-gray-900 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white py-2 px-3 rounded"
           >
             <div className="flex items-center">
               {showMoreInputs ? "Show Less" : "Show More"}
@@ -320,15 +318,14 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           </div>
         )}
         {/*Valuation Header */}
-        <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Valuation</div>
+        <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider dark:text-white">Valuation</div>
         {/* Container */}
         <div
-          className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
-           border"
+          className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
         >
           <div className="flex flex-col items-center mb-14 mt-10">
-            <h2 className="font-medium text-xl mb-4 text-gray-700">Present Value of Free Cash Flow</h2>
-            <div className="w-full max-w h-0.5 bg-gray-200"></div>
+            <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">Present Value of Free Cash Flow</h2>
+            <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
           </div>
           <PresentValueTable
             data={valuationQuery.valuation_model}
@@ -337,13 +334,13 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           />
 
           <div className="flex flex-col items-center mb-14 mt-10">
-            <h2 className="font-medium text-xl mb-4 text-gray-700">Return on Invested Capital</h2>
-            <div className="w-full max-w h-0.5 bg-gray-200"></div>
+            <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">Return on Invested Capital</h2>
+            <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
           </div>
           <ROICTable data={valuationQuery.roic_data} />
           <div className="flex flex-col items-center mb-14 mt-10">
-            <h2 className="font-medium text-xl mb-4 text-gray-700">Equity Value</h2>
-            <div className="w-full max-w h-0.5 bg-gray-200"></div>
+            <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">Equity Value</h2>
+            <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
           </div>
           <EquityValue data={valuationQuery.valuation_output} />
           <ImpliedValue
@@ -355,13 +352,12 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
         {valuationQuery.description && (
           <>
             {/*Description Header */}
-            <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Your Analysis</div>
+            <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider dark:text-white">Your Analysis</div>
             {/* Container */}
             <div
-              className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
-           border"
+              className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
             >
-              <div className="markdown-content">{renderMarkdown(valuationQuery.description)}</div>{" "}
+              <div className="markdown-content dark:text-gray-200">{renderMarkdown(valuationQuery.description)}</div>{" "}
             </div>
           </>
         )}

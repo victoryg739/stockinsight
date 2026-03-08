@@ -142,8 +142,8 @@ export default function DetailedWacc({
   return (
     <div>
       <div className="flex flex-col items-center mb-14">
-        <h2 className="font-medium text-xl mb-4 text-gray-700">Equity</h2>
-        <div className="w-full max-w h-0.5 bg-gray-200"></div>
+        <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">Equity</h2>
+        <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
       </div>
       <div className="grid grid-cols-3 place-items-center gap-y-10">
         {waccEquityRef.current.map((item, index) => (
@@ -151,45 +151,45 @@ export default function DetailedWacc({
           <>
             {item.id === "riskFreeRate" || item.id === "equityRiskPremium" ? (
               <div
-                className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300 rounded-2xl p-4 w-48 h-20 col-start-1 
+                className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 col-start-1
          transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl"
               >
-                <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value) + "%"}</div>
-                <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
+                <div className="text-2xl font-semibold dark:text-white">{conv.convRound2Dp(item.value) + "%"}</div>
+                <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             ) : item.id === "leveredBeta" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value)}</div>
-                <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
+              <div className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+                <div className="text-2xl font-semibold dark:text-white">{conv.convRound2Dp(item.value)}</div>
+                <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             ) : item.id === "marginalTaxRate" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{item.value + "%"}</div>
-                <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
+              <div className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+                <div className="text-2xl font-semibold dark:text-white">{item.value + "%"}</div>
+                <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value)}</div>
-                <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
+              <div className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+                <div className="text-2xl font-semibold dark:text-white">{conv.convRound2Dp(item.value)}</div>
+                <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             )}
           </>
         ))}
 
-        <div className="flex flex-col items-center justify-center bg-blue-200 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-          <div className="text-2xl font-semibold">{conv.convToMillion(marketEquityRef.current)}</div>
-          <div className="text-xs tracking-wide mt-1 border-b border-dotted border-black">Market Value of Equity</div>
+        <div className="flex flex-col items-center justify-center bg-blue-200 dark:bg-blue-900/30 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+          <div className="text-2xl font-semibold dark:text-white">{conv.convToMillion(marketEquityRef.current)}</div>
+          <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">Market Value of Equity</div>
         </div>
 
-        <div className="flex flex-col items-center justify-center bg-blue-200 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-          <div className="text-2xl font-semibold">{conv.convRound2Dp(costOfEquityRef.current) + "%"}</div>
-          <div className="text-xs tracking-wide mt-1 border-b border-dotted border-black">Cost Of Equity</div>
+        <div className="flex flex-col items-center justify-center bg-blue-200 dark:bg-blue-900/30 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+          <div className="text-2xl font-semibold dark:text-white">{conv.convRound2Dp(costOfEquityRef.current) + "%"}</div>
+          <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">Cost Of Equity</div>
         </div>
       </div>
 
       <div className="flex flex-col items-center mb-14">
-        <h2 className="font-medium text-xl mb-4 text-gray-700">Debt</h2>
-        <div className="w-full max-w h-0.5 bg-gray-200"></div>
+        <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">Debt</h2>
+        <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
       </div>
       <div className="grid grid-cols-3 place-items-center gap-y-10">
         <Dropdown
@@ -202,46 +202,46 @@ export default function DetailedWacc({
         {waccDebtRef.current.map((item, index) => (
           <>
             {index === 0 ? (
-              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value) + "%"}</div>
-                <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
+              <div className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+                <div className="text-2xl font-semibold dark:text-white">{conv.convRound2Dp(item.value) + "%"}</div>
+                <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             ) : item.id === "preTaxCostOfDebt" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{conv.convRound2Dp(item.value) + "%"}</div>
-                <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
+              <div className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+                <div className="text-2xl font-semibold dark:text-white">{conv.convRound2Dp(item.value) + "%"}</div>
+                <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             ) : item.id === "marginalTaxRate" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{item.value + "%"}</div>
-                <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
+              <div className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+                <div className="text-2xl font-semibold dark:text-white">{item.value + "%"}</div>
+                <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             ) : item.id === "totalDebt" || item.id === "interestExpense" ? (
-              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{conv.convToMillion(item.value)}</div>
-                <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
+              <div className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+                <div className="text-2xl font-semibold dark:text-white">{conv.convToMillion(item.value)}</div>
+                <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center bg-gray-200 border border-gray-300  rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-                <div className="text-2xl font-semibold">{item.value}</div>
-                <div className="text-xs  tracking-wide mt-1 border-b border-dotted border-black">{item.label}</div>
+              <div className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+                <div className="text-2xl font-semibold dark:text-white">{item.value}</div>
+                <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             )}
           </>
         ))}
-        <div className="flex flex-col items-center justify-center bg-blue-200 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-          <div className="text-2xl font-semibold">{conv.convToMillion(marketDebtRef.current)}</div>
-          <div className="text-xs tracking-wide mt-1 border-b border-dotted border-black">Market Value of Debt</div>
+        <div className="flex flex-col items-center justify-center bg-blue-200 dark:bg-blue-900/30 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+          <div className="text-2xl font-semibold dark:text-white">{conv.convToMillion(marketDebtRef.current)}</div>
+          <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">Market Value of Debt</div>
         </div>
 
-        <div className="flex flex-col items-center justify-center bg-blue-200 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
-          <div className="text-2xl font-semibold">{conv.convRound2Dp(costOfDebtRef.current) + "%"}</div>
-          <div className="text-xs tracking-wide mt-1 border-b border-dotted border-black">Cost Of Debt</div>
+        <div className="flex flex-col items-center justify-center bg-blue-200 dark:bg-blue-900/30 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
+          <div className="text-2xl font-semibold dark:text-white">{conv.convRound2Dp(costOfDebtRef.current) + "%"}</div>
+          <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">Cost Of Debt</div>
         </div>
       </div>
       <div className="flex flex-col items-center mb-14 mt-10">
-        <h2 className="font-medium text-xl mb-4 text-gray-700">WACC</h2>
-        <div className="w-full max-w h-0.5 bg-gray-200"></div>
+        <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">WACC</h2>
+        <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
       </div>
       <WaccFormula
         wacc={getPageInputValue("initialWacc", "fetchedInputs")}

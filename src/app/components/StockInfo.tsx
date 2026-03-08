@@ -32,12 +32,12 @@ export default function StockInfo({ stockInfo, setStockInfo, searchedSymbol }: a
         }
       })}
 
-      <div className="font-semibold mt-10">Key Stats:</div>
+      <div className="font-semibold mt-10 dark:text-white">Key Stats:</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-5">
         {stockInfo.map((item: any, index: number) => {
           if (item.keyStats === true) {
             return (
-              <div key={index} className="border rounded-lg p-2 flex justify-between text-sm bg-blue-50">
+              <div key={index} className="border border-blue-100 dark:border-gray-600 rounded-lg p-2 flex justify-between text-sm bg-blue-50 dark:bg-blue-900/20 dark:text-gray-200">
                 <span>{item.label}</span>
                 <span className="font-medium">{item.value !== null ? item.value : "--"}</span>
               </div>

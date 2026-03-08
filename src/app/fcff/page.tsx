@@ -670,7 +670,7 @@ function FCFFPageContent() {
       ) : !hasRestoredState && incomeStatementStatus === "error" ? (
         <div className="flex flex-col justify-center items-center h-screen">
           <Image src="/error.svg" alt="Error icon" height={500} width={500} className="object-contain mb-4" />
-          <p className="text-red-700 font-medium text-lg text-center mt-5">No such symbol. Please enter valid symbol</p>
+          <p className="text-red-700 dark:text-red-400 font-medium text-lg text-center mt-5">No such symbol. Please enter valid symbol</p>
         </div>
       ) : !hasRestoredState && (incomeStatementIsFetching || status === "loading") ? (
         <div className="flex flex-col justify-center items-center h-screen">
@@ -682,13 +682,12 @@ function FCFFPageContent() {
           {saveValuationMutation.isSuccess && <Alert message="Valuation successfully saved" />}
           {/* Container */}
           <div
-            className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
-           border"
+            className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
           >
             <StockInfo stockInfo={stockInfo} setStockInfo={setStockInfo} searchedSymbol={searchedSymbol} />
           </div>
 
-          <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Analysis Tools</div>
+          <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider dark:text-white">Analysis Tools</div>
           {/* Replace the old grid with the new carousel component */}
           <AnalysisToolsCarousel
             setFundamentalPopup={setFundamentalPopup}
@@ -700,11 +699,10 @@ function FCFFPageContent() {
             currencyConverted={currencyConverted}
           />
 
-          <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Inputs</div>
+          <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider dark:text-white">Inputs</div>
           {/* Container */}
           <div
-            className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
-           border"
+            className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
           >
             <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10 ">
               <Dropdown
@@ -741,7 +739,7 @@ function FCFFPageContent() {
             <div className="text-center mt-10">
               <button
                 onClick={() => setShowMoreInputs((prevState) => !prevState)}
-                className="bg-black hover:bg-gray-700 text-white py-2 px-3 rounded"
+                className="bg-gray-900 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white py-2 px-3 rounded"
               >
                 <div className="flex items-center">
                   {showMoreInputs ? "Show Less" : "Show More"}
@@ -769,18 +767,17 @@ function FCFFPageContent() {
               </div>
             )}
           </div>
-          <div className="mt-10 mx-5 text-gray-700 font-extralight text-sm">
+          <div className="mt-10 mx-5 text-gray-700 dark:text-gray-300 font-extralight text-sm">
             <span className="font-medium">Units —</span> Dollar inputs (Revenue, Equity, Debt, Cash, Interest Expense)
             are entered as full dollar amounts. Valuation output tables (EBIT, FCFF, Invested Capital, Enterprise Value,
             Equity Value) are displayed in millions.
           </div>
 
           {/* Assumptions Header */}
-          <div className="uppercase font-bold text-2xl text-center mt-10 mb-10 tracking-wider">Assumptions</div>
+          <div className="uppercase font-bold text-2xl text-center mt-10 mb-10 tracking-wider dark:text-white">Assumptions</div>
           {/* Container */}
           <div
-            className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
-           border"
+            className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
           >
             <AssumptionOverrides
               overrideTerminalWacc={overrideTerminalWacc}
@@ -806,11 +803,10 @@ function FCFFPageContent() {
           </div>
 
           {/*WACC Header */}
-          <div className="uppercase font-bold text-2xl text-center mt-5 mb-10 tracking-wider">WACC</div>
+          <div className="uppercase font-bold text-2xl text-center mt-5 mb-10 tracking-wider dark:text-white">WACC</div>
           {/* Container */}
           <div
-            className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
-           border"
+            className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
           >
             <DetailedWacc
               fetchedInputs={fetchedInputs}
@@ -822,15 +818,14 @@ function FCFFPageContent() {
             />
           </div>
           {/*Valuation Header */}
-          <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider">Valuation</div>
+          <div className="uppercase font-bold text-2xl text-center my-10 tracking-wider dark:text-white">Valuation</div>
           {/* Container */}
           <div
-            className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
-           border"
+            className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
           >
             <div className="flex flex-col items-center mb-14 mt-10">
-              <h2 className="font-medium text-xl mb-4 text-gray-700">Present Value of Free Cash Flow</h2>
-              <div className="w-full max-w h-0.5 bg-gray-200"></div>
+              <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">Present Value of Free Cash Flow</h2>
+              <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
             </div>
             <PresentValueTable
               data={valuationModelRef.current}
@@ -838,13 +833,13 @@ function FCFFPageContent() {
               setValuationModelLabel={setValuationModelLabel}
             />
             <div className="flex flex-col items-center mb-14 mt-10">
-              <h2 className="font-medium text-xl mb-4 text-gray-700">Return on Invested Capital</h2>
-              <div className="w-full max-w h-0.5 bg-gray-200"></div>
+              <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">Return on Invested Capital</h2>
+              <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
             </div>
             <ROICTable data={roicData} />
             <div className="flex flex-col items-center mb-14 mt-10">
-              <h2 className="font-medium text-xl mb-4 text-gray-700">Equity Value</h2>
-              <div className="w-full max-w h-0.5 bg-gray-200"></div>
+              <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">Equity Value</h2>
+              <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
             </div>
             <EquityValue data={valuationOutputRef.current} />
             <ImpliedValue

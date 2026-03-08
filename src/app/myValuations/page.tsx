@@ -266,13 +266,13 @@ export default function MyValuationsPage() {
     <div className="mt-10 animate-pulse space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-28 bg-gray-200 rounded-xl"></div>
+          <div key={i} className="h-28 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
         ))}
       </div>
-      <div className="h-16 bg-gray-200 rounded-xl mb-6"></div>
+      <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl mb-6"></div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="h-60 bg-gray-200 rounded-xl"></div>
+          <div key={i} className="h-60 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
         ))}
       </div>
     </div>
@@ -281,10 +281,10 @@ export default function MyValuationsPage() {
   // Empty State Component
   const EmptyState = ({ searchTerm }: { searchTerm: string }) => (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="bg-indigo-100 p-6 rounded-full mb-6">
+      <div className="bg-indigo-100 dark:bg-indigo-900/30 p-6 rounded-full mb-6">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-16 w-16 text-indigo-600"
+          className="h-16 w-16 text-indigo-600 dark:text-indigo-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -297,10 +297,10 @@ export default function MyValuationsPage() {
           />
         </svg>
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
         {searchTerm ? "No matching valuations found" : "Your valuation portfolio is empty"}
       </h3>
-      <p className="text-gray-600 mb-8 max-w-md">
+      <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md">
         {searchTerm
           ? `We couldn't find any valuations matching "${searchTerm}". Try another search term or clear your filter.`
           : "Get started by creating your first valuation. Track your investment ideas and monitor their performance over time."}
@@ -321,7 +321,7 @@ export default function MyValuationsPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Valuations</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Valuations</h1>
 
           <button
             onClick={() => (window.location.href = "/fcff")}
@@ -336,40 +336,40 @@ export default function MyValuationsPage() {
         {!valuationIsFetching && valuationQuery && valuationQuery.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* Total Valuations Card */}
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="flex items-center">
-                <div className="p-3 rounded-full bg-blue-50 text-blue-600 mr-4">
+                <div className="p-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mr-4">
                   <HiOutlineCollection className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total Valuations</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalValuations}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Valuations</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalValuations}</p>
                 </div>
               </div>
             </div>
 
             {/* Undervalued Card */}
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="flex items-center">
-                <div className="p-3 rounded-full bg-green-50 text-green-600 mr-4">
+                <div className="p-3 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 mr-4">
                   <FaArrowUp className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Undervalued</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.undervaluedCount}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Undervalued</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.undervaluedCount}</p>
                 </div>
               </div>
             </div>
 
             {/* Overvalued Card */}
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="flex items-center">
-                <div className="p-3 rounded-full bg-red-50 text-red-600 mr-4">
+                <div className="p-3 rounded-full bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 mr-4">
                   <FaArrowDown className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Overvalued</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.overvaluedCount}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Overvalued</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.overvaluedCount}</p>
                 </div>
               </div>
             </div>
@@ -377,14 +377,14 @@ export default function MyValuationsPage() {
         )}
 
         {/* Filter Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-wrap gap-4 items-center justify-between mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex flex-wrap gap-4 items-center justify-between mb-8">
           <div className="relative flex-grow max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MdSearch className="h-5 w-5 text-gray-400" />
+              <MdSearch className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </div>
             <input
               type="text"
-              className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Search by ticker symbol..."
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
@@ -392,16 +392,16 @@ export default function MyValuationsPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
               <button
                 onClick={() => setView("grid")}
-                className={`p-2.5 ${view === "grid" ? "bg-indigo-100 text-indigo-600" : "bg-white text-gray-600"}`}
+                className={`p-2.5 ${view === "grid" ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400" : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300"}`}
               >
                 <MdGridView className="h-5 w-5" />
               </button>
               <button
                 onClick={() => setView("list")}
-                className={`p-2.5 ${view === "list" ? "bg-indigo-100 text-indigo-600" : "bg-white text-gray-600"}`}
+                className={`p-2.5 ${view === "list" ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400" : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300"}`}
               >
                 <MdViewList className="h-5 w-5" />
               </button>
@@ -409,7 +409,7 @@ export default function MyValuationsPage() {
 
             <button
               onClick={() => toggleSort(sortField)}
-              className="flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm font-medium hover:bg-gray-50"
+              className="flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               <MdOutlineSort className="mr-1 h-5 w-5" />
               Sort
@@ -420,8 +420,8 @@ export default function MyValuationsPage() {
               className={`inline-flex items-center px-3 py-2 border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500
                 ${
                   isDeleteMode
-                    ? "bg-red-100 text-red-800 border-red-300 hover:bg-red-200"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                    ? "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700 hover:bg-red-200 dark:hover:bg-red-900/50"
+                    : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                 }`}
             >
               <MdDeleteOutline className="mr-2 h-5 w-5" />
@@ -440,7 +440,7 @@ export default function MyValuationsPage() {
         </div>
 
         {/* Sort info */}
-        <div className="mb-4 text-sm text-gray-500">
+        <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
           Sorting by:{" "}
           {sortField === "valued_date"
             ? "Date"
@@ -473,8 +473,8 @@ export default function MyValuationsPage() {
               return (
                 <div
                   key={item.id}
-                  className={`rounded-xl overflow-hidden shadow-sm bg-white border hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
-                    selectedItems.includes(item.id) ? "border-indigo-500 ring-2 ring-indigo-200" : "border-gray-200"
+                  className={`rounded-xl overflow-hidden shadow-sm bg-white dark:bg-gray-800 border hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
+                    selectedItems.includes(item.id) ? "border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-800" : "border-gray-200 dark:border-gray-700"
                   } cursor-pointer`}
                   onClick={isDeleteMode ? () => handleCheckboxChange(item.id) : () => handleViewDetails(item.id)}
                 >
@@ -482,15 +482,15 @@ export default function MyValuationsPage() {
                   <div className={`h-2 ${isUndervalued ? "bg-green-500" : "bg-red-500"}`}></div>
 
                   {/* Company info */}
-                  <div className="py-5 px-4 border-b border-gray-100">
+                  <div className="py-5 px-4 border-b border-gray-100 dark:border-gray-700">
                     <div className="flex justify-between">
                       <div className="flex items-center">
                         <div className="mr-3 relative w-12 h-12">
                           <StockLogo symbol={item.symbol} height={50} width={50} className="mr-2" alt="logo" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-xl text-gray-900">{item.symbol}</h3>
-                          <p className="text-sm text-gray-500 truncate max-w-[180px]">{stockName}</p>
+                          <h3 className="font-bold text-xl text-gray-900 dark:text-white">{item.symbol}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[180px]">{stockName}</p>
                         </div>
                       </div>
 
@@ -507,7 +507,7 @@ export default function MyValuationsPage() {
                     </div>
 
                     <div className="flex flex-col gap-1.5 mt-4">
-                      <div className="flex items-center justify-between text-sm text-gray-700" title={formatValuationDate(item.valued_date)}>
+                      <div className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300" title={formatValuationDate(item.valued_date)}>
                         <div className="flex items-center">
                           <FaCalendarAlt className="mr-1.5 text-indigo-400 text-xs" />
                           <span className="font-medium">Saved {getRelativeTime(item.valued_date)}</span>
@@ -526,8 +526,8 @@ export default function MyValuationsPage() {
                         )}
                       </div>
                       <div className="flex items-center flex-wrap gap-1.5">
-                        <FiClock className="text-gray-400 text-xs" />
-                        <span className="text-xs text-gray-500">Last Qtr: {getQuarterLabel(mrq)}</span>
+                        <FiClock className="text-gray-400 dark:text-gray-500 text-xs" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Last Qtr: {getQuarterLabel(mrq)}</span>
                         {(() => {
                           const stale = getStaleStatus(item.valued_date);
                           if (stale.level === "fresh") return null;
@@ -535,8 +535,8 @@ export default function MyValuationsPage() {
                             <span
                               className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
                                 stale.level === "red"
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-amber-100 text-amber-700"
+                                  ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                                  : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
                               }`}
                             >
                               <FaExclamationCircle className="mr-0.5" />
@@ -552,12 +552,12 @@ export default function MyValuationsPage() {
                   <div className="py-2 px-4">
                     <div className="flex justify-between mb-4">
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Implied Value</div>
-                        <div className="text-lg font-bold">${convRound2Dp(Number(item.implied_share_price))}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Implied Value</div>
+                        <div className="text-lg font-bold dark:text-white">${convRound2Dp(Number(item.implied_share_price))}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Market Price</div>
-                        <div className="text-lg font-bold">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Market Price</div>
+                        <div className="text-lg font-bold dark:text-white">
                           ${marketPrice ? convRound2Dp(Number(marketPrice)) : "--"}
                         </div>
                       </div>
@@ -566,8 +566,8 @@ export default function MyValuationsPage() {
                     <div
                       className={`${
                         isUndervalued
-                          ? "bg-green-50 border-green-100 text-green-800"
-                          : "bg-red-50 border-red-100 text-red-800"
+                          ? "bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800 text-green-800 dark:text-green-300"
+                          : "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800 text-red-800 dark:text-red-300"
                       } rounded-lg border p-3 text-center`}
                     >
                       <div className="flex items-center justify-center">
@@ -587,7 +587,7 @@ export default function MyValuationsPage() {
                           e.stopPropagation();
                           router.push(`/fcff?symbol=${item.symbol}&fresh=1`);
                         }}
-                        className="mt-2 w-full text-center text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg py-1.5 transition-colors"
+                        className="mt-2 w-full text-center text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg py-1.5 transition-colors"
                       >
                         Re-value with latest data
                       </button>
@@ -599,9 +599,9 @@ export default function MyValuationsPage() {
           </div>
         ) : (
           // List view
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   {isDeleteMode && (
                     <th scope="col" className="pl-6 py-3 w-10">
@@ -610,7 +610,7 @@ export default function MyValuationsPage() {
                   )}
                   <th
                     scope="col"
-                    className="pl-6 pr-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    className="pl-6 pr-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
                     onClick={() => toggleSort("symbol")}
                   >
                     <div className="flex items-center">
@@ -620,7 +620,7 @@ export default function MyValuationsPage() {
                   </th>
                   <th
                     scope="col"
-                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-32"
+                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer w-32"
                     onClick={() => toggleSort("implied_share_price")}
                   >
                     <div className="flex items-center justify-end">
@@ -632,13 +632,13 @@ export default function MyValuationsPage() {
                   </th>
                   <th
                     scope="col"
-                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-32"
+                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer w-32"
                   >
                     Market
                   </th>
                   <th
                     scope="col"
-                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-40"
+                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer w-40"
                     onClick={() => toggleSort("diff")}
                   >
                     <div className="flex items-center justify-end">
@@ -648,7 +648,7 @@ export default function MyValuationsPage() {
                   </th>
                   <th
                     scope="col"
-                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-36"
+                    className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer w-36"
                     onClick={() => toggleSort("mrq")}
                   >
                     <div className="flex items-center justify-end">
@@ -658,13 +658,13 @@ export default function MyValuationsPage() {
                   </th>
                   <th
                     scope="col"
-                    className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-44"
+                    className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-44"
                   >
                     Tags
                   </th>
                   <th
                     scope="col"
-                    className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-40"
+                    className="px-5 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer w-40"
                     onClick={() => toggleSort("valued_date")}
                   >
                     <div className="flex items-center justify-end">
@@ -676,7 +676,7 @@ export default function MyValuationsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {sortedValuations.map((item, index) => {
                   const marketPrice =
                     marketPriceQueries[valuationQuery.findIndex((v: any) => v.id === item.id)]?.data || 0;
@@ -688,7 +688,7 @@ export default function MyValuationsPage() {
                   return (
                     <tr
                       key={item.id}
-                      className={`hover:bg-gray-50 transition-colors cursor-pointer`}
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer`}
                       onClick={isDeleteMode ? () => handleCheckboxChange(item.id) : () => handleViewDetails(item.id)}
                     >
                       {isDeleteMode && (
@@ -697,7 +697,7 @@ export default function MyValuationsPage() {
                             type="checkbox"
                             checked={selectedItems.includes(item.id)}
                             onChange={(e) => handleCheckboxChange(item.id, e)}
-                            className="h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                            className="h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300 dark:border-gray-600"
                           />
                         </td>
                       )}
@@ -708,20 +708,20 @@ export default function MyValuationsPage() {
                             <StockLogo symbol={item.symbol} height={50} width={50} className="mr-2" alt="logo" />
                           </div>
                           <div className="ml-4">
-                            <div className="font-bold text-gray-900">{item.symbol}</div>
-                            <div className="text-sm text-gray-500 truncate max-w-[200px]">{stockName}</div>
+                            <div className="font-bold text-gray-900 dark:text-white">{item.symbol}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]">{stockName}</div>
                           </div>
                         </div>
                       </td>
 
                       <td className="px-3 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-bold text-gray-900">
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
                           ${convRound2Dp(Number(item.implied_share_price))}
                         </div>
                       </td>
 
                       <td className="px-3 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-bold text-gray-900">
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
                           ${marketPrice ? convRound2Dp(Number(marketPrice)) : "--"}
                         </div>
                       </td>
@@ -729,7 +729,7 @@ export default function MyValuationsPage() {
                       <td className="px-3 py-4 whitespace-nowrap text-right">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            isUndervalued ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            isUndervalued ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
                           }`}
                         >
                           {isUndervalued ? <FaArrowUp className="mr-1" /> : <FaArrowDown className="mr-1" />}
@@ -737,7 +737,7 @@ export default function MyValuationsPage() {
                         </span>
                       </td>
 
-                      <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-500 font-medium">
+                      <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400 font-medium">
                         <div className="flex items-center justify-end gap-1.5">
                           <span>{getQuarterLabel(mrq)}</span>
                           {(() => {
@@ -747,8 +747,8 @@ export default function MyValuationsPage() {
                               <span
                                 className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
                                   stale.level === "red"
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-amber-100 text-amber-700"
+                                    ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                                    : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
                                 }`}
                               >
                                 <FaExclamationCircle className="mr-0.5" />
@@ -772,11 +772,11 @@ export default function MyValuationsPage() {
                             ))}
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">—</span>
+                          <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
                         )}
                       </td>
 
-                      <td className="px-5 py-4 whitespace-nowrap text-right text-sm text-gray-500" title={formatValuationDate(item.valued_date)}>
+                      <td className="px-5 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400" title={formatValuationDate(item.valued_date)}>
                         {getRelativeTime(item.valued_date)}
                       </td>
                     </tr>

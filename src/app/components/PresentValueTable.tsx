@@ -13,7 +13,7 @@ const PresentValueTable = ({ data, setIsPopoutOpen, setValuationModelLabel }: an
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full text-sm text-left rtl:text-right">
-        <thead className="text-xs uppercase bg-gray-50">
+        <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300">
           <tr className="whitespace-nowrap">
             {years.map((year, index) => (
               <th key={index} scope="col" className="px-3 py-3">
@@ -24,11 +24,11 @@ const PresentValueTable = ({ data, setIsPopoutOpen, setValuationModelLabel }: an
         </thead>
         <tbody>
           {data.map((row: any, rowIndex: number) => (
-            <tr key={rowIndex} className="bg-white border-b hover:bg-gray-200">
-              <th scope="row" className="pl-3 py-3 font-medium text-gray-900 whitespace-nowrap flex items-center">
+            <tr key={rowIndex} className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700">
+              <th scope="row" className="pl-3 py-3 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap flex items-center">
                 {row.label}
                 <GoGraph
-                  className="ml-5 text-gray-500 cursor-pointer hover:text-blue-500"
+                  className="ml-5 text-gray-500 dark:text-gray-400 cursor-pointer hover:text-blue-500 dark:hover:text-blue-400"
                   onClick={() => handlePopout(row.label)}
                 />
               </th>

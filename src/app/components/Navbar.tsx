@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { BiSolidBinoculars } from "react-icons/bi";
-import { IoIosHome, IoIosCalculator, IoMdHelp } from "react-icons/io";
+import { IoIosHome, IoIosCalculator, IoMdHelp, IoMdSettings } from "react-icons/io";
 import { MdNotifications } from "react-icons/md";
 
 const Navbar = () => {
@@ -145,6 +145,20 @@ const Navbar = () => {
               >
                 <IoMdHelp className="flex-shrink-0" />
                 <span>Help</span>
+              </a>
+            </li>
+            <li className="w-full">
+              <a
+                href="/settings"
+                className={`flex items-center gap-1 py-2 px-2 md:px-3 rounded-lg ${
+                  isActive("/settings")
+                    ? "text-white bg-blue-600 md:bg-blue-600"
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                } transition-colors w-full md:w-auto text-sm md:text-sm`}
+                aria-current={isActive("/settings") ? "page" : undefined}
+              >
+                <IoMdSettings className="flex-shrink-0" />
+                <span>Settings</span>
               </a>
             </li>
           </ul>

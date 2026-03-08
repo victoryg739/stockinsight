@@ -7,15 +7,15 @@ export default function Home() {
   return (
     <div>
       <Navbar />
-      <div className="relative z-20 flex items-center overflow-hidden bg-white">
+      <div className="relative z-20 flex items-center overflow-hidden bg-white dark:bg-gray-900">
         <div className="container relative flex px-6 py-16 mx-auto">
           <div className="relative z-20 flex flex-col sm:w-2/3 lg:w-2/5">
-            <span className="w-20 h-2 mb-12 bg-gray-800"></span>
-            <h1 className="flex flex-col text-7xl font-black leading-none text-gray-800 uppercase font-bebas-neue">
+            <span className="w-20 h-2 mb-12 bg-gray-800 dark:bg-blue-500"></span>
+            <h1 className="flex flex-col text-7xl font-black leading-none text-gray-800 dark:text-white uppercase font-bebas-neue">
               Discover
               <span className="text-4xl mt-2">The True Value</span>
             </h1>
-            <p className="mt-8 text-sm text-gray-700 sm:text-base">
+            <p className="mt-8 text-sm text-gray-700 dark:text-gray-300 sm:text-base">
               Don&apos;t leave your investments to chance. Our DCF valuation tool gives you the edge in today&apos;s
               market. Start making data-driven decisions now.
             </p>

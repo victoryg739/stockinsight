@@ -24,23 +24,23 @@ const ImpliedValue = ({ title, value, currentPrice }: any) => {
   }
 
   return (
-    <div className="bg-gray-100 p-6 border rounded-lg shadow-md my-16 ">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
+    <div className="bg-gray-100 dark:bg-gray-700 p-6 border dark:border-gray-600 rounded-lg shadow-md my-16">
+      <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
         <span className="uppercase">{title}</span> DCF Value
       </h2>
 
       <div className="mb-4">
         <div className="flex justify-between mb-1">
-          <span className="text-sm font-medium text-gray-700">Implied Value</span>
-          <span className="text-sm font-semibold text-blue-900">${convRound2Dp(value)}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Implied Value</span>
+          <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">${convRound2Dp(value)}</span>
         </div>
         <div className="h-4 bg-blue-500 rounded-full" style={{ width: `${impliedWidth}%` }}></div>
       </div>
 
       <div className="mb-4">
         <div className="flex justify-between mb-1">
-          <span className="text-sm font-medium text-gray-700">Current Price</span>
-          <span className="text-sm font-semibold text-blue-900">${convRound2Dp(currentPrice)}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Current Price</span>
+          <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">${convRound2Dp(currentPrice)}</span>
         </div>
         <div className="h-4 bg-green-500 rounded-full" style={{ width: `${currentWidth}%` }}></div>
       </div>

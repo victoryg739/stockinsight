@@ -3,14 +3,14 @@ import { FaPlus, FaTimes } from "react-icons/fa";
 import * as conv from "../../utils/helper";
 
 const FormulaBox = ({ label, value, dark = false }: any) => (
-  <div className={`border rounded-md p-3 w-32 text-center ${dark ? "bg-gray-800 text-white" : "bg-white"}`}>
+  <div className={`border dark:border-gray-600 rounded-md p-3 w-32 text-center ${dark ? "bg-gray-800 text-white dark:bg-gray-900" : "bg-white dark:bg-gray-700 dark:text-gray-100"}`}>
     <div className="text-sm font-bold">{label}</div>
     <div className="text-lg ">{value}</div>
   </div>
 );
 
 const OperatorBox = ({ children }: any) => (
-  <div className="flex items-center justify-center w-12 h-12 text-xl">{children}</div>
+  <div className="flex items-center justify-center w-12 h-12 text-xl dark:text-gray-300">{children}</div>
 );
 
 const WaccFormula = ({ wacc, costOfEquity, equityWeight, costOfDebt, debtWeight }: any) => {

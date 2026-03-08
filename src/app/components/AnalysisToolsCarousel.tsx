@@ -204,7 +204,7 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
   };
 
   return (
-    <div className="relative w-full mt-10 mx-auto px-5 py-5 bg-white rounded-2xl drop-shadow-md border">
+    <div className="relative w-full mt-10 mx-auto px-5 py-5 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700">
       <div className="flex items-center">
         {/* Left Arrow */}
         <button
@@ -236,11 +236,11 @@ const AnalysisToolsCarousel: React.FC<AnalysisToolsCarouselProps> = ({
               <button
                 key={index}
                 className={`text-white ${
-                  activeButton === index ? "bg-gray-700 scale-95" : "bg-gray-800 hover:bg-gray-700"
-                } 
+                  activeButton === index ? "bg-gray-700 dark:bg-gray-500 scale-95" : "bg-gray-800 dark:bg-gray-600 hover:bg-gray-700 dark:hover:bg-gray-500"
+                }
                   flex items-center justify-center rounded-lg px-4 py-2 w-56 flex-shrink-0
                   transition-all duration-200 transform hover:scale-[1.02]
-                  ${tool.disabled ? "opacity-50 cursor-not-allowed hover:bg-gray-800 hover:scale-100" : ""}`}
+                  ${tool.disabled ? "opacity-50 cursor-not-allowed hover:bg-gray-800 dark:hover:bg-gray-600 hover:scale-100" : ""}`}
                 onClick={() => !tool.disabled && handleToolClick(index, tool.onClick)}
                 title={tool.disabled ? tool.disabledMessage : ""}
                 disabled={tool.disabled}

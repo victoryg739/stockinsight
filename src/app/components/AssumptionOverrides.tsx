@@ -68,11 +68,11 @@ Useful when you believe today's rate is transitory. For example, if the current 
 
 const ToggleSwitch = ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
   <div className="flex items-center gap-2">
-    <span className={`text-xs font-medium w-5 text-right ${!enabled ? "text-gray-700" : "text-gray-400"}`}>No</span>
+    <span className={`text-xs font-medium w-5 text-right ${!enabled ? "text-gray-700 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`}>No</span>
     <button
       onClick={onToggle}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
-        enabled ? "bg-blue-600" : "bg-gray-200"
+        enabled ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-600"
       }`}
       aria-pressed={enabled}
     >
@@ -82,12 +82,12 @@ const ToggleSwitch = ({ enabled, onToggle }: { enabled: boolean; onToggle: () =>
         }`}
       />
     </button>
-    <span className={`text-xs font-medium w-5 ${enabled ? "text-blue-600" : "text-gray-400"}`}>Yes</span>
+    <span className={`text-xs font-medium w-5 ${enabled ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>Yes</span>
   </div>
 );
 
 const LockedValue = ({ value }: { value: number }) => (
-  <div className="w-32 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-400 text-right select-none">
+  <div className="w-32 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md text-sm text-gray-400 dark:text-gray-400 text-right select-none">
     {isNaN(value) || !isFinite(value) ? "—" : value.toFixed(2)}%
   </div>
 );
@@ -104,9 +104,9 @@ const EditableValue = ({
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-md py-2 pl-3 pr-8 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+      className="w-full rounded-md py-2 pl-3 pr-8 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
     />
-    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">%</span>
+    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500">%</span>
   </div>
 );
 
@@ -121,9 +121,9 @@ interface RowProps {
 }
 
 const AssumptionRow = ({ label, tooltip, enabled, onToggle, autoValue, customValue, onCustomChange }: RowProps) => (
-  <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-100 last:border-b-0">
+  <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
     <div className="flex items-center min-w-0 flex-1">
-      <span className="text-sm font-medium text-gray-700 truncate">{label}</span>
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{label}</span>
       <CustomTooltip content={tooltip} placement="right" />
     </div>
     <div className="flex items-center gap-6 flex-shrink-0">
@@ -180,7 +180,7 @@ const AssumptionOverrides: React.FC<AssumptionOverridesProps> = ({
 
   return (
     <div className="max-w-2xl mx-auto">
-      <p className="text-xs text-gray-500 mb-6">
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
         Toggle <span className="font-semibold text-blue-600">Yes</span> to override a default assumption. When off, the
         model uses Damodaran&apos;s standard assumption (shown greyed out).
       </p>

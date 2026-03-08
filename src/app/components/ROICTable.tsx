@@ -27,7 +27,7 @@ const ROICTable = ({ data }: any) => {
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full text-sm text-left rtl:text-right">
-        <thead className="text-xs uppercase bg-gray-50">
+        <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300">
           <tr>
             <th scope="col" className="px-4 py-3">
               Metric
@@ -41,12 +41,12 @@ const ROICTable = ({ data }: any) => {
         </thead>
         <tbody>
           {/* Sales to Capital row */}
-          <tr className="bg-white border-b hover:bg-gray-200">
-            <th scope="row" className="pl-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+          <tr className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700">
+            <th scope="row" className="pl-4 py-3 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
               Sales to Capital
             </th>
             {years.map((_, index) => (
-              <td key={index} className="px-4 py-3">
+              <td key={index} className="px-4 py-3 dark:text-gray-200">
                 {index === 0
                   ? "-"
                   : index - 1 < salesToCap.length
@@ -57,20 +57,20 @@ const ROICTable = ({ data }: any) => {
           </tr>
 
           {/* Invested Capital row */}
-          <tr className="bg-white border-b hover:bg-gray-200">
-            <th scope="row" className="pl-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+          <tr className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700">
+            <th scope="row" className="pl-4 py-3 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
               Invested Capital
             </th>
             {years.map((_, index) => (
-              <td key={index} className="px-4 py-3">
+              <td key={index} className="px-4 py-3 dark:text-gray-200">
                 {index < investedCapital.length ? conv.convToMillion(investedCapital[index]) : "-"}
               </td>
             ))}
           </tr>
 
           {/* ROIC row with tooltips */}
-          <tr className="bg-white border-b hover:bg-gray-200">
-            <th scope="row" className="pl-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+          <tr className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700">
+            <th scope="row" className="pl-4 py-3 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
               Return on Invested Capital
             </th>
             {years.map((_, index) => {
@@ -84,10 +84,10 @@ const ROICTable = ({ data }: any) => {
               }
 
               return (
-                <td key={index} className="px-4 py-3">
+                <td key={index} className="px-4 py-3 dark:text-gray-200">
                   {index < roic.length ? (
                     <CustomTooltip content={tooltipContent} placement="right">
-                      <span className="cursor-help border-b border-dotted border-gray-400">
+                      <span className="cursor-help border-b border-dotted border-gray-400 dark:border-gray-500">
                         {conv.convRound2Dp(roic[index]) + "%"}
                       </span>
                     </CustomTooltip>
