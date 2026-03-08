@@ -33,6 +33,7 @@ import SensitivityAnalysisPopoutPage from "../components/PopoutPage/SensitivityA
 import AnalysisToolsCarousel from "../components/AnalysisToolsCarousel"; // Import the new carousel component
 import FundamentalDataPopoutPage from "../components/PopoutPage/FundamentalDataPopoutPage";
 import { saveValuationState, loadValuationState } from "../hooks/useValuationStateStorage";
+import AssumptionOverrides from "../components/AssumptionOverrides";
 
 interface InputField {
   id: string;
@@ -96,6 +97,14 @@ function FCFFPageContent() {
 
   // Track whether user has manually edited initial WACC
   const [initialWaccManuallyEdited, setInitialWaccManuallyEdited] = useState(false);
+
+  // Assumption override switches (all OFF by default)
+  const [overrideTerminalWacc, setOverrideTerminalWacc] = useState(false);
+  const [overrideTerminalRoic, setOverrideTerminalRoic] = useState(false);
+  const [overrideRevGrowthPerpetuity, setOverrideRevGrowthPerpetuity] = useState(false);
+  const [overrideTerminalRfr, setOverrideTerminalRfr] = useState(false);
+  const [terminalWaccCustom, setTerminalWaccCustom] = useState(0);
+  const [terminalRfrCustom, setTerminalRfrCustom] = useState(0);
 
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -279,6 +288,12 @@ function FCFFPageContent() {
       setSalesToCapManuallyEdited(saved.salesToCapManuallyEdited);
       setRoicTerminalYearManuallyEdited(saved.roicTerminalYearManuallyEdited);
       setInitialWaccManuallyEdited(saved.initialWaccManuallyEdited);
+      setOverrideTerminalWacc(saved.overrideTerminalWacc ?? false);
+      setOverrideTerminalRoic(saved.overrideTerminalRoic ?? false);
+      setOverrideRevGrowthPerpetuity(saved.overrideRevGrowthPerpetuity ?? false);
+      setOverrideTerminalRfr(saved.overrideTerminalRfr ?? false);
+      setTerminalWaccCustom(saved.terminalWaccCustom ?? 0);
+      setTerminalRfrCustom(saved.terminalRfrCustom ?? 0);
     } else {
       // Skip if the symbolBtn useEffect already loaded this symbol (router.push triggers this effect)
       if (loadedSymbolRef.current.toUpperCase() === urlSymbol.toUpperCase()) return;
@@ -315,6 +330,12 @@ function FCFFPageContent() {
     });
     setRoicTerminalYearManuallyEdited(false);
     setInitialWaccManuallyEdited(false);
+    setOverrideTerminalWacc(false);
+    setOverrideTerminalRoic(false);
+    setOverrideRevGrowthPerpetuity(false);
+    setOverrideTerminalRfr(false);
+    setTerminalWaccCustom(0);
+    setTerminalRfrCustom(0);
 
     // TEST ticker: skip all API calls and prefill hardcoded values for source-of-truth comparison
     if (symbol.toUpperCase() === "TEST") {
@@ -402,6 +423,12 @@ function FCFFPageContent() {
         salesToCapManuallyEdited,
         roicTerminalYearManuallyEdited,
         initialWaccManuallyEdited,
+        overrideTerminalWacc,
+        overrideTerminalRoic,
+        overrideRevGrowthPerpetuity,
+        overrideTerminalRfr,
+        terminalWaccCustom,
+        terminalRfrCustom,
       });
     }, 500);
 
@@ -420,6 +447,12 @@ function FCFFPageContent() {
     salesToCapManuallyEdited,
     roicTerminalYearManuallyEdited,
     initialWaccManuallyEdited,
+    overrideTerminalWacc,
+    overrideTerminalRoic,
+    overrideRevGrowthPerpetuity,
+    overrideTerminalRfr,
+    terminalWaccCustom,
+    terminalRfrCustom,
   ]);
 
   // Auto-fill sales to capital fields only if they haven't been manually edited
@@ -467,7 +500,15 @@ function FCFFPageContent() {
   // Placeholder values for missing inputs
   const matureMarketErp = getInputValue("matureMarketErp", "fetchedInputs");
 
-  const growthRates = FinCalc.calcRevenueGrowth(growthY1, growthY2to5, growthTerminal);
+  const terminalRfr = overrideTerminalRfr
+    ? terminalRfrCustom
+    : getInputValue("riskFreeRate", "fetchedInputs");
+  const terminalWacc = overrideTerminalWacc
+    ? terminalWaccCustom
+    : FinCalc.calcTerminalWACC(matureMarketErp, terminalRfr);
+  const effectiveGrowthTerminal = overrideRevGrowthPerpetuity ? growthTerminal : terminalRfr;
+
+  const growthRates = FinCalc.calcRevenueGrowth(growthY1, growthY2to5, effectiveGrowthTerminal);
   const revenue = FinCalc.calcRevenue(getInputValue("baseRevenue", "fetchedInputs"), growthRates);
   const ebitMargin = FinCalc.calcEBITMargin(
     getInputValue("baseEbitMargin", "fetchedInputs"),
@@ -478,16 +519,15 @@ function FCFFPageContent() {
   const ebit = FinCalc.calcEbit(revenue, ebitMargin);
   const taxRate = FinCalc.calcTaxRate(effectiveTaxRate, marginalTaxRate);
   const ebitAfterTax = FinCalc.calcEbitAfterTax(ebit, taxRate);
-  const terminalWacc = FinCalc.calcTerminalWACC(matureMarketErp, getInputValue("riskFreeRate", "fetchedInputs"));
 
   // Auto-fill ROIC terminal year from terminal WACC when not manually edited
   // (terminal WACC = country ERP + risk-free rate, same as year-10 WACC in Aswath's model)
   useEffect(() => {
-    if (!roicTerminalYearManuallyEdited) {
+    if (!overrideTerminalRoic) {
       handleInputChange("roicTerminalYear", terminalWacc, "fetchedInputs", true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [terminalWacc, roicTerminalYearManuallyEdited]);
+  }, [terminalWacc, overrideTerminalRoic]);
   const roicTerminalYear = getInputValue("roicTerminalYear", "fetchedInputs");
 
   // Calculate reinvestment with error handling for initial empty state
@@ -498,7 +538,7 @@ function FCFFPageContent() {
       sCapY1,
       sCapY2to5,
       sCapY6to10,
-      growthTerminal,
+      effectiveGrowthTerminal,
       roicTerminalYear,
       ebitAfterTax[ebitAfterTax.length - 1],
     );
@@ -682,18 +722,20 @@ function FCFFPageContent() {
                 label="Industry"
               />
 
-              {inputs.map((input, index) => (
-                <InputBox
-                  key={input.id}
-                  id={input.id}
-                  label={input.label}
-                  value={input.value}
-                  question={input.question}
-                  unit={input.unit}
-                  onChange={(e: any) => handleInputChange(input.id, e.target.value, "inputs")}
-                  firstElement={index === 0}
-                />
-              ))}
+              {inputs
+                .filter((input) => input.id !== "revGrowthPerpetuity")
+                .map((input, index) => (
+                  <InputBox
+                    key={input.id}
+                    id={input.id}
+                    label={input.label}
+                    value={input.value}
+                    question={input.question}
+                    unit={input.unit}
+                    onChange={(e: any) => handleInputChange(input.id, e.target.value, "inputs")}
+                    firstElement={index === 0}
+                  />
+                ))}
             </div>
             {/* Show More button */}
             <div className="text-center mt-10">
@@ -711,23 +753,58 @@ function FCFFPageContent() {
             {/* Fetched Inputs */}
             {showMoreInputs && (
               <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10 mt-10">
-                {fetchedInputs.map((input: InputField) => (
-                  <InputBox
-                    key={input.id}
-                    id={input.id}
-                    label={input.label}
-                    value={input.value}
-                    question={input.question}
-                    unit={input.unit}
-                    onChange={(e: any) => handleInputChange(input.id, e.target.value, "fetchedInputs")}
-                  />
-                ))}
+                {fetchedInputs
+                  .filter((input: InputField) => input.id !== "roicTerminalYear")
+                  .map((input: InputField) => (
+                    <InputBox
+                      key={input.id}
+                      id={input.id}
+                      label={input.label}
+                      value={input.value}
+                      question={input.question}
+                      unit={input.unit}
+                      onChange={(e: any) => handleInputChange(input.id, e.target.value, "fetchedInputs")}
+                    />
+                  ))}
               </div>
             )}
           </div>
           <div className="mt-10 mx-5 text-gray-700 font-extralight text-sm">
-            All financial numbers are in the millions
+            <span className="font-medium">Units —</span> Dollar inputs (Revenue, Equity, Debt, Cash, Interest Expense)
+            are entered as full dollar amounts. Valuation output tables (EBIT, FCFF, Invested Capital, Enterprise Value,
+            Equity Value) are displayed in millions.
           </div>
+
+          {/* Assumptions Header */}
+          <div className="uppercase font-bold text-2xl text-center mt-10 mb-10 tracking-wider">Assumptions</div>
+          {/* Container */}
+          <div
+            className="mt-10 mx-5 px-5 py-10 bg-white rounded-2xl drop-shadow-md
+           border"
+          >
+            <AssumptionOverrides
+              overrideTerminalWacc={overrideTerminalWacc}
+              overrideTerminalRoic={overrideTerminalRoic}
+              overrideRevGrowthPerpetuity={overrideRevGrowthPerpetuity}
+              overrideTerminalRfr={overrideTerminalRfr}
+              setOverrideTerminalWacc={setOverrideTerminalWacc}
+              setOverrideTerminalRoic={setOverrideTerminalRoic}
+              setOverrideRevGrowthPerpetuity={setOverrideRevGrowthPerpetuity}
+              setOverrideTerminalRfr={setOverrideTerminalRfr}
+              terminalWaccAuto={FinCalc.calcTerminalWACC(matureMarketErp, getInputValue("riskFreeRate", "fetchedInputs"))}
+              terminalRoicAuto={terminalWacc}
+              terminalRfrAuto={getInputValue("riskFreeRate", "fetchedInputs")}
+              revGrowthAuto={terminalRfr}
+              terminalWaccCustom={terminalWaccCustom}
+              terminalRfrCustom={terminalRfrCustom}
+              setTerminalWaccCustom={setTerminalWaccCustom}
+              setTerminalRfrCustom={setTerminalRfrCustom}
+              roicTerminalYear={roicTerminalYear}
+              revGrowthPerpetuity={growthTerminal}
+              handleInputChange={handleInputChange}
+            />
+          </div>
+
           {/*WACC Header */}
           <div className="uppercase font-bold text-2xl text-center mt-5 mb-10 tracking-wider">WACC</div>
           {/* Container */}

@@ -14,6 +14,12 @@ export interface ValuationStoredState {
   };
   roicTerminalYearManuallyEdited: boolean;
   initialWaccManuallyEdited: boolean;
+  overrideTerminalWacc: boolean;
+  overrideTerminalRoic: boolean;
+  overrideRevGrowthPerpetuity: boolean;
+  overrideTerminalRfr: boolean;
+  terminalWaccCustom: number;
+  terminalRfrCustom: number;
 }
 
 export function saveValuationState(symbol: string, state: ValuationStoredState): void {
