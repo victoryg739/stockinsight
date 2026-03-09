@@ -241,7 +241,7 @@ const MarketInsightPopoutPage = ({
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-        <div ref={popoutRef} className="bg-white p-6 rounded-2xl shadow-2xl w-11/12 h-5/6 overflow-auto">
+        <div ref={popoutRef} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-11/12 h-5/6 overflow-auto">
           <div className="flex justify-center items-center h-full gap-3">
             <Spinner size={10} />
             <span className="text-gray-500 text-sm">Loading industry data...</span>
@@ -254,7 +254,7 @@ const MarketInsightPopoutPage = ({
   if (allFailed) {
     return (
       <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-        <div ref={popoutRef} className="bg-white p-6 rounded-2xl shadow-2xl w-11/12 h-5/6 overflow-auto">
+        <div ref={popoutRef} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-11/12 h-5/6 overflow-auto">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Market Insight</h2>
             <button onClick={() => setIsPopoutOpen(false)} className="text-gray-400 hover:text-gray-700">
@@ -357,19 +357,19 @@ const MarketInsightPopoutPage = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-      <div ref={popoutRef} className="bg-gray-50 rounded-2xl shadow-2xl w-11/12 h-5/6 overflow-auto">
+      <div ref={popoutRef} className="bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-2xl w-11/12 h-5/6 overflow-auto">
 
         {/* ── Header ── */}
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl shadow-sm">
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 px-6 py-4 flex items-center justify-between rounded-t-2xl shadow-sm">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-gray-900">Market Insight</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Market Insight</h2>
             {industries && (
-              <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200">
+              <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200 dark:border-blue-700">
                 {industries}
               </span>
             )}
           </div>
-          <button onClick={() => setIsPopoutOpen(false)} className="text-gray-400 hover:text-gray-700 transition-colors">
+          <button onClick={() => setIsPopoutOpen(false)} className="text-gray-400 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
             <RxCross1 size={20} />
           </button>
         </div>
@@ -395,64 +395,64 @@ const MarketInsightPopoutPage = ({
           <MetricSection {...debtToCapSection} />
 
           {/* ── ROIC (US + Global) ── */}
-          <div className="overflow-hidden rounded-2xl shadow-md border border-gray-100 mt-6">
+          <div className="overflow-hidden rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 mt-6">
             <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3">
               <h3 className="text-sm font-semibold uppercase tracking-widest">Return on Invested Capital (ROIC)</h3>
             </div>
-            <div className="bg-white px-5 py-4">
+            <div className="bg-white dark:bg-gray-800 px-5 py-4">
               {/* Column headers */}
               <div className="grid grid-cols-3 gap-3 mb-2">
                 <div />
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide text-center">US Industry</span>
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide text-center">Global Industry</span>
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">US Industry</span>
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">Global Industry</span>
               </div>
               {/* ROIC row */}
               <div className="grid grid-cols-3 gap-3 mb-3">
-                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide self-center">ROIC</span>
-                <div className="flex flex-col items-center justify-center rounded-xl px-4 py-3 bg-white shadow-sm border border-gray-200">
-                  <span className="text-lg font-bold font-mono text-blue-700">
+                <span className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide self-center">ROIC</span>
+                <div className="flex flex-col items-center justify-center rounded-xl px-4 py-3 bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600">
+                  <span className="text-lg font-bold font-mono text-blue-700 dark:text-blue-400">
                     {roicUS != null ? `${roicUS.toFixed(2)}%` : "N/A"}
                   </span>
                 </div>
-                <div className="flex flex-col items-center justify-center rounded-xl px-4 py-3 bg-gray-50">
-                  <span className="text-lg font-bold font-mono text-blue-700">
+                <div className="flex flex-col items-center justify-center rounded-xl px-4 py-3 bg-gray-50 dark:bg-gray-700">
+                  <span className="text-lg font-bold font-mono text-blue-700 dark:text-blue-400">
                     {roicGlobal != null ? `${roicGlobal.toFixed(2)}%` : "N/A"}
                   </span>
                 </div>
               </div>
               {/* Reinvestment Rate row */}
               <div className="grid grid-cols-3 gap-3">
-                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide self-center">Reinvest. Rate</span>
-                <div className="flex flex-col items-center justify-center rounded-xl px-4 py-3 bg-white shadow-sm border border-gray-200">
-                  <span className="text-lg font-bold font-mono text-blue-700">
+                <span className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide self-center">Reinvest. Rate</span>
+                <div className="flex flex-col items-center justify-center rounded-xl px-4 py-3 bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600">
+                  <span className="text-lg font-bold font-mono text-blue-700 dark:text-blue-400">
                     {reinvestUS != null ? `${reinvestUS.toFixed(2)}%` : "N/A"}
                   </span>
                 </div>
-                <div className="flex flex-col items-center justify-center rounded-xl px-4 py-3 bg-gray-50">
-                  <span className="text-lg font-bold font-mono text-blue-700">
+                <div className="flex flex-col items-center justify-center rounded-xl px-4 py-3 bg-gray-50 dark:bg-gray-700">
+                  <span className="text-lg font-bold font-mono text-blue-700 dark:text-blue-400">
                     {reinvestGlobal != null ? `${reinvestGlobal.toFixed(2)}%` : "N/A"}
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-gray-400 mt-3 italic">No distribution data available for ROIC</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 italic">No distribution data available for ROIC</p>
             </div>
           </div>
 
           {/* ── Comp Analysis ── */}
           <div className="mt-12">
             <div className="flex items-center gap-3 mb-6">
-              <h3 className="text-lg font-bold text-gray-800">Comp Analysis</h3>
-              <div className="flex-1 h-px bg-gray-200" />
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white">Comp Analysis</h3>
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
             </div>
 
             {/* Peer companies */}
-            <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <div className="mb-6 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold text-gray-700">Suggested Peers</h4>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Suggested Peers</h4>
                 <button
                   onClick={fetchPeers}
                   disabled={loadingPeers}
-                  className="flex items-center text-xs bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  className="flex items-center text-xs bg-gray-50 dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-200 dark:border-gray-500 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 dark:text-gray-200"
                 >
                   <IoReloadCircle className="h-3.5 w-3.5 mr-1.5" />
                   Refresh
@@ -468,9 +468,9 @@ const MarketInsightPopoutPage = ({
                   {peerCompanies.map((peer, index) => (
                     <div
                       key={index}
-                      className="inline-flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs hover:shadow-sm transition-shadow"
+                      className="inline-flex items-center bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg px-3 py-1.5 text-xs hover:shadow-sm transition-shadow"
                     >
-                      <span className="font-semibold text-gray-800">{peer}</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-100">{peer}</span>
                       <button
                         onClick={() => copyToClipboard(peer)}
                         className="ml-2 text-gray-300 hover:text-gray-600 transition-colors"
@@ -484,26 +484,26 @@ const MarketInsightPopoutPage = ({
               ) : (
                 <p className="text-xs text-gray-400 text-center py-2">No peers found for {symbol}</p>
               )}
-              <p className="text-xs text-gray-400 mt-3">Click ticker to copy, then paste below</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">Click ticker to copy, then paste below</p>
             </div>
 
             {/* Comparison table */}
-            <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-              <table className="min-w-full divide-y divide-gray-100 text-left">
-                <thead className="bg-gray-50">
+            <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700 text-left">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase w-28">Ticker</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Company</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Revenue</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">EBIT</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">EBIT Margin</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">P/E</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">ROIC</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase w-28">Ticker</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Company</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Revenue</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">EBIT</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">EBIT Margin</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">P/E</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">ROIC</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
                   {compAnalysisRef.current.map((item, index) => (
-                    <tr key={`${item.ticker}-${index}`} className="hover:bg-gray-50 transition-colors">
+                    <tr key={`${item.ticker}-${index}`} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                       <td className="px-5 py-3 w-28">
                         <input
                           value={inputTickers[index] || ""}
@@ -512,41 +512,41 @@ const MarketInsightPopoutPage = ({
                             t[index] = e.target.value;
                             setInputTickers(t);
                           }}
-                          className="text-xs font-semibold text-gray-800 w-full border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          className="text-xs font-semibold text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 w-full border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
                           placeholder="Ticker"
                         />
                       </td>
-                      <td className="px-5 py-3 text-sm text-gray-700">{item.shortName || "—"}</td>
-                      <td className="px-5 py-3 text-sm text-gray-700 font-mono">
+                      <td className="px-5 py-3 text-sm text-gray-700 dark:text-gray-200">{item.shortName || "—"}</td>
+                      <td className="px-5 py-3 text-sm text-gray-700 dark:text-gray-200 font-mono">
                         {item.revenue ? `$${convToMillion(item.revenue)}` : "—"}
                       </td>
-                      <td className="px-5 py-3 text-sm text-gray-700 font-mono">
+                      <td className="px-5 py-3 text-sm text-gray-700 dark:text-gray-200 font-mono">
                         {item.ebit ? `$${convToMillion(item.ebit)}` : "—"}
                       </td>
-                      <td className="px-5 py-3 text-sm text-gray-700 font-mono">
+                      <td className="px-5 py-3 text-sm text-gray-700 dark:text-gray-200 font-mono">
                         {item.ebitMargin ? `${convRound2Dp(item.ebitMargin)}%` : "—"}
                       </td>
-                      <td className="px-5 py-3 text-sm text-gray-700 font-mono">
+                      <td className="px-5 py-3 text-sm text-gray-700 dark:text-gray-200 font-mono">
                         {item.peRatio ? convRound2Dp(item.peRatio) : "—"}
                       </td>
-                      <td className="px-5 py-3 text-sm text-gray-700 font-mono">
+                      <td className="px-5 py-3 text-sm text-gray-700 dark:text-gray-200 font-mono">
                         {item.roic ? `${convRound2Dp(item.roic)}%` : "—"}
                       </td>
                     </tr>
                   ))}
 
                   {/* Averages row */}
-                  <tr className="bg-blue-50 font-semibold">
-                    <td className="px-5 py-3 text-xs text-gray-600 uppercase" colSpan={2}>Averages</td>
-                    <td className="px-5 py-3 text-sm font-mono text-gray-600">—</td>
-                    <td className="px-5 py-3 text-sm font-mono text-gray-600">—</td>
-                    <td className="px-5 py-3 text-sm font-mono text-gray-800">
+                  <tr className="bg-blue-50 dark:bg-blue-900/20 font-semibold">
+                    <td className="px-5 py-3 text-xs text-gray-600 dark:text-gray-400 uppercase" colSpan={2}>Averages</td>
+                    <td className="px-5 py-3 text-sm font-mono text-gray-600 dark:text-gray-400">—</td>
+                    <td className="px-5 py-3 text-sm font-mono text-gray-600 dark:text-gray-400">—</td>
+                    <td className="px-5 py-3 text-sm font-mono text-gray-800 dark:text-gray-200">
                       {averages.avgEbitMargin !== "N/A" ? `${averages.avgEbitMargin}%` : "—"}
                     </td>
-                    <td className="px-5 py-3 text-sm font-mono text-gray-800">
+                    <td className="px-5 py-3 text-sm font-mono text-gray-800 dark:text-gray-200">
                       {averages.avgPeRatio !== "N/A" ? averages.avgPeRatio : "—"}
                     </td>
-                    <td className="px-5 py-3 text-sm font-mono text-gray-800">
+                    <td className="px-5 py-3 text-sm font-mono text-gray-800 dark:text-gray-200">
                       {averages.avgRoic !== "N/A" ? `${averages.avgRoic}%` : "—"}
                     </td>
                   </tr>
@@ -554,14 +554,14 @@ const MarketInsightPopoutPage = ({
               </table>
 
               {/* Add row */}
-              <div className="p-4 border-t border-gray-100">
+              <div className="p-4 border-t border-gray-100 dark:border-gray-700 dark:bg-gray-800">
                 <button
                   onClick={() => {
                     compAnalysisRef.current.push({ ticker: "", shortName: "", revenue: 0, ebit: 0, ebitMargin: 0, peRatio: 0, roic: 0 });
                     setInputTickers([...inputTickers, ""]);
                     triggerReRender();
                   }}
-                  className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                  className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />

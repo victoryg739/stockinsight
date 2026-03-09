@@ -390,15 +390,15 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-[880px] h-[950px] overflow-auto relative">
+      <div ref={popoutRef} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-[880px] h-[950px] overflow-auto relative">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Valuation Review & Save</h2>
+          <h2 className="text-2xl font-bold dark:text-white">Valuation Review & Save</h2>
 
           <button
             onClick={() => {
               setIsPopoutOpen(false);
             }}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
             <RxCross1 size={24} />
           </button>
@@ -407,30 +407,30 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
         <div className="space-y-12">
           {/* 1. Revenue Growth Rate */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-2">1. Check Revenue Growth Rate</h3>
+            <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">1. Check Revenue Growth Rate</h3>
             <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Year 1</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Year 1</div>
                 <div className="text-md font-semibold">
                   {formatValue(getInputValue("revGrowthYr1", inputs), "percentage")}
                 </div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Years 2-5</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Years 2-5</div>
                 <div className="text-md font-semibold">
                   {formatValue(getInputValue("revGrowthYr2to5", inputs), "percentage")}
                 </div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Industry Average</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Industry Average</div>
                 <div className="text-md font-semibold">
                   {formatValue(inputStats?.revenue_growth_rate_median, "percentage")}
                 </div>
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-md">
-              <h4 className="font-medium mb-2">Key Questions</h4>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
+              <h4 className="font-medium mb-2 dark:text-gray-100">Key Questions</h4>
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>If growth exceeds the industry average, is the company smaller or in a high-growth phase?</li>
                 <li>
@@ -443,30 +443,30 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 
           {/* 2. Dollar Revenues */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-2">2. Check Dollar Revenues</h3>
+            <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">2. Check Dollar Revenues</h3>
             <div className="grid grid-cols-4 gap-4 mb-4">
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Base Year</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Base Year</div>
                 <div className="text-md font-semibold">
                   {formatValue(getInputValue("baseRevenue", fetchedInputs), "currency")}
                 </div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Next Year</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Next Year</div>
                 <div className="text-md font-semibold">{formatValue(getModelValue("revenue", 1), "currency")}</div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Year 5</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Year 5</div>
                 <div className="text-md font-semibold">{formatValue(getModelValue("revenue", 5), "currency")}</div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Year 10</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Year 10</div>
                 <div className="text-md font-semibold">{formatValue(getModelValue("revenue", 10), "currency")}</div>
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-md">
-              <h4 className="font-medium mb-2">Key Questions</h4>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
+              <h4 className="font-medium mb-2 dark:text-gray-100">Key Questions</h4>
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>What is the total addressable market (TAM) today?</li>
                 <li>How do projected revenues compare to current market leaders?</li>
@@ -477,30 +477,30 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 
           {/* 3. Margins */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-2">3. Check Your Margins</h3>
+            <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">3. Check Your Margins</h3>
             <div className="grid grid-cols-4 gap-4 mb-4">
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Base Year</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Base Year</div>
                 <div className="text-md font-semibold">{formatValue(getModelValue("ebitMargin", 0), "percentage")}</div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Next Year</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Next Year</div>
                 <div className="text-md font-semibold">{formatValue(getModelValue("ebitMargin", 1), "percentage")}</div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Year 5</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Year 5</div>
                 <div className="text-md font-semibold">{formatValue(getModelValue("ebitMargin", 5), "percentage")}</div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Year 10</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Year 10</div>
                 <div className="text-md font-semibold">
                   {formatValue(getModelValue("ebitMargin", 10), "percentage")}
                 </div>
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-md">
-              <h4 className="font-medium mb-2">Key Questions</h4>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
+              <h4 className="font-medium mb-2 dark:text-gray-100">Key Questions</h4>
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>How do margins compare to industry peers?</li>
                 <li>What are the unit economics (cost to produce/sell incremental units)?</li>
@@ -511,28 +511,28 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 
           {/* 4. Reinvestment Efficiency */}
           <section>
-            <h3 className="text-lg font-semibold mb-6 border-b pb-2">4. Check Reinvestment Efficiency</h3>
+            <h3 className="text-lg font-semibold mb-6 border-b dark:border-gray-600 pb-2 dark:text-white">4. Check Reinvestment Efficiency</h3>
 
             {/* 4a. Sales to Capital */}
             <div className="mb-6">
-              <h4 className="text-md font-medium mb-4 text-gray-700 border-l-4 border-blue-500 pl-3">
+              <h4 className="text-md font-medium mb-4 text-gray-700 dark:text-gray-200 border-l-4 border-blue-500 pl-3">
                 4a. Sales to Capital Ratio
               </h4>
               <div className="grid grid-cols-3 gap-4 mb-3">
-                <div className="bg-gray-100 p-3 rounded-md">
-                  <div className="text-sm text-gray-600">Sales to Capital (Yr 1)</div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Sales to Capital (Yr 1)</div>
                   <div className="text-md font-semibold">
                     {formatValue(getInputValue("salesToCapYr1", inputs), "number")}
                   </div>
                 </div>
-                <div className="bg-gray-100 p-3 rounded-md">
-                  <div className="text-sm text-gray-600">Sales to Capital (Yr 2-5)</div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Sales to Capital (Yr 2-5)</div>
                   <div className="text-md font-semibold">
                     {formatValue(getInputValue("salesToCapYr2to5", inputs), "number")}
                   </div>
                 </div>
-                <div className="bg-gray-100 p-3 rounded-md">
-                  <div className="text-sm text-gray-600">Sales to Capital (Yr 6-10)</div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Sales to Capital (Yr 6-10)</div>
                   <div className="text-md font-semibold">
                     {formatValue(getInputValue("salesToCapYr6to10", inputs), "number")}
                   </div>
@@ -542,21 +542,21 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 
             {/* 4b. Reinvestment Effect on Cash Flows */}
             <div className="mb-6">
-              <h4 className="text-md font-medium mb-4 text-gray-700 border-l-4 border-green-500 pl-3">
+              <h4 className="text-md font-medium mb-4 text-gray-700 dark:text-gray-200 border-l-4 border-green-500 pl-3">
                 4b. Reinvestment Effect on Cash Flows
               </h4>
               <div className="grid grid-cols-2 gap-4 mb-3">
-                <div className="bg-gray-100 p-3 rounded-md">
-                  <div className="text-sm text-gray-600">Sum of PV of EBIT After Tax (10 Years)</div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Sum of PV of EBIT After Tax (10 Years)</div>
                   <div className="text-md font-semibold">{formatValue(sumOfEbitAfterTax, "currency")}</div>
                 </div>
-                <div className="bg-gray-100 p-3 rounded-md">
-                  <div className="text-sm text-gray-600">Sum of PV of FCFF (10 Years)</div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Sum of PV of FCFF (10 Years)</div>
                   <div className="text-md font-semibold">{formatValue(sumOfPVFCFF, "currency")}</div>
                 </div>
               </div>
-              <div className="bg-amber-100 p-3 rounded-md mb-2">
-                <div className="text-sm text-gray-800">Value Effect of Reinvestment (10 Years)</div>
+              <div className="bg-amber-100 dark:bg-amber-900/20 p-3 rounded-md mb-2">
+                <div className="text-sm text-gray-800 dark:text-gray-200">Value Effect of Reinvestment (10 Years)</div>
                 <div className="text-md font-semibold">
                   {formatValue(reinvestmentEffect, "currency")} ({formatValue(reinvestmentPercentage, "percentage")} of
                   EBIT After Tax)
@@ -566,32 +566,32 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 
             {/* 4c. Return on Invested Capital */}
             <div className="mb-6">
-              <h4 className="text-md font-medium mb-4 text-gray-700 border-l-4 border-purple-500 pl-3">
+              <h4 className="text-md font-medium mb-4 text-gray-700 dark:text-gray-200 border-l-4 border-purple-500 pl-3">
                 4c. Return on Invested Capital
               </h4>
               <div className="grid grid-cols-3 gap-4 mb-3">
-                <div className="bg-gray-100 p-3 rounded-md">
-                  <div className="text-sm text-gray-600">Marginal ROIC (Yr 1-10)</div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Marginal ROIC (Yr 1-10)</div>
                   <div className="text-md font-semibold">{formatValue(marginalRoic, "percentage")}</div>
-                  <div className="text-xs text-gray-500 mt-1"></div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1"></div>
                 </div>
-                <div className="bg-gray-100 p-3 rounded-md">
-                  <div className="text-sm text-gray-600">ROIC (Yr 10)</div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">ROIC (Yr 10)</div>
                   <div className="text-md font-semibold">
                     {formatValue(roicData.roic[roicData.roic.length - 2], "percentage")}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1"></div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1"></div>
                 </div>
-                <div className="bg-gray-100 p-3 rounded-md">
-                  <div className="text-sm text-gray-600">Terminal Year ROIC</div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Terminal Year ROIC</div>
                   <div className="text-md font-semibold">
                     {formatValue(roicData.roic[roicData.roic.length - 1], "percentage")}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1"></div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1"></div>
                 </div>
 
-                <div className="bg-gray-100 p-3 rounded-md">
-                  <div className="text-sm text-gray-600">Industry Average ROIC</div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Industry Average ROIC</div>
                   <div className="text-md font-semibold">{formatValue(roicStats?.roc, "percentage")}</div>
                 </div>
               </div>
@@ -600,8 +600,8 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
                 <div
                   className={`p-4 rounded-md flex items-start gap-3 ${
                     marginalRoic > terminalWACC
-                      ? "bg-green-50 border border-green-200"
-                      : "bg-red-50 border border-red-200"
+                      ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
+                      : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
                   }`}
                 >
                   {marginalRoic > terminalWACC ? (
@@ -610,10 +610,10 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
                     <FaTimesCircle className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
                   )}
                   <div>
-                    <h4 className={`font-medium ${marginalRoic > terminalWACC ? "text-green-700" : "text-red-700"}`}>
+                    <h4 className={`font-medium ${marginalRoic > terminalWACC ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
                       {marginalRoic > terminalWACC ? "Creating Value" : "Destroying Value"}
                     </h4>
-                    <p className="text-sm mt-1">
+                    <p className="text-sm mt-1 dark:text-gray-300">
                       {marginalRoic > terminalWACC
                         ? "Investments are generating returns above the WACC, creating shareholder value."
                         : "Investments are generating returns below the WACC, destroying shareholder value."}
@@ -622,7 +622,7 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
                 </div>
 
                 {/* Explanation */}
-                <div className="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                <div className="mt-4 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
                   <p>
                     <strong>What is Marginal ROIC?</strong> Marginal ROIC measures the return generated specifically by
                     new capital investments.
@@ -631,8 +631,8 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-md">
-              <h4 className="font-medium mb-2">Key Questions</h4>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
+              <h4 className="font-medium mb-2 dark:text-gray-100">Key Questions</h4>
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>How does the sales to capital ratio compare to industry averages? Is it sustainable?</li>
                 <li>
@@ -647,28 +647,28 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 
           {/* 5. Risk Metrics */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-2">5. Risk Metrics</h3>
+            <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">5. Risk Metrics</h3>
             <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">WACC (Years 1-5)</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">WACC (Years 1-5)</div>
                 <div className="text-md font-semibold">
                   {formatValue(getInputValue("initialWacc", fetchedInputs), "percentage")}
                 </div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Terminal WACC</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Terminal WACC</div>
                 <div className="text-md font-semibold">{formatValue(getModelValue("wacc", 10), "percentage")}</div>
               </div>
-              <div className="bg-gray-100 p-3 rounded-md">
-                <div className="text-sm text-gray-600">Industry WACC</div>
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Industry WACC</div>
                 <div className="text-md font-semibold">
                   {formatValue(inputStats?.cost_of_capital_median, "percentage")}
                 </div>
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-md">
-              <h4 className="font-medium mb-2">Key Questions</h4>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
+              <h4 className="font-medium mb-2 dark:text-gray-100">Key Questions</h4>
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>How does your WACC compare to the industry average?</li>
                 <li>Is the WACC changing over time? If so, why?</li>
@@ -679,8 +679,8 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 
           {/* Tag Your Valuation */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-2">6. Tag Your Valuation</h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">6. Tag Your Valuation</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Add scenario tags to quickly identify this valuation&apos;s outlook. Select presets or create your own.
             </p>
 
@@ -693,7 +693,7 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
                     tags.includes(label)
                       ? style + " ring-2 ring-offset-1 ring-current"
-                      : "bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-400"
+                      : "bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400"
                   }`}
                 >
                   {label}
@@ -709,11 +709,11 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
                 onChange={(e) => setCustomTagInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addCustomTag()}
                 placeholder="Add custom tag..."
-                className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 onClick={addCustomTag}
-                className="px-3 py-1.5 bg-gray-800 text-white rounded-lg text-sm hover:bg-gray-700 transition-colors"
+                className="px-3 py-1.5 bg-gray-800 dark:bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 dark:hover:bg-gray-500 transition-colors"
               >
                 Add
               </button>
@@ -747,8 +747,8 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 
           {/* 7. Add Your Analysis */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b pb-2">7. Add Your Analysis</h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">7. Add Your Analysis</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Describe your investment thesis. A well-structured valuation should be backed with a good story.
             </p>
 
@@ -765,7 +765,7 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
                   <button
                     onClick={() => setShowPreview(false)}
                     className={`px-3 py-1.5 rounded ${
-                      !showPreview ? "bg-gray-800 text-white" : "bg-gray-200 text-gray-800"
+                      !showPreview ? "bg-gray-800 dark:bg-gray-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                     }`}
                   >
                     Edit
@@ -773,7 +773,7 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
                   <button
                     onClick={() => setShowPreview(true)}
                     className={`px-3 py-1.5 rounded ${
-                      showPreview ? "bg-gray-800 text-white" : "bg-gray-200 text-gray-800"
+                      showPreview ? "bg-gray-800 dark:bg-gray-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                     }`}
                   >
                     Preview
@@ -782,12 +782,12 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
               </div>
 
               {showPreview ? (
-                <div className="w-full h-64 p-4 border rounded-lg overflow-auto bg-white">
+                <div className="w-full h-64 p-4 border dark:border-gray-600 rounded-lg overflow-auto bg-white dark:bg-gray-900 dark:text-gray-200">
                   <div className="prose max-w-none">{renderMarkdown(description)}</div>
                 </div>
               ) : (
                 <textarea
-                  className="w-full h-64 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-64 p-4 border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                   placeholder="Your complete valuation story will appear here. Click 'Generate Template ' to start, then edit as needed."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -797,7 +797,7 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
           </section>
         </div>
 
-        <div className="flex justify-center p-4 bg-white border-t mt-6">
+        <div className="flex justify-center p-4 bg-white dark:bg-gray-800 border-t dark:border-gray-600 mt-6">
           <button
             onClick={handleSave}
             className="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors"

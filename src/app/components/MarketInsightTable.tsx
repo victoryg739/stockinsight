@@ -32,17 +32,18 @@ const getBarPosition = (value: number, q1: number, q3: number): number => {
 };
 
 const getCompanyColor = (value: number | null, q1: number | null, median: number | null): string => {
-  if (value == null || q1 == null || median == null) return "bg-gray-400";
+  if (value == null || q1 == null || median == null) return "bg-blue-500";
   if (value >= median) return "bg-emerald-500";
   if (value >= q1) return "bg-amber-400";
   return "bg-red-500";
 };
 
+// Returns light/dark safe text color classes
 const getTextColor = (value: number | null, q1: number | null, median: number | null): string => {
-  if (value == null || q1 == null || median == null) return "text-gray-500";
-  if (value >= median) return "text-emerald-600";
-  if (value >= q1) return "text-amber-600";
-  return "text-red-600";
+  if (value == null || q1 == null || median == null) return "text-blue-600 dark:text-blue-400";
+  if (value >= median) return "text-emerald-600 dark:text-emerald-400";
+  if (value >= q1) return "text-amber-600 dark:text-amber-400";
+  return "text-red-600 dark:text-red-400";
 };
 
 const StatCard = ({
@@ -60,13 +61,13 @@ const StatCard = ({
 }) => (
   <div
     className={`flex flex-col items-center justify-center rounded-xl px-4 py-3 ${
-      highlight ? "bg-white shadow-sm border border-gray-200" : "bg-gray-50"
+      highlight ? "bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600" : "bg-gray-50 dark:bg-gray-700/60"
     }`}
   >
-    <span className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">{label}</span>
+    <span className="text-xs font-medium text-gray-400 dark:text-gray-400 uppercase tracking-wide mb-1">{label}</span>
     <span
       className={`text-lg font-bold font-mono ${
-        muted ? "text-gray-400" : colorClass || "text-blue-700"
+        muted ? "text-gray-400 dark:text-gray-500" : colorClass || "text-blue-700 dark:text-blue-400"
       }`}
     >
       {value}
@@ -90,14 +91,21 @@ const MetricSection = ({
   const dotColorClass = getCompanyColor(primaryVal, q1, median);
   const companyTextColor = getTextColor(primaryVal, q1, median);
 
+  // Arrow fill color (SVG polygon) — lighter in dark mode
+  const arrowFillColor =
+    dotColorClass === "bg-emerald-500" ? "fill-emerald-500 dark:fill-emerald-400"
+    : dotColorClass === "bg-amber-400"  ? "fill-amber-400 dark:fill-amber-300"
+    : dotColorClass === "bg-red-500"    ? "fill-red-500 dark:fill-red-400"
+    :                                     "fill-blue-500 dark:fill-blue-400";
+
   return (
-    <div className="overflow-hidden rounded-2xl shadow-md border border-gray-100 mt-6">
+    <div className="overflow-hidden rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 mt-6">
       {/* Section Header */}
       <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3">
         <h3 className="text-sm font-semibold uppercase tracking-widest">{title}</h3>
       </div>
 
-      <div className="bg-white px-5 py-4 space-y-4">
+      <div className="bg-white dark:bg-gray-800 px-5 py-4 space-y-4">
         {/* Stat Cards Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* Company values */}
@@ -129,7 +137,7 @@ const MetricSection = ({
         {/* Distribution Bar */}
         {hasDistribution ? (
           <div className="pt-1">
-            <span className="text-xs text-gray-400 font-medium">Industry Distribution</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">Industry Distribution</span>
 
             {/* Bar track — height accommodates label + arrow + bar */}
             <div className="relative mx-1 mt-3" style={{ height: "46px" }}>
@@ -139,14 +147,8 @@ const MetricSection = ({
                 const belowQ1 = primaryVal <= q1!;
                 const aboveQ3 = primaryVal >= q3!;
                 const groupPos = belowQ1 ? 0 : aboveQ3 ? 100 : getBarPosition(primaryVal, q1!, q3!);
-                // Anchor: left-align at Q1 edge, right-align at Q3 edge, center otherwise
                 const transform = belowQ1 ? "translateX(0%)" : aboveQ3 ? "translateX(-100%)" : "translateX(-50%)";
                 const arrowAlign = belowQ1 ? "items-start" : aboveQ3 ? "items-end" : "items-center";
-                const arrowColor =
-                  dotColorClass === "bg-emerald-500" ? "fill-emerald-500"
-                  : dotColorClass === "bg-amber-400"  ? "fill-amber-400"
-                  : dotColorClass === "bg-red-500"    ? "fill-red-500"
-                  :                                     "fill-gray-400";
                 return (
                   <div
                     className={`absolute flex flex-col ${arrowAlign}`}
@@ -156,17 +158,17 @@ const MetricSection = ({
                       {fmt(primaryVal, isPercent)}
                     </span>
                     <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <polygon points="6,10 0,0 12,0" className={arrowColor} />
+                      <polygon points="6,10 0,0 12,0" className={arrowFillColor} />
                     </svg>
                   </div>
                 );
               })()}
 
               {/* Background track */}
-              <div className="absolute left-0 right-0 h-1.5 bg-gray-200 rounded-full" style={{ top: "34px" }} />
+              <div className="absolute left-0 right-0 h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full" style={{ top: "34px" }} />
 
               {/* Q1–Q3 fill */}
-              <div className="absolute h-1.5 bg-blue-200 rounded-full" style={{ left: "0%", width: "100%", top: "34px" }} />
+              <div className="absolute h-1.5 bg-blue-200 dark:bg-blue-800 rounded-full" style={{ left: "0%", width: "100%", top: "34px" }} />
 
               {/* Q1 marker */}
               <div className="absolute w-1.5 h-4 bg-blue-400 rounded-sm" style={{ left: "0%", top: "28px" }} />
@@ -187,14 +189,26 @@ const MetricSection = ({
             </div>
 
             {/* Q1 / Median / Q3 labels */}
-            <div className="flex justify-between mt-1 text-xs text-gray-400">
+            <div className="flex justify-between mt-1 text-xs text-gray-400 dark:text-gray-500">
               <span>Q1: {fmt(q1, isPercent)}</span>
-              <span className="text-blue-600 font-medium">Median: {fmt(median, isPercent)}</span>
+              <span className="text-blue-600 dark:text-blue-400 font-medium">Median: {fmt(median, isPercent)}</span>
               <span>Q3: {fmt(q3, isPercent)}</span>
             </div>
           </div>
+        ) : primaryVal != null ? (
+          /* No distribution data — show company value as a simple standalone bar */
+          <div className="pt-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">Your Value</span>
+              <span className={`text-xs font-semibold ${companyTextColor}`}>{fmt(primaryVal, isPercent)}</span>
+            </div>
+            <div className="relative h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+              <div className={`absolute left-0 top-0 h-full ${dotColorClass} rounded-full`} style={{ width: "100%" }} />
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500 italic mt-1">No industry distribution data available for comparison</p>
+          </div>
         ) : (
-          <p className="text-xs text-gray-400 italic">Distribution data unavailable for this metric</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 italic">Distribution data unavailable for this metric</p>
         )}
       </div>
     </div>

@@ -486,19 +486,19 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
       {" "}
       {/* Added padding */}
-      <div ref={popoutRef} className="bg-white p-4 md:p-6 rounded-lg shadow-xl w-full max-w-6xl h-[95vh] flex flex-col">
+      <div ref={popoutRef} className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-lg shadow-xl w-full max-w-6xl h-[95vh] flex flex-col">
         {" "}
         {/* Adjusted max-width and height */}
         {/* Header */}
-        <div className="flex justify-between items-center mb-4 pb-3 border-b">
+        <div className="flex justify-between items-center mb-4 pb-3 border-b dark:border-gray-600">
           <div className="flex items-center flex-shrink-0">
             {/* Conditionally render Image based on searchedSymbol */}
             {searchedSymbol && <StockLogo symbol={searchedSymbol} height={50} width={50} className="mr-2" alt="logo" />}
-            <h2 className="text-lg md:text-xl font-bold truncate">Sensitivity Analysis - {shortName}</h2>
+            <h2 className="text-lg md:text-xl font-bold truncate dark:text-white">Sensitivity Analysis - {shortName}</h2>
           </div>
           <button
             onClick={() => setIsPopoutOpen(false)}
-            className="text-gray-500 hover:text-gray-700 flex-shrink-0 ml-2"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex-shrink-0 ml-2"
           >
             <RxCross1 size={20} /> {/* Adjusted size */}
           </button>
@@ -509,15 +509,15 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
           {/* Left Panel: Configuration & Explanation (Scrollable) */}
           <div className="w-full lg:w-1/3 flex-shrink-0 flex flex-col gap-4 overflow-y-auto pr-2">
             {/* Config Box */}
-            <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600">
               {/* ... content of config box ... */}
-              <h3 className="text-md font-semibold mb-3">Analysis Settings</h3>
+              <h3 className="text-md font-semibold mb-3 dark:text-white">Analysis Settings</h3>
               <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Variable</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Variable</label>
                 <select
                   value={primaryVariable?.id || ""}
                   onChange={(e) => handlePrimaryVariableChange(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm" // Adjusted padding/text size
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm" // Adjusted padding/text size
                 >
                   <option value="">Select a variable</option>
                   {availableVariables.map((variable) => (
@@ -530,11 +530,11 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
               </div>
 
               {primaryVariable && (
-                <div className="mb-4 p-3 border border-gray-200 rounded-md bg-white">
-                  <h4 className="text-xs font-medium mb-2 text-gray-600">{primaryVariable.label} Range</h4>
+                <div className="mb-4 p-3 border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700">
+                  <h4 className="text-xs font-medium mb-2 text-gray-600 dark:text-gray-300">{primaryVariable.label} Range</h4>
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">Min</label>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Min</label>
                       <input
                         type="number"
                         value={primaryRange.min}
@@ -550,12 +550,12 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
                             }
                           }
                         }}
-                        className="w-full rounded-md border border-gray-300 py-1 px-2 text-xs"
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-1 px-2 text-xs"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">Max</label>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Max</label>
                       <input
                         type="number"
                         value={primaryRange.max}
@@ -571,17 +571,17 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
                             }
                           }
                         }}
-                        className="w-full rounded-md border border-gray-300 py-1 px-2 text-xs"
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-1 px-2 text-xs"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">Step</label>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Step</label>
                       <input
                         type="number"
                         value={primaryRange.step}
                         onChange={handleStepSizeChange}
-                        className="w-full rounded-md border border-gray-300 py-1 px-2 text-xs" // Adjusted padding/text size
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-1 px-2 text-xs" // Adjusted padding/text size
                         step="1"
                         min="0.1"
                       />
@@ -630,27 +630,27 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
             </div>
 
             {/* Explanation Box */}
-            <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600">
               {/* ... content of explanation box ... */}
-              <h3 className="text-md font-semibold mb-3">Sensitivity Explanation</h3>
-              <p className="text-xs text-gray-600 mb-2">
+              <h3 className="text-md font-semibold mb-3 dark:text-white">Sensitivity Explanation</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">
                 Sensitivity analysis helps understand how changes in inputs affect the calculated intrinsic value.
               </p>
-              <p className="text-xs text-gray-600 mb-2">
+              <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">
                 Varying one parameter helps identify inputs with the most significant impact.
               </p>
             </div>
           </div>
           {/* Right Panel: Results (Scrollable) */}
-          <div className="w-full lg:w-2/3 flex-shrink flex flex-col overflow-y-auto border border-gray-200 rounded-lg shadow-sm p-4">
+          <div className="w-full lg:w-2/3 flex-shrink flex flex-col overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm p-4 dark:bg-gray-800">
             <div className="flex justify-between items-center mb-3 flex-wrap">
-              <h3 className="text-md font-semibold">Analysis Results</h3>
+              <h3 className="text-md font-semibold dark:text-white">Analysis Results</h3>
               {currentPrice > 0 && (
-                <div className="flex items-center bg-gray-100 px-2 py-0.5 rounded-md text-xs">
+                <div className="flex items-center bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-md text-xs">
                   {" "}
                   {/* Adjusted size */}
-                  <span className="font-medium text-gray-700 mr-1">Current Price:</span>
-                  <span className="font-bold">${conv.convRound2Dp(currentPrice)}</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-300 mr-1">Current Price:</span>
+                  <span className="font-bold dark:text-white">${conv.convRound2Dp(currentPrice)}</span>
                 </div>
               )}
             </div>
@@ -660,7 +660,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
             )}
 
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center flex-grow text-gray-500">
+              <div className="flex flex-col items-center justify-center flex-grow text-gray-500 dark:text-gray-400">
                 {/* Loading State */}
                 <svg
                   className="animate-spin h-8 w-8 text-blue-500 mb-2"
@@ -689,7 +689,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
               <div className="flex-grow flex flex-col">
                 {/* Results Display */}
                 {/* ... Chart and Table ... */}
-                <p className="text-xs text-gray-600 mb-3 px-2">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 px-2">
                   Showing how <span className="font-medium">{results.primary.label}</span> changes affect intrinsic
                   value.
                 </p>
@@ -736,35 +736,35 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
                 {/* Table (Scrollable within its container) */}
                 <div className="flex-grow overflow-y-auto mt-2">
                   {/* ... Table content ... */}
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50 sticky top-0">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0">
                       {/* Sticky header */}
                       <tr>
-                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           {results.primary.label} ({results.primary.unit || ""})
                         </th>
-                        <th className="px-2 py-1.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-2 py-1.5 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           Intrinsic Value
                         </th>
                         {currentPrice > 0 && (
-                          <th className="px-2 py-1.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-2 py-1.5 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             % Diff
                           </th>
                         )}
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {results.data.map((row, index) => {
                         const diff = currentPrice > 0 ? calculateDifference(row.intrinsicValue) : null;
                         const diffColor = diff !== null ? getDifferenceColor(diff) : "";
 
                         return (
-                          <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-2 py-1 whitespace-nowrap text-xs text-gray-800">
+                          <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <td className="px-2 py-1 whitespace-nowrap text-xs text-gray-800 dark:text-gray-200">
                               {" "}
                               {conv.convRound2Dp(row[results.primary.id])}
                             </td>
-                            <td className="px-2 py-1 whitespace-nowrap text-xs text-gray-800 text-right">
+                            <td className="px-2 py-1 whitespace-nowrap text-xs text-gray-800 dark:text-gray-200 text-right">
                               ${conv.convRound2Dp(row.intrinsicValue)}
                             </td>
                             {currentPrice > 0 && (

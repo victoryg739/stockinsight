@@ -201,21 +201,21 @@ const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, o
       return (
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Mean (μ)</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Mean (μ)</label>
             <input
               type="number"
               value={params.mean}
               onChange={(e) => onChange("mean", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Standard Deviation (σ)</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Standard Deviation (σ)</label>
             <input
               type="number"
               value={params.stdDev}
               onChange={(e) => onChange("stdDev", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
         </div>
@@ -224,21 +224,21 @@ const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, o
       return (
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Min Value</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Min Value</label>
             <input
               type="number"
               value={params.min}
               onChange={(e) => onChange("min", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Max Value</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Max Value</label>
             <input
               type="number"
               value={params.max}
               onChange={(e) => onChange("max", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
         </div>
@@ -247,30 +247,30 @@ const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, o
       return (
         <div className="grid grid-cols-3 gap-4 mt-2">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Min Value</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Min Value</label>
             <input
               type="number"
               value={params.min}
               onChange={(e) => onChange("min", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Mode Value</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Mode Value</label>
             <input
               type="number"
               value={params.mode}
               onChange={(e) => onChange("mode", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Max Value</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Max Value</label>
             <input
               type="number"
               value={params.max}
               onChange={(e) => onChange("max", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
         </div>
@@ -279,21 +279,21 @@ const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, o
       return (
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Location</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
             <input
               type="number"
               value={params.location}
               onChange={(e) => onChange("location", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Scale</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Scale</label>
             <input
               type="number"
               value={params.scale}
               onChange={(e) => onChange("scale", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
         </div>
@@ -301,12 +301,12 @@ const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, o
     case "Exponential":
       return (
         <div className="mt-2">
-          <label className="block text-xs font-medium text-gray-700 mb-1">Rate (λ)</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Rate (λ)</label>
           <input
             type="number"
             value={params.rate}
             onChange={(e) => onChange("rate", parseFloat(e.target.value) || 0)}
-            className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
           />
         </div>
       );
@@ -314,21 +314,21 @@ const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, o
       return (
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Mean</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Mean</label>
             <input
               type="number"
               value={params.displayMean !== undefined ? params.displayMean : variable.value}
               onChange={(e) => handleLognormalParamChange("displayMean", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Standard Deviation</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Standard Deviation</label>
             <input
               type="number"
               value={params.displayStdDev !== undefined ? params.displayStdDev : variable.value * 0.2}
               onChange={(e) => handleLognormalParamChange("displayStdDev", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
         </div>
@@ -337,21 +337,21 @@ const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, o
       return (
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Location</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
             <input
               type="number"
               value={params.location}
               onChange={(e) => onChange("location", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Scale</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Scale</label>
             <input
               type="number"
               value={params.scale}
               onChange={(e) => onChange("scale", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
             />
           </div>
         </div>
@@ -373,7 +373,7 @@ const InputVariableCard: React.FC<InputVariableCardProps> = ({
   return (
     <div
       className={`border rounded-lg p-4 mb-4 transition-colors ${
-        variable.enabled ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:bg-gray-50"
+        variable.enabled ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700" : "border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50"
       }`}
     >
       <div className="flex justify-between items-center cursor-pointer" onClick={() => onToggle()}>
@@ -382,21 +382,21 @@ const InputVariableCard: React.FC<InputVariableCardProps> = ({
             {variable.enabled ? (
               <FaCheck className="text-blue-600" />
             ) : (
-              <div className="h-4 w-4 border border-gray-300 rounded" />
+              <div className="h-4 w-4 border border-gray-300 dark:border-gray-500 rounded" />
             )}
           </div>
-          <span className="font-medium text-sm">{variable.label}</span>
+          <span className="font-medium text-sm dark:text-gray-100">{variable.label}</span>
         </div>
-        <div className="text-sm text-gray-600">Current: {variable.value}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Current: {variable.value}</div>
       </div>
 
       {variable.enabled && (
         <div className="mt-3" onClick={(e) => e.stopPropagation()}>
           <div className="flex justify-between items-center mb-1">
-            <label className="block text-xs font-medium text-gray-700">Distribution</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Distribution</label>
             <button
               onClick={() => setShowChart(!showChart)}
-              className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center"
             >
               {showChart ? "Hide Chart" : "Show Chart"}
               {showChart ? (
@@ -426,7 +426,7 @@ const InputVariableCard: React.FC<InputVariableCardProps> = ({
           <select
             value={variable.distributionType}
             onChange={(e) => onDistributionChange(e.target.value as DistributionType)}
-            className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3 text-sm"
           >
             {DISTRIBUTION_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -641,25 +641,25 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-11/12 h-5/6 overflow-auto">
+      <div ref={popoutRef} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-11/12 h-5/6 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
             <StockLogo symbol={searchedSymbol} height={50} width={50} className="mr-2" alt="logo" />
 
-            <h2 className="text-2xl font-bold">Monte Carlo Simulation - {shortName}</h2>
+            <h2 className="text-2xl font-bold dark:text-white">Monte Carlo Simulation - {shortName}</h2>
           </div>
-          <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 hover:text-gray-700">
+          <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
             <RxCross1 size={24} />
           </button>
         </div>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
           {/* Configuration Panel */}
           <div>
-            <div className="bg-gray-50 p-4 rounded-lg mb-6">
-              <h3 className="text-lg font-semibold mb-4">Simulation Settings</h3>
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mb-6">
+              <h3 className="text-lg font-semibold mb-4 dark:text-white">Simulation Settings</h3>
               <div className="flex items-center gap-4">
                 <div className="w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Number of Iterations</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Number of Iterations</label>
                   <input
                     type="number"
                     min="100"
@@ -667,9 +667,9 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                     step="100"
                     value={numIterations}
                     onChange={(e) => setNumIterations(parseInt(e.target.value))}
-                    className="w-full rounded-md border border-gray-300 py-2 px-3"
+                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Max: 1,000,000 iterations</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Max: 1,000,000 iterations</p>
                 </div>
                 <div className="pt-2">
                   <button
@@ -709,9 +709,9 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold mb-4">Variables to Simulate</h3>
-              <div className="mb-2 text-sm text-gray-600">Select variables to vary in simulation:</div>
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4 dark:text-white">Variables to Simulate</h3>
+              <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Select variables to vary in simulation:</div>
               <div className="max-h-[600px] overflow-y-auto pr-2">
                 {Object.values(inputVars).map((variable) => (
                   <InputVariableCard
@@ -727,8 +727,8 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
           </div>
 
           {/* Results Summary Panel */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Simulation Results</h3>
+          <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-4 dark:text-white">Simulation Results</h3>
 
             {error && <div className="bg-red-50 border border-red-400 text-red-700 p-4 rounded-md mb-4">{error}</div>}
 
@@ -739,33 +739,33 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
               </div>
             ) : results ? (
               <div>
-                <div className="bg-white rounded-lg p-4 mb-6">
-                  <h4 className="text-md font-medium mb-4">Summary Statistics</h4>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6">
+                  <h4 className="text-md font-medium mb-4 dark:text-gray-200">Summary Statistics</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-gray-50 p-3 rounded-md">
-                      <div className="text-xs text-gray-500">Mean</div>
-                      <div className="text-lg font-semibold">${results.mean.toFixed(2)}</div>
+                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Mean</div>
+                      <div className="text-lg font-semibold dark:text-white">${results.mean.toFixed(2)}</div>
                     </div>
-                    <div className="bg-gray-50 p-3 rounded-md">
-                      <div className="text-xs text-gray-500">Median</div>
-                      <div className="text-lg font-semibold">${results.median.toFixed(2)}</div>
+                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Median</div>
+                      <div className="text-lg font-semibold dark:text-white">${results.median.toFixed(2)}</div>
                     </div>
-                    <div className="bg-gray-50 p-3 rounded-md">
-                      <div className="text-xs text-gray-500">Minimum</div>
-                      <div className="text-lg font-semibold">${results.min.toFixed(2)}</div>
+                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Minimum</div>
+                      <div className="text-lg font-semibold dark:text-white">${results.min.toFixed(2)}</div>
                     </div>
-                    <div className="bg-gray-50 p-3 rounded-md">
-                      <div className="text-xs text-gray-500">Maximum</div>
-                      <div className="text-lg font-semibold">${results.max.toFixed(2)}</div>
+                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Maximum</div>
+                      <div className="text-lg font-semibold dark:text-white">${results.max.toFixed(2)}</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="text-md font-medium">Percentiles</h4>
-                    <div className="flex items-center bg-gray-100 px-3 py-1 rounded-md">
-                      <span className="text-sm font-medium text-gray-700 mr-2">Current Price:</span>
+                    <div className="flex items-center bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-md">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Current Price:</span>
                       <span className="text-sm font-bold">${currentPrice.toString()}</span>
                     </div>
                   </div>
@@ -773,7 +773,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead>
                         <tr>
-                          <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Percentile
                           </th>
                           <th className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -784,7 +784,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {results.percentiles.map(({ percentile, value }) => {
                           const diff = calculateDifference(value);
                           const diffColor = getDifferenceColor(diff);
@@ -799,11 +799,11 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
 
                           return (
                             <tr key={percentile} className={rowClass}>
-                              <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-900 font-medium">
+                              <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 font-medium">
                                 {percentile}%
                                 {percentile === 50 && <span className="ml-1 text-blue-600 text-xs">(median)</span>}
                               </td>
-                              <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-900 text-right">
+                              <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
                                 ${value.toFixed(2)}
                               </td>
                               <td className={`px-6 py-2 whitespace-nowrap text-sm font-medium text-right ${diffColor}`}>
@@ -823,7 +823,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[500px] text-gray-500">
+              <div className="flex flex-col items-center justify-center h-[500px] text-gray-500 dark:text-gray-400">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-16 w-16 text-gray-300 mb-4"
@@ -846,7 +846,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
         </div>
         {/* Full-width Distribution Chart */}
         {results && (
-          <div className="bg-white rounded-lg p-6 shadow mb-10 mt-5">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow mb-10 mt-5">
             <h3 className="text-lg font-semibold mb-6">Distribution of Intrinsic Values</h3>
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={results.histogram} margin={{ top: 20, right: 20, left: 20, bottom: 30 }}>

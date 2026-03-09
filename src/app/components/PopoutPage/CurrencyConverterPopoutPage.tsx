@@ -382,14 +382,14 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-11/12 lg:w-3/4 xl:w-2/3 h-5/6 overflow-auto">
+      <div ref={popoutRef} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-11/12 lg:w-3/4 xl:w-2/3 h-5/6 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
             <StockLogo symbol={symbol} height={50} width={50} className="mr-2" alt="logo" />
 
-            <h2 className="text-2xl font-bold">Currency Converter - {shortName}</h2>
+            <h2 className="text-2xl font-bold dark:text-white">Currency Converter - {shortName}</h2>
           </div>
-          <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 hover:text-gray-700">
+          <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
             <RxCross1 size={24} />
           </button>
         </div>
@@ -402,27 +402,27 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
           {/* Configuration Panel */}
-          <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Conversion Settings</h3>
+          <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold mb-4 dark:text-white">Conversion Settings</h3>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Financial Statement Currency</label>
-              <div className="w-full rounded-md border border-gray-300 py-2 px-3 bg-gray-100 flex items-center">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Financial Statement Currency</label>
+              <div className="w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 bg-gray-100 dark:bg-gray-600 dark:text-gray-200 flex items-center">
                 {CURRENCIES.find((c) => c.code === sourceCurrency)?.symbol || ""}
                 <span className="ml-2 font-medium">{sourceCurrency}</span>
                 <span className="ml-2 text-gray-500">
                   - {CURRENCIES.find((c) => c.code === sourceCurrency)?.name || ""}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Original currency used in financial statements</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Original currency used in financial statements</p>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Convert To</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Convert To</label>
               <select
                 value={targetCurrency}
                 onChange={(e) => setTargetCurrency(e.target.value)}
-                className="w-full rounded-md border border-gray-300 py-2 px-3"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3"
                 disabled={isConverted}
               >
                 {CURRENCIES.map((currency) => (
@@ -434,23 +434,23 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Conversion Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Conversion Date</label>
               <input
                 type="date"
                 value={conversionDate}
                 onChange={(e) => setConversionDate(e.target.value)}
-                className="w-full rounded-md border border-gray-300 py-2 px-3"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 px-3"
                 max={new Date().toISOString().split("T")[0]}
                 disabled={isConverted}
               />
-              <p className="text-xs text-gray-500 mt-1">Exchange rate as of this date will be used</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Exchange rate as of this date will be used</p>
             </div>
 
-            <div className="bg-white p-4 border rounded-md mb-6">
+            <div className="bg-white dark:bg-gray-700 p-4 border dark:border-gray-600 rounded-md mb-6">
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
                   <MdCurrencyExchange className="text-blue-500 mr-2" size={24} />
-                  <span className="text-sm font-medium">Exchange Rate:</span>
+                  <span className="text-sm font-medium dark:text-gray-200">Exchange Rate:</span>
                 </div>
                 {isLoading ? (
                   <div className="flex items-center">
@@ -477,7 +477,7 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
                     <span className="text-sm text-gray-500">Loading...</span>
                   </div>
                 ) : (
-                  <div className="text-lg font-semibold">
+                  <div className="text-lg font-semibold dark:text-white">
                     1 {sourceCurrency} = {exchangeRate.toFixed(4)} {targetCurrency}
                   </div>
                 )}
@@ -494,7 +494,7 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
               </div>
 
               {showHistoricalRates && (
-                <div className="mt-4 h-40 border-t pt-4">
+                <div className="mt-4 h-40 border-t dark:border-gray-600 pt-4">
                   {historicalRates.length > 0 ? (
                     <div className="grid grid-cols-3 gap-2">
                       {historicalRates.map((item, index) => (
@@ -576,8 +576,8 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
           </div>
 
           {/* Preview Panel */}
-          <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Conversion Preview</h3>
+          <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold mb-4 dark:text-white">Conversion Preview</h3>
 
             {isConverted && (
               <div className="mt-4 bg-yellow-50 border border-yellow-200 p-3 rounded-md mb-4">
@@ -602,25 +602,25 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
             )}
 
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead>
                   <tr>
-                    <th className="px-4 py-3 bg-gray-100 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Financial Metric
                     </th>
-                    <th className="px-4 py-3 bg-gray-100 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       {isConverted ? `Original (${sourceCurrency})` : `Original (${sourceCurrency})`}
                     </th>
-                    <th className="px-4 py-3 bg-gray-100 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       {isConverted ? `Converted (${targetCurrency})` : `Preview (${targetCurrency})`}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {previewData.map((item, index) => (
-                    <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.label}</td>
-                      <td className="px-4 py-3 text-sm text-gray-500 text-right">
+                    <tr key={index} className={index % 2 === 0 ? "bg-gray-50 dark:bg-gray-700/50" : "bg-white dark:bg-gray-800"}>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">{item.label}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-right">
                         {`${CURRENCIES.find((c) => c.code === sourceCurrency)?.symbol || ""}${conv.convToMillion(
                           item.original
                         )}`}
@@ -636,9 +636,9 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
               </table>
             </div>
 
-            <div className="mt-6 bg-blue-50 border border-blue-200 p-4 rounded-md">
-              <h4 className="font-medium text-blue-700 mb-2">Notes on Currency Conversion</h4>
-              <ul className="text-sm text-blue-700 space-y-1 list-disc pl-5">
+            <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-md">
+              <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-2">Notes on Currency Conversion</h4>
+              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-disc pl-5">
                 <li>All values shown in millions except for share price</li>
                 <li>Consider using average rates for income statement items</li>
                 <li>Consider using spot rates for balance sheet items</li>

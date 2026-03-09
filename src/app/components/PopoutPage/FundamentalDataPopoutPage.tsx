@@ -736,21 +736,21 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div ref={popoutRef} className="bg-white p-6 rounded-lg shadow-xl w-11/12 h-[95vh] overflow-auto">
+      <div ref={popoutRef} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-11/12 h-[95vh] overflow-auto">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
             <StockLogo symbol={symbol} height={50} width={50} className="mr-2" alt="logo" />
 
-            <h2 className="text-2xl font-bold">Fundamental Data - {shortName}</h2>
+            <h2 className="text-2xl font-bold dark:text-white">Fundamental Data - {shortName}</h2>
           </div>
-          <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 hover:text-gray-700">
+          <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
             <RxCross1 size={24} />
           </button>
         </div>
 
         {/* External Resources Buttons Section */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-600 mb-3">View additional insights on external platforms:</p>
+        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-6">
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">View additional insights on external platforms:</p>
           <div className="flex gap-4">
             <button
               onClick={() => window.open("https://app.stocksentinel.ai/", "_blank", "noopener,noreferrer")}
@@ -788,12 +788,12 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
         {/* Tabs Container */}
         <div className="mb-16">
           {/* Tab Headers */}
-          <div className="flex border-b border-gray-200">
+          <div className="flex border-b border-gray-200 dark:border-gray-600">
             <button
               className={`px-6 py-3 font-medium text-sm transition-colors duration-200 ${
                 activeTab === "income"
                   ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-800"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
               }`}
               onClick={() => setActiveTab("income")}
             >
@@ -803,7 +803,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
               className={`px-6 py-3 font-medium text-sm transition-colors duration-200 ${
                 activeTab === "balance"
                   ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-800"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
               }`}
               onClick={() => setActiveTab("balance")}
             >
@@ -816,29 +816,29 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
             {/* Income Statement Tab */}
             {activeTab === "income" && incomeTableData.fields.length > 0 && (
               <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-r dark:border-gray-600">
                         Item
                       </th>
                       {incomeTableData.years.map((year: number) => (
                         <th
                           key={year}
-                          className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider"
+                          className="px-4 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
                         >
                           {year}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {incomeTableData.fields.map((field: string, index: number) => (
-                      <tr key={field} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <tr key={field} className={index % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700/50"}>
                         <td
                           className={`px-4 py-3 text-sm ${
                             shouldBeBold(field, false) ? "font-bold" : "font-medium pl-8"
-                          } text-gray-900 border-r`}
+                          } text-gray-900 dark:text-gray-100 border-r dark:border-gray-600`}
                         >
                           <div className="flex items-center">
                             {formatFieldName(field)}
@@ -851,7 +851,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                             key={yearIndex}
                             className={`px-4 py-3 text-sm ${
                               shouldBeBold(field, false) ? "font-bold" : ""
-                            } text-gray-600 text-right`}
+                            } text-gray-600 dark:text-gray-300 text-right`}
                           >
                             {formatValue(field, yearData.values[field])}
                           </td>
@@ -866,29 +866,29 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
             {/* Balance Sheet Tab */}
             {activeTab === "balance" && balanceTableData.fields.length > 0 && (
               <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-r dark:border-gray-600">
                         Item
                       </th>
                       {balanceTableData.years.map((year: number) => (
                         <th
                           key={year}
-                          className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider"
+                          className="px-4 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
                         >
                           {year}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {balanceTableData.fields.map((field: string, index: number) => (
-                      <tr key={field} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <tr key={field} className={index % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700/50"}>
                         <td
                           className={`px-4 py-3 text-sm ${
                             shouldBeBold(field, true) ? "font-bold" : "font-medium pl-8"
-                          } text-gray-900 border-r`}
+                          } text-gray-900 dark:text-gray-100 border-r dark:border-gray-600`}
                         >
                           <div className="flex items-center">
                             {formatFieldName(field)}
@@ -900,7 +900,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                             key={yearIndex}
                             className={`px-4 py-3 text-sm ${
                               shouldBeBold(field, true) ? "font-bold" : ""
-                            } text-gray-600 text-right`}
+                            } text-gray-600 dark:text-gray-300 text-right`}
                           >
                             {formatValue(field, yearData.values[field])}
                           </td>
@@ -916,24 +916,24 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
 
         {/* Historical Sales to Capital Ratio Section */}
         <div className="mb-16">
-          <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Historical Sales to Capital Ratio</h3>
+          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white border-b dark:border-gray-600 pb-2">Historical Sales to Capital Ratio</h3>
           <div className="overflow-x-auto">
             {investedCapitalIsFetching || revIsFetching ? (
-              <div className="w-full bg-white p-4 rounded-lg">
+              <div className="w-full bg-white dark:bg-gray-800 p-4 rounded-lg">
                 <div className="animate-pulse space-y-4">
                   <div className="h-8 bg-gray-200 rounded w-full"></div>
                   <div className="h-8 bg-gray-200 rounded w-full"></div>
                 </div>
               </div>
             ) : (
-              <table className="min-w-full bg-white border border-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r"></th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-r dark:border-gray-600"></th>
                     {historicalSalesToCap.map((item, index) => (
                       <th
                         key={index}
-                        className={`py-3 px-4 text-right text-xs font-medium text-gray-700 uppercase tracking-wider ${
+                        className={`py-3 px-4 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider ${
                           index === historicalSalesToCap.length - 1 ? "" : ""
                         }`}
                       >
@@ -942,11 +942,11 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-                  <tr className="bg-white">
-                    <td className="py-3 px-4 text-sm font-bold text-gray-900 border-r">Sales to Capital</td>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  <tr className="bg-white dark:bg-gray-800">
+                    <td className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-gray-100 border-r dark:border-gray-600">Sales to Capital</td>
                     {historicalSalesToCap.map((item, index) => (
-                      <td key={index} className="py-3 px-4 text-sm text-gray-600 text-right">
+                      <td key={index} className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300 text-right">
                         {typeof item.salesToCap === "number" && !isNaN(item.salesToCap) ? (
                           <span className="font-medium">{item.salesToCap.toFixed(2)}</span>
                         ) : (
@@ -956,9 +956,9 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                     ))}
                   </tr>
                   {/* Average Row */}
-                  <tr className="bg-gray-50">
-                    <td className="py-3 px-4 text-sm font-bold text-gray-900 border-r">Average</td>
-                    <td colSpan={historicalSalesToCap.length} className="py-3 px-4 text-sm text-center">
+                  <tr className="bg-gray-50 dark:bg-gray-700">
+                    <td className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-gray-100 border-r dark:border-gray-600">Average</td>
+                    <td colSpan={historicalSalesToCap.length} className="py-3 px-4 text-sm text-center dark:text-gray-200">
                       {average !== null ? (
                         <span className="font-medium">{average.toFixed(2)}</span>
                       ) : (
@@ -967,9 +967,9 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                     </td>
                   </tr>
                   {/* Standard Deviation Row */}
-                  <tr className="bg-white">
-                    <td className="py-3 px-4 text-sm font-bold text-gray-900 border-r">Standard Deviation</td>
-                    <td colSpan={historicalSalesToCap.length} className="py-3 px-4 text-sm text-center">
+                  <tr className="bg-white dark:bg-gray-800">
+                    <td className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-gray-100 border-r dark:border-gray-600">Standard Deviation</td>
+                    <td colSpan={historicalSalesToCap.length} className="py-3 px-4 text-sm text-center dark:text-gray-200">
                       {stdDev !== null ? (
                         <span className="font-medium">{stdDev.toFixed(2)}</span>
                       ) : (
@@ -985,64 +985,64 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
 
         {/* Key Financial Ratios Section*/}
         <div className="mb-16">
-          <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Key Financial Ratios</h3>
+          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white border-b dark:border-gray-600 pb-2">Key Financial Ratios</h3>
           {keyMetrics && keyMetrics.length > 0 && (
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-r dark:border-gray-600">
                       Metric
                     </th>
                     {keyMetrics.map((metric: any) => (
                       <th
                         key={metric.year}
-                        className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider"
+                        className="px-4 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
                       >
                         {metric.year}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-                  <tr className="bg-white">
-                    <td className="px-4 py-3 text-sm font-bold text-gray-900 border-r">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  <tr className="bg-white dark:bg-gray-800">
+                    <td className="px-4 py-3 text-sm font-bold text-gray-900 dark:text-gray-100 border-r dark:border-gray-600">
                       Return on Invested Capital (ROIC)
                     </td>
                     {keyMetrics.map((metric: any, index: number) => (
-                      <td key={index} className="px-4 py-3 text-sm text-gray-600 text-right">
+                      <td key={index} className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 text-right">
                         {formatMetricValue(metric.roic, true)}
                       </td>
                     ))}
                   </tr>
-                  <tr className="bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-bold text-gray-900 border-r">Return on Equity (ROE)</td>
+                  <tr className="bg-gray-50 dark:bg-gray-700">
+                    <td className="px-4 py-3 text-sm font-bold text-gray-900 dark:text-gray-100 border-r dark:border-gray-600">Return on Equity (ROE)</td>
                     {keyMetrics.map((metric: any, index: number) => (
-                      <td key={index} className="px-4 py-3 text-sm text-gray-600 text-right">
+                      <td key={index} className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 text-right">
                         {formatMetricValue(metric.roe, true)}
                       </td>
                     ))}
                   </tr>
-                  <tr className="bg-white">
-                    <td className="px-4 py-3 text-sm font-bold text-gray-900 border-r">Debt to Equity</td>
+                  <tr className="bg-white dark:bg-gray-800">
+                    <td className="px-4 py-3 text-sm font-bold text-gray-900 dark:text-gray-100 border-r dark:border-gray-600">Debt to Equity</td>
                     {keyMetrics.map((metric: any, index: number) => (
-                      <td key={index} className="px-4 py-3 text-sm text-gray-600 text-right">
+                      <td key={index} className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 text-right">
                         {formatMetricValue(metric.debtToEquity, false)}
                       </td>
                     ))}
                   </tr>
-                  <tr className="bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-bold text-gray-900 border-r">Net Debt to EBITDA</td>
+                  <tr className="bg-gray-50 dark:bg-gray-700">
+                    <td className="px-4 py-3 text-sm font-bold text-gray-900 dark:text-gray-100 border-r dark:border-gray-600">Net Debt to EBITDA</td>
                     {keyMetrics.map((metric: any, index: number) => (
-                      <td key={index} className="px-4 py-3 text-sm text-gray-600 text-right">
+                      <td key={index} className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 text-right">
                         {formatMetricValue(metric.netDebtToEBITDA, false)}
                       </td>
                     ))}
                   </tr>
-                  <tr className="bg-white">
-                    <td className="px-4 py-3 text-sm font-bold text-gray-900 border-r">R&D to Revenue</td>
+                  <tr className="bg-white dark:bg-gray-800">
+                    <td className="px-4 py-3 text-sm font-bold text-gray-900 dark:text-gray-100 border-r dark:border-gray-600">R&D to Revenue</td>
                     {keyMetrics.map((metric: any, index: number) => (
-                      <td key={index} className="px-4 py-3 text-sm text-gray-600 text-right">
+                      <td key={index} className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 text-right">
                         {formatMetricValue(metric.rdToRevenue, true)}
                       </td>
                     ))}
@@ -1054,7 +1054,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
         </div>
         {/* SEC Filings Section */}
         <div className="mb-16">
-          <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">SEC Filings</h3>
+          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white border-b dark:border-gray-600 pb-2">SEC Filings</h3>
 
           {secFilingsLoading ? (
             <div className="flex items-center justify-center py-4">
@@ -1082,7 +1082,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                   href={mostRecent10K.reportUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                  className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors dark:text-gray-200"
                 >
                   <div className="p-2 bg-blue-100 rounded-full mr-3">
                     <FaFileAlt className="text-blue-600 h-5 w-5" />
@@ -1104,7 +1104,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
                   href={mostRecent10Q.reportUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                  className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors dark:text-gray-200"
                 >
                   <div className="p-2 bg-green-100 rounded-full mr-3">
                     <FaFileAlt className="text-green-600 h-5 w-5" />
