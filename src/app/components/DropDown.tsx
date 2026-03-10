@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaChevronDown } from "react-icons/fa";
 
 interface DropdownProps {
@@ -15,10 +15,11 @@ const Dropdown = ({ options, value, onChange, defaultOption, label }: DropdownPr
   const [filteredOptions, setFilteredOptions] = useState(options);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    if (value) {
-      setSelectedValue(value);
-    }
+    if (value) setSelectedValue(value);
   }, [value]);
 
   useEffect(() => {
@@ -26,56 +27,68 @@ const Dropdown = ({ options, value, onChange, defaultOption, label }: DropdownPr
     setFilteredOptions(filtered);
   }, [searchQuery, options]);
 
-  const handleToggle = () => setIsOpen(!isOpen);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+        setSearchQuery("");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleOpen = () => {
+    setIsOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
 
   const handleSelect = (option: string) => {
     setSelectedValue(option);
     onChange(option);
     setIsOpen(false);
-    setSearchQuery(""); // Reset search after selection
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setIsOpen(true);
+    setSearchQuery("");
   };
 
   return (
-    <div className="mr-6 relative w-56">
+    <div ref={containerRef} className="mr-6 relative w-56">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
 
       <div className="relative mt-1">
-        <button
-          type="button"
-          className="w-full bg-white dark:bg-gray-700 border border-gray-400 dark:border-gray-500 rounded-md py-2 px-3 text-left text-gray-900 dark:text-gray-100"
-          onClick={handleToggle}
-          aria-haspopup="listbox"
-          aria-expanded={isOpen}
+        <div
+          className="w-full bg-white dark:bg-gray-700 border border-gray-400 dark:border-gray-500 rounded-md py-2 px-3 pr-8 cursor-pointer"
+          onClick={handleOpen}
         >
-          <span className="block truncate">{searchQuery ? searchQuery : selectedValue}</span>
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={handleInputChange}
-            className="absolute inset-0 w-full py-1 px-3 border-none opacity-0 focus:opacity-100 focus:outline-none bg-transparent dark:text-gray-100"
-          />
-          <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-            <FaChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-400" aria-hidden="true" />
-          </span>
-        </button>
+          {isOpen ? (
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full bg-transparent border-none outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+            />
+          ) : (
+            <span className="block truncate text-gray-900 dark:text-gray-100">{selectedValue}</span>
+          )}
+        </div>
+        <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+          <FaChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+        </span>
 
         {isOpen && (
           <ul
             className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black dark:ring-gray-600 ring-opacity-5 overflow-auto sm:text-sm"
-            tabIndex={-1}
             role="listbox"
           >
             {filteredOptions.map((option) => (
               <li
                 key={option}
                 className={`cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-blue-100 dark:hover:bg-blue-900/40 ${
-                  selectedValue === option ? "bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300" : "text-gray-900 dark:text-gray-100"
+                  selectedValue === option
+                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300"
+                    : "text-gray-900 dark:text-gray-100"
                 }`}
                 onClick={() => handleSelect(option)}
                 role="option"
