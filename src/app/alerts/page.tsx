@@ -100,6 +100,9 @@ export default function AlertsPage() {
   const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [alertToDelete, setAlertToDelete] = useState<PriceAlert | null>(null);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [selectedAlerts, setSelectedAlerts] = useState<Set<number>>(new Set());
+  const [isMassDeletePopupOpen, setIsMassDeletePopupOpen] = useState(false);
 
   // Debug logging (remove in production)
   React.useEffect(() => {
@@ -200,6 +203,37 @@ export default function AlertsPage() {
     }
   };
 
+  const toggleDeleteMode = () => {
+    setIsDeleteMode((prev) => !prev);
+    setSelectedAlerts(new Set());
+  };
+
+  const toggleSelectAll = () => {
+    if (!alerts) return;
+    if (selectedAlerts.size === alerts.length) {
+      setSelectedAlerts(new Set());
+    } else {
+      setSelectedAlerts(new Set(alerts.map((a) => a.id)));
+    }
+  };
+
+  const toggleSelectAlert = (id: number) => {
+    setSelectedAlerts((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const confirmMassDelete = async () => {
+    await Promise.all([...selectedAlerts].map((id) => deletePriceAlert(id)));
+    await queryClient.invalidateQueries({ queryKey: ["priceAlerts"] });
+    await queryClient.refetchQueries({ queryKey: ["priceAlerts"] });
+    setIsMassDeletePopupOpen(false);
+    setSelectedAlerts(new Set());
+    setIsDeleteMode(false);
+  };
+
   const getStatusBadge = (status: string) => {
     const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
     switch (status) {
@@ -283,6 +317,26 @@ export default function AlertsPage() {
             >
               Refresh
             </button>
+            {isDeleteMode && selectedAlerts.size > 0 && (
+              <button
+                onClick={() => setIsMassDeletePopupOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                <MdDelete className="mr-1 h-4 w-4" />
+                Delete ({selectedAlerts.size})
+              </button>
+            )}
+            <button
+              onClick={toggleDeleteMode}
+              className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors ${
+                isDeleteMode
+                  ? "border-red-500 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30"
+                  : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+            >
+              <MdDelete className="mr-1 h-4 w-4" />
+              {isDeleteMode ? "Cancel" : "Select"}
+            </button>
             <button
               onClick={() => setIsNewAlertOpen(true)}
               className="inline-flex items-center px-5 py-2.5 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -306,6 +360,16 @@ export default function AlertsPage() {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
+                    {isDeleteMode && (
+                      <th className="px-4 py-3 w-10">
+                        <input
+                          type="checkbox"
+                          checked={!!alerts && alerts.length > 0 && selectedAlerts.size === alerts.length}
+                          onChange={toggleSelectAll}
+                          className="h-4 w-4 text-red-600 border-gray-300 dark:border-gray-600 rounded"
+                        />
+                      </th>
+                    )}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Stock
                     </th>
@@ -335,7 +399,7 @@ export default function AlertsPage() {
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {!alerts || alerts.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                      <td colSpan={isDeleteMode ? 9 : 8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                         <div className="flex flex-col items-center">
                           <div className="bg-indigo-100 dark:bg-indigo-900/30 p-6 rounded-full mb-6">
                             <MdAdd className="h-16 w-16 text-indigo-600 dark:text-indigo-400" />
@@ -350,7 +414,21 @@ export default function AlertsPage() {
                       const marketPrice = marketPriceQueries[index]?.data || 0;
 
                       return (
-                        <tr key={alert.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <tr
+                          key={alert.id}
+                          onClick={isDeleteMode ? () => toggleSelectAlert(alert.id) : undefined}
+                          className={`${isDeleteMode ? "cursor-pointer select-none" : ""} hover:bg-gray-50 dark:hover:bg-gray-700/50 ${isDeleteMode && selectedAlerts.has(alert.id) ? "bg-red-50 dark:bg-red-900/10" : ""}`}
+                        >
+                          {isDeleteMode && (
+                            <td className="px-4 py-4 w-10">
+                              <input
+                                type="checkbox"
+                                checked={selectedAlerts.has(alert.id)}
+                                onChange={() => toggleSelectAlert(alert.id)}
+                                className="h-4 w-4 text-red-600 border-gray-300 dark:border-gray-600 rounded"
+                              />
+                            </td>
+                          )}
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-10 w-10 relative mr-3">
@@ -473,6 +551,11 @@ export default function AlertsPage() {
       {/* Delete Confirmation Popout */}
       {isDeletePopupOpen && alertToDelete && (
         <DeletePopoutPage setIsPopoutOpen={setIsDeletePopupOpen} handleDelete={confirmDelete} />
+      )}
+
+      {/* Mass Delete Confirmation Popout */}
+      {isMassDeletePopupOpen && (
+        <DeletePopoutPage setIsPopoutOpen={setIsMassDeletePopupOpen} handleDelete={confirmMassDelete} />
       )}
     </>
   );
