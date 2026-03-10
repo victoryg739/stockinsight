@@ -704,36 +704,72 @@ function FCFFPageContent() {
           <div
             className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
           >
-            <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10 ">
-              <Dropdown
-                options={countries}
-                value={countryOptions}
-                onChange={setCountryOptions}
-                defaultOption="United States"
-                label="Country"
-              />
-              <Dropdown
-                options={industries}
-                value={industryOptions}
-                onChange={setIndustryOptions}
-                defaultOption="Software (Internet)"
-                label="Industry"
-              />
-
-              {inputs
-                .filter((input) => input.id !== "revGrowthPerpetuity")
-                .map((input, index) => (
-                  <InputBox
-                    key={input.id}
-                    id={input.id}
-                    label={input.label}
-                    value={input.value}
-                    question={input.question}
-                    unit={input.unit}
-                    onChange={(e: any) => handleInputChange(input.id, e.target.value, "inputs")}
-                    firstElement={index === 0}
-                  />
-                ))}
+            <div className="flex flex-col gap-y-10">
+              {/* Country + Industry */}
+              <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10">
+                <Dropdown
+                  options={countries}
+                  value={countryOptions}
+                  onChange={setCountryOptions}
+                  defaultOption="United States"
+                  label="Country"
+                />
+                <Dropdown
+                  options={industries}
+                  value={industryOptions}
+                  onChange={setIndustryOptions}
+                  defaultOption="Software (Internet)"
+                  label="Industry"
+                />
+              </div>
+              {/* Revenue Growth */}
+              <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10">
+                {inputs
+                  .filter((input) => ["revGrowthYr1", "revGrowthYr2to5"].includes(input.id))
+                  .map((input) => (
+                    <InputBox
+                      key={input.id}
+                      id={input.id}
+                      label={input.label}
+                      value={input.value}
+                      question={input.question}
+                      unit={input.unit}
+                      onChange={(e: any) => handleInputChange(input.id, e.target.value, "inputs")}
+                    />
+                  ))}
+              </div>
+              {/* Operating Margin + Convergence */}
+              <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10">
+                {inputs
+                  .filter((input) => ["opMarginYr1", "opMarginYr10", "yrsConvergence"].includes(input.id))
+                  .map((input) => (
+                    <InputBox
+                      key={input.id}
+                      id={input.id}
+                      label={input.label}
+                      value={input.value}
+                      question={input.question}
+                      unit={input.unit}
+                      onChange={(e: any) => handleInputChange(input.id, e.target.value, "inputs")}
+                    />
+                  ))}
+              </div>
+              {/* Sales to Capital */}
+              <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10">
+                {inputs
+                  .filter((input) => ["salesToCapYr1", "salesToCapYr2to5", "salesToCapYr6to10"].includes(input.id))
+                  .map((input) => (
+                    <InputBox
+                      key={input.id}
+                      id={input.id}
+                      label={input.label}
+                      value={input.value}
+                      question={input.question}
+                      unit={input.unit}
+                      onChange={(e: any) => handleInputChange(input.id, e.target.value, "inputs")}
+                    />
+                  ))}
+              </div>
             </div>
             {/* Show More button */}
             <div className="text-center mt-10">

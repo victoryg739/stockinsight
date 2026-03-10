@@ -687,7 +687,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
       <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
         <div
           ref={popoutRef}
-          className="bg-white p-6 rounded-lg shadow-xl w-11/12 lg:w-4/5 xl:w-3/4 h-5/6 overflow-auto"
+          className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-11/12 lg:w-4/5 xl:w-3/4 h-5/6 overflow-auto"
         >
           <div className="flex justify-center items-center h-full">
             <svg
@@ -715,7 +715,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
       <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
         <div
           ref={popoutRef}
-          className="bg-white p-6 rounded-lg shadow-xl w-11/12 lg:w-4/5 xl:w-3/4 h-5/6 overflow-auto"
+          className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-11/12 lg:w-4/5 xl:w-3/4 h-5/6 overflow-auto"
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Error Loading Data</h2>

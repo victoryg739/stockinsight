@@ -478,7 +478,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
   // Get color based on percentage difference
   const getDifferenceColor = (diff: number): string => {
     if (diff > 0) return "text-green-600";
-    if (diff < 0) return "text-red-600";
+    if (diff < 0) return "text-red-400";
     return "text-gray-600"; // No difference
   };
 

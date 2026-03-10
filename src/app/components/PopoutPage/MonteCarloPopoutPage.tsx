@@ -675,7 +675,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                   <button
                     onClick={runSimulation}
                     disabled={isLoading || !Object.values(inputVars).some((v) => v.enabled)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 disabled:bg-blue-300 dark:disabled:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     {isLoading ? (
                       <>

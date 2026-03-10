@@ -625,7 +625,7 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
                           item.original
                         )}`}
                       </td>
-                      <td className="px-4 py-3 text-sm text-blue-600 font-medium text-right">
+                      <td className="px-4 py-3 text-sm text-blue-400 font-medium text-right">
                         {`${CURRENCIES.find((c) => c.code === targetCurrency)?.symbol || ""}${conv.convToMillion(
                           item.converted
                         )}`}
