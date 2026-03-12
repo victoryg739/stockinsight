@@ -139,15 +139,27 @@ export default function MyValuationsPage() {
     return `Q${quarter} ${date.getFullYear()}`;
   };
 
+  const getTagLabel = (tag: string) => tag.split("|")[0];
+
   const getTagStyle = (tag: string) => {
-    switch (tag) {
+    const [label, colorKey] = tag.split("|");
+    switch (label) {
       case "Base Case":    return "bg-blue-100 text-blue-700";
       case "Bull Case":    return "bg-green-100 text-green-700";
       case "Bear Case":    return "bg-red-100 text-red-700";
       case "Conservative": return "bg-amber-100 text-amber-700";
-      case "Aggressive":   return "bg-purple-100 text-purple-700";
-      default:             return "bg-gray-100 text-gray-600";
     }
+    const colorMap: Record<string, string> = {
+      blue:   "bg-blue-100 text-blue-700",
+      green:  "bg-green-100 text-green-700",
+      red:    "bg-red-100 text-red-700",
+      amber:  "bg-amber-100 text-amber-700",
+      purple: "bg-purple-100 text-purple-700",
+      pink:   "bg-pink-100 text-pink-700",
+      teal:   "bg-teal-100 text-teal-700",
+      gray:   "bg-gray-100 text-gray-600",
+    };
+    return colorKey && colorMap[colorKey] ? colorMap[colorKey] : "bg-gray-100 text-gray-600";
   };
 
   // Get staleness: how many new quarters have been reported since the valuation was saved?
@@ -519,7 +531,7 @@ export default function MyValuationsPage() {
                                 key={tag}
                                 className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${getTagStyle(tag)}`}
                               >
-                                {tag}
+                                {getTagLabel(tag)}
                               </span>
                             ))}
                           </div>
@@ -767,7 +779,7 @@ export default function MyValuationsPage() {
                                 key={tag}
                                 className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${getTagStyle(tag)}`}
                               >
-                                {tag}
+                                {getTagLabel(tag)}
                               </span>
                             ))}
                           </div>

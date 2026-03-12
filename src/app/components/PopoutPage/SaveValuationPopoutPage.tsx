@@ -24,14 +24,35 @@ export default function SaveValuationPopoutPage({
   const [showPreview, setShowPreview] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [customTagInput, setCustomTagInput] = useState("");
+  const [customTagColor, setCustomTagColor] = useState("blue");
 
   const PRESET_TAGS = [
-    { label: "Base Case", style: "bg-blue-100 text-blue-700 border-blue-300" },
-    { label: "Bull Case", style: "bg-green-100 text-green-700 border-green-300" },
-    { label: "Bear Case", style: "bg-red-100 text-red-700 border-red-300" },
+    { label: "Base Case",    style: "bg-blue-100 text-blue-700 border-blue-300" },
+    { label: "Bull Case",    style: "bg-green-100 text-green-700 border-green-300" },
+    { label: "Bear Case",    style: "bg-red-100 text-red-700 border-red-300" },
     { label: "Conservative", style: "bg-amber-100 text-amber-700 border-amber-300" },
-    { label: "Aggressive", style: "bg-purple-100 text-purple-700 border-purple-300" },
   ];
+
+  const TAG_COLORS = [
+    { key: "blue",   style: "bg-blue-100 text-blue-700 border-blue-300",     dot: "bg-blue-500" },
+    { key: "green",  style: "bg-green-100 text-green-700 border-green-300",   dot: "bg-green-500" },
+    { key: "red",    style: "bg-red-100 text-red-700 border-red-300",         dot: "bg-red-500" },
+    { key: "amber",  style: "bg-amber-100 text-amber-700 border-amber-300",   dot: "bg-amber-500" },
+    { key: "purple", style: "bg-purple-100 text-purple-700 border-purple-300", dot: "bg-purple-500" },
+    { key: "pink",   style: "bg-pink-100 text-pink-700 border-pink-300",      dot: "bg-pink-500" },
+    { key: "teal",   style: "bg-teal-100 text-teal-700 border-teal-300",      dot: "bg-teal-500" },
+    { key: "gray",   style: "bg-gray-100 text-gray-600 border-gray-300",      dot: "bg-gray-400" },
+  ];
+
+  const getTagDisplayLabel = (tag: string) => tag.split("|")[0];
+
+  const getTagColorStyle = (tag: string) => {
+    const [label, colorKey] = tag.split("|");
+    const preset = PRESET_TAGS.find((p) => p.label === label);
+    if (preset) return preset.style;
+    const color = TAG_COLORS.find((c) => c.key === colorKey);
+    return color ? color.style : "bg-gray-100 text-gray-600 border-gray-300";
+  };
 
   const togglePresetTag = (label: string) => {
     setTags((prev) => prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]);
@@ -39,8 +60,10 @@ export default function SaveValuationPopoutPage({
 
   const addCustomTag = () => {
     const trimmed = customTagInput.trim();
-    if (trimmed && !tags.includes(trimmed)) {
-      setTags((prev) => [...prev, trimmed]);
+    if (!trimmed) return;
+    const alreadyExists = tags.some((t) => t.split("|")[0] === trimmed);
+    if (!alreadyExists) {
+      setTags((prev) => [...prev, trimmed + "|" + customTagColor]);
     }
     setCustomTagInput("");
   };
@@ -701,46 +724,54 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
               ))}
             </div>
 
-            {/* Custom tag input */}
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={customTagInput}
-                onChange={(e) => setCustomTagInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addCustomTag()}
-                placeholder="Add custom tag..."
-                className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                onClick={addCustomTag}
-                className="px-3 py-1.5 bg-gray-800 dark:bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 dark:hover:bg-gray-500 transition-colors"
-              >
-                Add
-              </button>
+            {/* Custom tag input + color picker */}
+            <div className="space-y-2 mb-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customTagInput}
+                  onChange={(e) => setCustomTagInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addCustomTag()}
+                  placeholder="Add custom tag..."
+                  className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={addCustomTag}
+                  className="px-3 py-1.5 bg-gray-800 dark:bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 dark:hover:bg-gray-500 transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">Color:</span>
+                {TAG_COLORS.map(({ key, dot }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setCustomTagColor(key)}
+                    className={`w-5 h-5 rounded-full ${dot} transition-transform ${customTagColor === key ? "ring-2 ring-offset-1 ring-gray-500 dark:ring-gray-300 scale-125" : "hover:scale-110"}`}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Selected tags */}
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => {
-                  const preset = PRESET_TAGS.find((p) => p.label === tag);
-                  return (
-                    <span
-                      key={tag}
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${
-                        preset ? preset.style : "bg-gray-100 text-gray-600 border-gray-300"
-                      }`}
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getTagColorStyle(tag)}`}
+                  >
+                    {getTagDisplayLabel(tag)}
+                    <button
+                      onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                      className="ml-0.5 hover:opacity-70 font-bold"
                     >
-                      {tag}
-                      <button
-                        onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
-                        className="ml-0.5 hover:opacity-70 font-bold"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  );
-                })}
+                      ×
+                    </button>
+                  </span>
+                ))}
               </div>
             )}
           </section>
