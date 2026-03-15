@@ -28,7 +28,8 @@ export function useCompanyLogo(symbol: string | null | undefined, options?: Comp
         setIsLoading(false);
 
         // Prefetch to check if the logo exists
-        fetch(apiUrl, { method: 'HEAD' })
+        const controller = new AbortController();
+        fetch(apiUrl, { method: 'HEAD', signal: controller.signal })
             .then(response => {
                 if (!response.ok) {
                     setError('Logo not found');
@@ -36,10 +37,12 @@ export function useCompanyLogo(symbol: string | null | undefined, options?: Comp
                 }
             })
             .catch(err => {
+                if (err.name === 'AbortError') return;
                 console.error('Error checking logo:', err);
                 setError(err.message);
                 setLogoUrl(fallbackUrl);
             });
+        return () => controller.abort();
     }, [symbol, fallbackUrl]);
 
     return { logoUrl, isLoading, error };

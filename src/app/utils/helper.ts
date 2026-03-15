@@ -2,7 +2,7 @@ export function extractLatestQuarterValues(data: any): Record<string, number> | 
     if (data.length === 0) return null;
 
     // Sort data by date in descending order
-    const sortedData = data.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const sortedData = [...data].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     // Get the latest quarter data
     const latestQuarter = sortedData[0];
@@ -22,7 +22,8 @@ export const encodeParams = (industry: string) => {
 };
 
 const removeTrailingZeros = (value: string) => {
-    return value.endsWith('.00') ? value.slice(0, -3) : value;
+    if (!value.includes('.')) return value;
+    return value.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
 }
 
 export const convDecimalToPercentage = (value: number) => {

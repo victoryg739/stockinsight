@@ -294,13 +294,11 @@ export const postValuation = async (
 export const deleteValuationById = async (
     ids: [],
 ) => {
-    for (const id of ids) {  // Correctly iterating over the array
-        try {
-            await axios.delete(`/api/valuation/${id}`)
-        } catch (error) {
-            console.error('Error deleting valuation:', error);
-            throw error;
-        }
+    try {
+        await Promise.all(ids.map((id) => axios.delete(`/api/valuation/${id}`)));
+    } catch (error) {
+        console.error('Error deleting valuation:', error);
+        throw error;
     }
 };
 

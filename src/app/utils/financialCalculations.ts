@@ -201,8 +201,6 @@ export function calcEquityValueCommonStock(equityValue: number, valueOfOptions: 
 }
 
 export function calcImpliedSharePrice(calcEquityValueCommonStock: number, impliedSharesOutstanding: number): number {
-    console.log("calcEquityValueCommonStock: " + calcEquityValueCommonStock);
-    console.log("impliedSharesOutstanding: " + impliedSharesOutstanding);
     return calcEquityValueCommonStock / impliedSharesOutstanding;
 }
 

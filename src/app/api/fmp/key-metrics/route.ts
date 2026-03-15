@@ -7,7 +7,6 @@ export async function GET(req: NextRequest) {
     if (!symbol) {
         return NextResponse.json({ error: 'Symbol parameter is required' }, { status: 400 });
     }
-    console.log(symbol)
 
     const apiKey = process.env.FINANCIAL_MODELING_PREP_API_KEY;
 

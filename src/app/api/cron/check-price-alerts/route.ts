@@ -239,19 +239,22 @@ export async function GET(request: NextRequest) {
           if (shouldTrigger) {
             console.log(`Triggering alert ${alert.id} for ${symbol}: ${currentPrice} ${alert.condition.toLowerCase()} ${targetPrice}`);
 
-            // Update alert status to TRIGGERED
-            await prisma.price_alert.update({
-              where: { id: alert.id },
-              data: {
-                status: "TRIGGERED",
-                triggered_at: new Date()
-              }
-            });
+            try {
+              // Send email first — only mark TRIGGERED if email succeeds
+              await sendAlertEmail(alert.email, alert, currentPrice);
 
-            // Send email notification
-            await sendAlertEmail(alert.email, alert, currentPrice);
+              await prisma.price_alert.update({
+                where: { id: alert.id },
+                data: {
+                  status: "TRIGGERED",
+                  triggered_at: new Date()
+                }
+              });
 
-            triggeredCount++;
+              triggeredCount++;
+            } catch (emailError) {
+              console.error(`Failed to send alert email for alert ${alert.id}:`, emailError);
+            }
           }
         }
 

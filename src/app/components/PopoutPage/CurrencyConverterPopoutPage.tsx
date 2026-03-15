@@ -279,21 +279,24 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
 
   // Fetch exchange rate when source/target/date changes
   useEffect(() => {
+    let cancelled = false;
     const getExchangeRate = async () => {
       if (sourceCurrency === targetCurrency) {
-        setExchangeRate(1.0);
+        if (!cancelled) setExchangeRate(1.0);
         return;
       }
 
       const rate = await fetchExchangeRate(sourceCurrency, targetCurrency, conversionDate);
-      setExchangeRate(rate);
+      if (!cancelled) setExchangeRate(rate);
     };
 
     getExchangeRate();
+    return () => { cancelled = true; };
   }, [sourceCurrency, targetCurrency, conversionDate]);
 
   // Fetch historical rates for the chart
   useEffect(() => {
+    let cancelled = false;
     const fetchHistoricalRates = async () => {
       if (sourceCurrency === targetCurrency) return;
 
@@ -310,16 +313,18 @@ const CurrencyConverterPopoutPage: React.FC<CurrencyConverterPopoutPageProps> = 
       // Fetch rates for each date
       const rates = [];
       for (const date of dates) {
+        if (cancelled) return;
         const rate = await fetchExchangeRate(sourceCurrency, targetCurrency, date);
         rates.push({ date, rate });
       }
 
-      setHistoricalRates(rates.reverse());
+      if (!cancelled) setHistoricalRates(rates.reverse());
     };
 
     if (showHistoricalRates) {
       fetchHistoricalRates();
     }
+    return () => { cancelled = true; };
   }, [showHistoricalRates, sourceCurrency, targetCurrency]);
 
   // Apply the conversion to specified financial data
