@@ -12,7 +12,19 @@ import {
   calcLeveredBeta,
   calcMarketValueDebt,
   calcCostOfEquity,
-  calcImpliedSharePrice
+  calcImpliedSharePrice,
+  calcTerminalWACC,
+  calcFcff,
+  calcCumulatedDiscountFactor,
+  calcPvFcff,
+  calcSumOfPvFcff10Yrs,
+  calcPVTerminalValue,
+  calcEnterpriseValue,
+  calcEquityValue,
+  calcEquityValueCommonStock,
+  calcWaccEquityWeight,
+  calcWaccDebtWeight,
+  calcInitialWacc,
 } from '@/app/utils/financialCalculations';
 
 describe('Financial Calculations', () => {
@@ -434,6 +446,338 @@ describe('Financial Calculations', () => {
       const result = calcImpliedSharePrice(1000000, 3333333);
 
       expect(result).toBeCloseTo(0.3, 2);
+    });
+  });
+
+  // ── NEW: Previously untested functions ───────────────────────────────────
+
+  describe('calcTerminalWACC', () => {
+    it('should return matureMarketErp + riskFreeRate', () => {
+      expect(calcTerminalWACC(4.6, 4.2)).toBeCloseTo(8.8, 4);
+    });
+
+    it('should handle zero inputs', () => {
+      expect(calcTerminalWACC(0, 0)).toBe(0);
+    });
+
+    it('is additive regardless of order', () => {
+      expect(calcTerminalWACC(4.6, 4.2)).toBeCloseTo(calcTerminalWACC(4.2, 4.6), 10);
+    });
+  });
+
+  describe('calcFcff', () => {
+    it('should compute FCFF = ebitAfterTax[i] − reinvestment[i-1] for each year', () => {
+      // ebitAfterTax: [base(ignored), yr1, yr2, yr3]
+      const ebitAfterTax  = [0, 100, 150, 200];
+      const reinvestment  = [30, 40, 50];  // indexed 0-based → yr1=30, yr2=40, yr3=50
+
+      const result = calcFcff(ebitAfterTax, reinvestment);
+      // yr1: 100 - 30 = 70, yr2: 150 - 40 = 110, yr3: 200 - 50 = 150
+      expect(result).toHaveLength(3);
+      expect(result[0]).toBeCloseTo(70, 4);
+      expect(result[1]).toBeCloseTo(110, 4);
+      expect(result[2]).toBeCloseTo(150, 4);
+    });
+
+    it('should handle negative reinvestment (disinvestment increases FCFF)', () => {
+      const ebitAfterTax = [0, 100];
+      const reinvestment = [-20];
+
+      const result = calcFcff(ebitAfterTax, reinvestment);
+      expect(result[0]).toBeCloseTo(120, 4);
+    });
+
+    it('should skip base year (index 0) of ebitAfterTax', () => {
+      const ebitAfterTax = [999, 100]; // base=999 should be ignored
+      const reinvestment = [40];
+
+      const result = calcFcff(ebitAfterTax, reinvestment);
+      expect(result[0]).toBeCloseTo(60, 4); // 100 - 40, not 999 - 40
+    });
+  });
+
+  describe('calcCumulatedDiscountFactor', () => {
+    it('should return 10 discount factors for a 11-element WACC array', () => {
+      const wacc = new Array(11).fill(10); // constant 10% WACC
+      const result = calcCumulatedDiscountFactor(wacc);
+      expect(result).toHaveLength(10);
+    });
+
+    it('should compound correctly for constant WACC', () => {
+      const wacc = new Array(11).fill(10);
+      const result = calcCumulatedDiscountFactor(wacc);
+      // Year 1: 1 / 1.10 = 0.9091
+      expect(result[0]).toBeCloseTo(1 / 1.1, 4);
+      // Year 2: 1 / 1.10^2 = 0.8264
+      expect(result[1]).toBeCloseTo(1 / 1.1 ** 2, 4);
+      // Year 10: 1 / 1.10^10 ≈ 0.3855
+      expect(result[9]).toBeCloseTo(1 / 1.1 ** 10, 3);
+    });
+
+    it('each factor should be strictly less than the previous (time value of money)', () => {
+      const wacc = new Array(11).fill(8);
+      const result = calcCumulatedDiscountFactor(wacc);
+      for (let i = 1; i < result.length; i++) {
+        expect(result[i]).toBeLessThan(result[i - 1]);
+      }
+    });
+
+    it('higher WACC → smaller discount factors', () => {
+      const low  = calcCumulatedDiscountFactor(new Array(11).fill(5));
+      const high = calcCumulatedDiscountFactor(new Array(11).fill(15));
+      for (let i = 0; i < 10; i++) {
+        expect(high[i]).toBeLessThan(low[i]);
+      }
+    });
+  });
+
+  describe('calcPvFcff', () => {
+    it('should multiply each FCFF by its discount factor', () => {
+      const fcff = [100, 200, 300];
+      const df   = [0.9, 0.8, 0.7];
+
+      const result = calcPvFcff(fcff, df);
+      expect(result[0]).toBeCloseTo(90,  4);
+      expect(result[1]).toBeCloseTo(160, 4);
+      expect(result[2]).toBeCloseTo(210, 4);
+    });
+
+    it('should return same length as discount factors', () => {
+      const fcff = [100, 200, 300, 400, 500];
+      const df   = [0.9, 0.8, 0.7, 0.6, 0.5];
+      expect(calcPvFcff(fcff, df)).toHaveLength(5);
+    });
+  });
+
+  describe('calcSumOfPvFcff10Yrs', () => {
+    it('should sum all present values correctly', () => {
+      const pvFcff = [90, 80, 70, 60, 50, 40, 30, 20, 10, 5];
+      expect(calcSumOfPvFcff10Yrs(pvFcff)).toBeCloseTo(455, 4);
+    });
+
+    it('should handle negative values (loss-making years)', () => {
+      const pvFcff = [-50, 100];
+      expect(calcSumOfPvFcff10Yrs(pvFcff)).toBeCloseTo(50, 4);
+    });
+
+    it('should return 0 for empty array', () => {
+      expect(calcSumOfPvFcff10Yrs([])).toBe(0);
+    });
+  });
+
+  describe('calcPVTerminalValue', () => {
+    it('should discount terminal value by cumulated factor', () => {
+      expect(calcPVTerminalValue(10000, 0.3855)).toBeCloseTo(3855, 1);
+    });
+
+    it('should return 0 for zero terminal value', () => {
+      expect(calcPVTerminalValue(0, 0.5)).toBe(0);
+    });
+  });
+
+  describe('calcEnterpriseValue', () => {
+    it('should add PV of terminal value + sum of 10yr FCFFs', () => {
+      expect(calcEnterpriseValue(5000, 1200)).toBeCloseTo(6200, 4);
+    });
+
+    it('should handle negative sum (all FCFFs negative)', () => {
+      expect(calcEnterpriseValue(5000, -200)).toBeCloseTo(4800, 4);
+    });
+  });
+
+  describe('calcEquityValue', () => {
+    it('should compute equity = EV − debt − minority + cash + nonOpAssets', () => {
+      // 10000 - 2000 - 100 + 500 + 0 = 8400
+      expect(calcEquityValue(10000, 2000, 100, 500, 0)).toBeCloseTo(8400, 4);
+    });
+
+    it('should reduce equity when minority interest is present', () => {
+      const withMinority    = calcEquityValue(10000, 2000, 500, 500, 0);
+      const withoutMinority = calcEquityValue(10000, 2000, 0,   500, 0);
+      expect(withMinority).toBeLessThan(withoutMinority);
+    });
+
+    it('should increase equity with non-operating assets', () => {
+      const without = calcEquityValue(10000, 2000, 0, 500, 0);
+      const with_   = calcEquityValue(10000, 2000, 0, 500, 300);
+      expect(with_).toBeGreaterThan(without);
+    });
+
+    it('can return negative equity (distressed company)', () => {
+      expect(calcEquityValue(1000, 5000, 0, 100, 0)).toBeLessThan(0);
+    });
+  });
+
+  describe('calcEquityValueCommonStock', () => {
+    it('should subtract options value from equity', () => {
+      expect(calcEquityValueCommonStock(8400, 200)).toBeCloseTo(8200, 4);
+    });
+
+    it('should return equity unchanged when no options', () => {
+      expect(calcEquityValueCommonStock(8400, 0)).toBeCloseTo(8400, 4);
+    });
+  });
+
+  describe('calcWaccEquityWeight / calcWaccDebtWeight', () => {
+    it('equity weight = equity / (equity + debt)', () => {
+      expect(calcWaccEquityWeight(900, 100)).toBeCloseTo(0.9, 4);
+    });
+
+    it('debt weight = debt / (equity + debt)', () => {
+      expect(calcWaccDebtWeight(900, 100)).toBeCloseTo(0.1, 4);
+    });
+
+    it('equity weight + debt weight = 1.0', () => {
+      const eq = calcWaccEquityWeight(750, 250);
+      const dt = calcWaccDebtWeight(750, 250);
+      expect(eq + dt).toBeCloseTo(1.0, 10);
+    });
+
+    it('all-equity: equity weight = 1, debt weight = 0', () => {
+      expect(calcWaccEquityWeight(1000, 0)).toBe(1);
+      expect(calcWaccDebtWeight(1000, 0)).toBe(0);
+    });
+
+    it('more debt → lower equity weight', () => {
+      const lowLeverage  = calcWaccEquityWeight(900, 100);
+      const highLeverage = calcWaccEquityWeight(500, 500);
+      expect(highLeverage).toBeLessThan(lowLeverage);
+    });
+  });
+
+  describe('calcInitialWacc', () => {
+    it('should compute weighted average of cost of equity and cost of debt', () => {
+      // WACC = 10% × 0.9 + 4% × 0.1 = 9 + 0.4 = 9.4
+      expect(calcInitialWacc(0.9, 0.1, 10, 4)).toBeCloseTo(9.4, 4);
+    });
+
+    it('all-equity: WACC = cost of equity', () => {
+      expect(calcInitialWacc(1.0, 0.0, 11, 5)).toBeCloseTo(11, 4);
+    });
+
+    it('all-debt: WACC = cost of debt', () => {
+      expect(calcInitialWacc(0.0, 1.0, 11, 5)).toBeCloseTo(5, 4);
+    });
+
+    it('higher cost of equity raises WACC', () => {
+      const waccLow  = calcInitialWacc(0.8, 0.2, 8,  3);
+      const waccHigh = calcInitialWacc(0.8, 0.2, 14, 3);
+      expect(waccHigh).toBeGreaterThan(waccLow);
+    });
+  });
+
+  // ── REGRESSION GUARD: Full WACC Chain (mirrors fix #7 regression) ────────
+
+  describe('Full WACC Calculation Chain — AAPL-approximation (regression guard for fix #7)', () => {
+    /**
+     * This test reproduces the full WACC chain in pure JavaScript.
+     * If fix #7 regresses (betaQuery not triggering → unleveredBeta=0), the
+     * leveredBeta would be ~0, making costOfEquity ~riskFreeRate (~4.2%) and
+     * WACC would collapse to ~4–5%.  The test asserts WACC ~9–11%.
+     *
+     * Inputs: AAPL 2024 approximate financials
+     */
+
+    // Common AAPL-approximate inputs
+    const UNLEVERED_BETA    = 1.21;    // Software (Entertainment) — Damodaran 2024
+    const MARGINAL_TAX_RATE = 26;      // %
+    const MARKET_EQUITY     = 2_850_000; // $M (~15.4B shares × $185)
+    const MARKET_DEBT       = 108_040;   // $M (book debt as proxy)
+    const RISK_FREE_RATE    = 4.2;     // % (10yr UST 2024)
+    const ERP               = 4.6;     // % (US ERP, Damodaran 2024)
+    const MATURE_MARKET_ERP = 4.6;     // %
+    const INTEREST_EXPENSE  = 3_930;   // $M
+    const PRE_TAX_COD       = (INTEREST_EXPENSE / MARKET_DEBT) * 100; // ~3.638%
+    const AFTER_TAX_COD     = PRE_TAX_COD * (1 - MARGINAL_TAX_RATE / 100);
+
+    it('leveredBeta should reflect AAPL leverage (~1.24)', () => {
+      const lb = calcLeveredBeta(UNLEVERED_BETA, MARGINAL_TAX_RATE, MARKET_EQUITY, MARKET_DEBT);
+      // 1.21 × (1 + 0.74 × 108040/2850000) ≈ 1.244
+      expect(lb).toBeGreaterThan(1.21);
+      expect(lb).toBeLessThan(1.35);
+    });
+
+    it('costOfEquity should be ~9.5–11%', () => {
+      const lb  = calcLeveredBeta(UNLEVERED_BETA, MARGINAL_TAX_RATE, MARKET_EQUITY, MARKET_DEBT);
+      const coe = calcCostOfEquity(RISK_FREE_RATE, lb, ERP);
+      expect(coe).toBeGreaterThan(9.5);
+      expect(coe).toBeLessThan(11);
+    });
+
+    it('WACC weights should sum to 1.0', () => {
+      const eq = calcWaccEquityWeight(MARKET_EQUITY, MARKET_DEBT);
+      const dt = calcWaccDebtWeight(MARKET_EQUITY, MARKET_DEBT);
+      expect(eq + dt).toBeCloseTo(1.0, 10);
+    });
+
+    it('initialWACC should be ~9–10.5% (realistic range for AAPL)', () => {
+      const lb      = calcLeveredBeta(UNLEVERED_BETA, MARGINAL_TAX_RATE, MARKET_EQUITY, MARKET_DEBT);
+      const coe     = calcCostOfEquity(RISK_FREE_RATE, lb, ERP);
+      const eqWt    = calcWaccEquityWeight(MARKET_EQUITY, MARKET_DEBT);
+      const dtWt    = calcWaccDebtWeight(MARKET_EQUITY, MARKET_DEBT);
+      const wacc    = calcInitialWacc(eqWt, dtWt, coe, AFTER_TAX_COD);
+      expect(wacc).toBeGreaterThan(9);
+      expect(wacc).toBeLessThan(10.5);
+    });
+
+    it('REGRESSION (fix #7): beta=0 gives wrong WACC ~4% — correct WACC must be >7%', () => {
+      // Simulate fix #7 regression: unleveredBeta was 0 due to stale query handler
+      const brokenBeta = 0;
+      const lb_broken  = calcLeveredBeta(brokenBeta, MARGINAL_TAX_RATE, MARKET_EQUITY, MARKET_DEBT);
+      const coe_broken = calcCostOfEquity(RISK_FREE_RATE, lb_broken, ERP);
+      const eqWt       = calcWaccEquityWeight(MARKET_EQUITY, MARKET_DEBT);
+      const dtWt       = calcWaccDebtWeight(MARKET_EQUITY, MARKET_DEBT);
+      const wacc_broken = calcInitialWacc(eqWt, dtWt, coe_broken, AFTER_TAX_COD);
+
+      // Broken path: WACC ≈ 4.2% × 0.96 ≈ 4% (wrong!)
+      expect(wacc_broken).toBeLessThan(6);
+
+      // Correct path: WACC ~9–10.5%
+      const lb_correct  = calcLeveredBeta(UNLEVERED_BETA, MARGINAL_TAX_RATE, MARKET_EQUITY, MARKET_DEBT);
+      const coe_correct = calcCostOfEquity(RISK_FREE_RATE, lb_correct, ERP);
+      const wacc_correct = calcInitialWacc(eqWt, dtWt, coe_correct, AFTER_TAX_COD);
+      expect(wacc_correct).toBeGreaterThan(7);
+    });
+
+    it('terminalWACC = matureMarketErp + riskFreeRate ≈ 8.8% (AAPL 2024)', () => {
+      const terminalWacc = calcTerminalWACC(MATURE_MARKET_ERP, RISK_FREE_RATE);
+      expect(terminalWacc).toBeCloseTo(8.8, 4);
+    });
+
+    it('WACC array: yr1-5 = initialWACC, terminal = terminalWACC, converges between', () => {
+      const lb    = calcLeveredBeta(UNLEVERED_BETA, MARGINAL_TAX_RATE, MARKET_EQUITY, MARKET_DEBT);
+      const coe   = calcCostOfEquity(RISK_FREE_RATE, lb, ERP);
+      const eqWt  = calcWaccEquityWeight(MARKET_EQUITY, MARKET_DEBT);
+      const dtWt  = calcWaccDebtWeight(MARKET_EQUITY, MARKET_DEBT);
+      const init  = calcInitialWacc(eqWt, dtWt, coe, AFTER_TAX_COD);
+      const term  = calcTerminalWACC(MATURE_MARKET_ERP, RISK_FREE_RATE);
+      const waccs = calcWACC(init, term);
+
+      expect(waccs[0]).toBeCloseTo(init, 4);   // yr1 = initial
+      expect(waccs[10]).toBeCloseTo(term, 4);  // terminal = matureErp + rfr
+      // Since init > term (AAPL), WACC should converge downward
+      expect(waccs[5]).toBeLessThan(waccs[0]);
+      expect(waccs[10]).toBeLessThan(waccs[5]);
+    });
+
+    it('higher industry beta → higher WACC (sensitivity guard)', () => {
+      // Banking beta 0.35 vs Software (AAPL) beta 1.21
+      const betaBanking  = 0.35;
+      const betaSoftware = 1.21;
+
+      const lb_banking  = calcLeveredBeta(betaBanking,  MARGINAL_TAX_RATE, MARKET_EQUITY, MARKET_DEBT);
+      const lb_software = calcLeveredBeta(betaSoftware, MARGINAL_TAX_RATE, MARKET_EQUITY, MARKET_DEBT);
+
+      const coe_banking  = calcCostOfEquity(RISK_FREE_RATE, lb_banking,  ERP);
+      const coe_software = calcCostOfEquity(RISK_FREE_RATE, lb_software, ERP);
+
+      const eqWt = calcWaccEquityWeight(MARKET_EQUITY, MARKET_DEBT);
+      const dtWt = calcWaccDebtWeight(MARKET_EQUITY, MARKET_DEBT);
+
+      const wacc_banking  = calcInitialWacc(eqWt, dtWt, coe_banking,  AFTER_TAX_COD);
+      const wacc_software = calcInitialWacc(eqWt, dtWt, coe_software, AFTER_TAX_COD);
+
+      expect(wacc_software).toBeGreaterThan(wacc_banking);
     });
   });
 });

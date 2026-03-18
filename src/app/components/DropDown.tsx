@@ -56,6 +56,7 @@ const Dropdown = ({ options, value, onChange, defaultOption, label }: DropdownPr
 
       <div className="relative mt-1">
         <div
+          data-testid={`dropdown-${label}`}
           className="w-full bg-white dark:bg-gray-700 border border-gray-400 dark:border-gray-500 rounded-md py-2 px-3 pr-8 cursor-pointer"
           onClick={handleOpen}
         >

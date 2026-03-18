@@ -53,11 +53,9 @@ export default function DetailedWacc({
       return data;
     },
   });
-  useEffect(() => {
-    if (betaQuery) {
-      handleInputChange("unleveredBeta", betaQuery, "waccEquity");
-    }
-  }, [betaQuery]);
+  if (betaQuery) {
+    handleInputChange("unleveredBeta", betaQuery, "waccEquity");
+  }
 
   //GET synthetic ratings spread — include syntheticRatingOptions in queryKey so React Query re-fetches on rating change
   const { data: syntheticRatingQuery } = useQuery({
@@ -67,11 +65,9 @@ export default function DetailedWacc({
     },
   });
 
-  useEffect(() => {
-    if (syntheticRatingQuery) {
-      spread.current = syntheticRatingQuery;
-    }
-  }, [syntheticRatingQuery]);
+  if (syntheticRatingQuery) {
+    spread.current = syntheticRatingQuery;
+  }
 
   //handle local input changes from page
   const riskFreeRate = getPageInputValue("riskFreeRate", "fetchedInputs");

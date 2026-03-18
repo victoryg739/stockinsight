@@ -32,7 +32,7 @@ const ImpliedValue = ({ title, value, currentPrice }: any) => {
       <div className="mb-4">
         <div className="flex justify-between mb-1">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Implied Value</span>
-          <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">${convRound2Dp(value)}</span>
+          <span data-testid="implied-share-price" className="text-sm font-semibold text-blue-900 dark:text-blue-300">${convRound2Dp(value)}</span>
         </div>
         <div className="h-4 bg-blue-500 rounded-full" style={{ width: `${impliedWidth}%` }}></div>
       </div>

@@ -2,10 +2,10 @@ import React from "react";
 import { FaPlus, FaTimes } from "react-icons/fa";
 import * as conv from "../../utils/helper";
 
-const FormulaBox = ({ label, value, dark = false }: any) => (
+const FormulaBox = ({ label, value, dark = false, valueTestId }: any) => (
   <div className={`border dark:border-gray-600 rounded-md p-3 w-32 text-center ${dark ? "bg-gray-800 text-white dark:bg-gray-900" : "bg-white dark:bg-gray-700 dark:text-gray-100"}`}>
     <div className="text-sm font-bold">{label}</div>
-    <div className="text-lg ">{value}</div>
+    <div className="text-lg " data-testid={valueTestId}>{value}</div>
   </div>
 );
 
@@ -16,7 +16,7 @@ const OperatorBox = ({ children }: any) => (
 const WaccFormula = ({ wacc, costOfEquity, equityWeight, costOfDebt, debtWeight }: any) => {
   return (
     <div className="flex flex-wrap items-center justify-center gap-6 p-6 rounded-lg mb-10">
-      <FormulaBox label="WACC" value={conv.convRound2Dp(wacc) + "%"} dark />
+      <FormulaBox label="WACC" value={conv.convRound2Dp(wacc) + "%"} dark valueTestId="wacc-value" />
       <OperatorBox>=</OperatorBox>
       <div className="flex items-center gap-6">
         <FormulaBox label="Cost of Equity" value={conv.convRound2Dp(costOfEquity) + "%"} />
