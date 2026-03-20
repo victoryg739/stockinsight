@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useQueryClient, useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { MdAdd, MdDelete, MdEdit } from "react-icons/md";
+import { MdAdd, MdDelete, MdEdit, MdViewList, MdDynamicFeed, MdExpandMore, MdExpandLess } from "react-icons/md";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import NewAlertPopout from "../components/PopoutPage/NewAlertPopout";
 import EditAlertPopout from "../components/PopoutPage/EditAlertPopout";
@@ -103,6 +103,9 @@ export default function AlertsPage() {
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [selectedAlerts, setSelectedAlerts] = useState<Set<number>>(new Set());
   const [isMassDeletePopupOpen, setIsMassDeletePopupOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'all' | 'grouped'>('all');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'TRIGGERED' | 'CANCELLED'>('ALL');
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   // Debug logging (remove in production)
   React.useEffect(() => {
@@ -208,12 +211,37 @@ export default function AlertsPage() {
     setSelectedAlerts(new Set());
   };
 
+  // Derived data
+  const marketPriceBySymbol: Record<string, number> = {};
+  (alerts || []).forEach((alert, i) => {
+    const price = marketPriceQueries[i]?.data;
+    if (price !== undefined) marketPriceBySymbol[alert.symbol] = price;
+  });
+
+  const filteredAlerts = (alerts || []).filter(
+    (a) => statusFilter === 'ALL' || a.status === statusFilter
+  );
+
+  const groupedAlerts = filteredAlerts.reduce((acc, alert) => {
+    if (!acc[alert.symbol]) acc[alert.symbol] = [];
+    acc[alert.symbol].push(alert);
+    return acc;
+  }, {} as Record<string, PriceAlert[]>);
+  const sortedSymbols = Object.keys(groupedAlerts).sort();
+
+  const toggleGroup = (symbol: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      next.has(symbol) ? next.delete(symbol) : next.add(symbol);
+      return next;
+    });
+  };
+
   const toggleSelectAll = () => {
-    if (!alerts) return;
-    if (selectedAlerts.size === alerts.length) {
+    if (selectedAlerts.size === filteredAlerts.length) {
       setSelectedAlerts(new Set());
     } else {
-      setSelectedAlerts(new Set(alerts.map((a) => a.id)));
+      setSelectedAlerts(new Set(filteredAlerts.map((a) => a.id)));
     }
   };
 
@@ -353,8 +381,62 @@ export default function AlertsPage() {
         {/* Error State */}
         {alertsError && !alertsLoading && <ErrorState error={alertsError} />}
 
-        {/* Main Content */}
+        {/* Status filter pills + view toggle */}
         {!alertsLoading && !alertsError && status === "authenticated" && (
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              {(["ALL", "ACTIVE", "TRIGGERED", "CANCELLED"] as const).map((s) => {
+                const count = s === "ALL" ? (alerts || []).length : (alerts || []).filter((a) => a.status === s).length;
+                const active = statusFilter === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-indigo-600 text-white"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()}
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${active ? "bg-white/20 text-white" : "bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400"}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode("all")}
+                title="All view"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === "all"
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                }`}
+              >
+                <MdViewList className="h-4 w-4" />
+                All
+              </button>
+              <button
+                onClick={() => setViewMode("grouped")}
+                title="Group by symbol"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === "grouped"
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                }`}
+              >
+                <MdDynamicFeed className="h-4 w-4" />
+                By Symbol
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        {!alertsLoading && !alertsError && status === "authenticated" && viewMode === "all" && (
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -364,7 +446,7 @@ export default function AlertsPage() {
                       <th className="px-4 py-3 w-10">
                         <input
                           type="checkbox"
-                          checked={!!alerts && alerts.length > 0 && selectedAlerts.size === alerts.length}
+                          checked={filteredAlerts.length > 0 && selectedAlerts.size === filteredAlerts.length}
                           onChange={toggleSelectAll}
                           className="h-4 w-4 text-red-600 border-gray-300 dark:border-gray-600 rounded"
                         />
@@ -397,21 +479,30 @@ export default function AlertsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {!alerts || alerts.length === 0 ? (
+                  {filteredAlerts.length === 0 ? (
                     <tr>
                       <td colSpan={isDeleteMode ? 9 : 8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                         <div className="flex flex-col items-center">
                           <div className="bg-indigo-100 dark:bg-indigo-900/30 p-6 rounded-full mb-6">
                             <MdAdd className="h-16 w-16 text-indigo-600 dark:text-indigo-400" />
                           </div>
-                          <p className="text-lg font-medium">No alerts yet</p>
-                          <p className="text-sm">Create your first price alert to get started</p>
+                          {statusFilter !== "ALL" ? (
+                            <>
+                              <p className="text-lg font-medium">No {statusFilter.toLowerCase()} alerts</p>
+                              <p className="text-sm">Try a different filter or create a new alert</p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-lg font-medium">No alerts yet</p>
+                              <p className="text-sm">Create your first price alert to get started</p>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
                   ) : (
-                    alerts.map((alert, index) => {
-                      const marketPrice = marketPriceQueries[index]?.data || 0;
+                    filteredAlerts.map((alert) => {
+                      const marketPrice = marketPriceBySymbol[alert.symbol] || 0;
 
                       return (
                         <tr
@@ -501,6 +592,173 @@ export default function AlertsPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Grouped By Symbol View */}
+        {!alertsLoading && !alertsError && status === "authenticated" && viewMode === "grouped" && (
+          <div className="space-y-3">
+            {filteredAlerts.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                <div className="flex flex-col items-center">
+                  <div className="bg-indigo-100 dark:bg-indigo-900/30 p-6 rounded-full mb-6">
+                    <MdAdd className="h-16 w-16 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  {statusFilter !== "ALL" ? (
+                    <>
+                      <p className="text-lg font-medium">No {statusFilter.toLowerCase()} alerts</p>
+                      <p className="text-sm">Try a different filter or create a new alert</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg font-medium">No alerts yet</p>
+                      <p className="text-sm">Create your first price alert to get started</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              sortedSymbols.map((symbol) => {
+                const symbolAlerts = groupedAlerts[symbol];
+                const marketPrice = marketPriceBySymbol[symbol];
+                const isCollapsed = collapsedGroups.has(symbol);
+                const activeCount = symbolAlerts.filter((a) => a.status === "ACTIVE").length;
+                const triggeredCount = symbolAlerts.filter((a) => a.status === "TRIGGERED").length;
+                const cancelledCount = symbolAlerts.filter((a) => a.status === "CANCELLED").length;
+
+                return (
+                  <div key={symbol} className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+                    {/* Group Header */}
+                    <button
+                      onClick={() => toggleGroup(symbol)}
+                      className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0 h-10 w-10 relative">
+                          <StockLogo
+                            symbol={symbol}
+                            height={40}
+                            width={40}
+                            className="rounded-lg"
+                            alt={`${symbol} logo`}
+                          />
+                        </div>
+                        <div>
+                          <span className="text-base font-semibold text-gray-900 dark:text-white">{symbol}</span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {marketPrice ? (
+                              <span className="text-sm text-gray-500 dark:text-gray-400">{formatPrice(marketPrice)}</span>
+                            ) : (
+                              <div className="animate-pulse h-3.5 w-14 bg-gray-200 dark:bg-gray-600 rounded" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 ml-2">
+                          {activeCount > 0 && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                              {activeCount} Active
+                            </span>
+                          )}
+                          {triggeredCount > 0 && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                              {triggeredCount} Triggered
+                            </span>
+                          )}
+                          {cancelledCount > 0 && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                              {cancelledCount} Cancelled
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {isCollapsed ? (
+                        <MdExpandMore className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                      ) : (
+                        <MdExpandLess className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                      )}
+                    </button>
+
+                    {/* Expanded Alert Rows */}
+                    {!isCollapsed && (
+                      <div className="border-t border-gray-200 dark:border-gray-700 overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                          <thead className="bg-gray-50 dark:bg-gray-700/50">
+                            <tr>
+                              {isDeleteMode && <th className="px-4 py-2 w-10" />}
+                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Target Price</th>
+                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Alert Type</th>
+                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expires</th>
+                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            {symbolAlerts.map((alert) => (
+                              <tr
+                                key={alert.id}
+                                onClick={isDeleteMode ? () => toggleSelectAlert(alert.id) : undefined}
+                                className={`${isDeleteMode ? "cursor-pointer select-none" : ""} hover:bg-gray-50 dark:hover:bg-gray-700/50 ${isDeleteMode && selectedAlerts.has(alert.id) ? "bg-red-50 dark:bg-red-900/10" : ""}`}
+                              >
+                                {isDeleteMode && (
+                                  <td className="px-4 py-3 w-10">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedAlerts.has(alert.id)}
+                                      onChange={() => toggleSelectAlert(alert.id)}
+                                      className="h-4 w-4 text-red-600 border-gray-300 dark:border-gray-600 rounded"
+                                    />
+                                  </td>
+                                )}
+                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                  {formatPrice(Number(alert.target_price))}
+                                </td>
+                                <td className="px-6 py-3 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    {getConditionIcon(alert.condition)}
+                                    <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
+                                      {alert.condition === "ABOVE" ? "Above" : "Below"}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-3 whitespace-nowrap">
+                                  <span className={getStatusBadge(alert.status)}>{alert.status}</span>
+                                </td>
+                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                  {formatDate(alert.created_at)}
+                                </td>
+                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                  {formatDate(alert.expires_at)}
+                                </td>
+                                <td className="px-6 py-3 whitespace-nowrap text-sm font-medium">
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() => handleEditAlert(alert)}
+                                      className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                                      title="Edit alert"
+                                    >
+                                      <MdEdit className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteAlert(alert)}
+                                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                                      title="Delete alert"
+                                      disabled={deleteAlertMutation.isPending}
+                                    >
+                                      <MdDelete className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </div>

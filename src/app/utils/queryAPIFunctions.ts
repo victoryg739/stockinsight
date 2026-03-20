@@ -281,14 +281,28 @@ export const postValuation = async (
     data: any,
 ) => {
     try {
-        await axios.post(`/api/valuation`, data)
-        return true
+        const res = await axios.post(`/api/valuation`, data)
+        return res.data
     } catch (error) {
         console.error('Error saving valuation:', error);
         throw error;
     }
 };
 
+
+//update valuation by id
+export const putValuation = async (
+    id: string,
+    data: any,
+) => {
+    try {
+        const res = await axios.put(`/api/valuation/${id}`, data);
+        return res.data;
+    } catch (error) {
+        console.error('Error updating valuation:', error);
+        throw error;
+    }
+};
 
 //delete valuation by id
 export const deleteValuationById = async (

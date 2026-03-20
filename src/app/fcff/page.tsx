@@ -65,6 +65,7 @@ function FCFFPageContent() {
   const searchParams = useSearchParams();
   const urlSymbol = searchParams.get("symbol") || "";
   const urlFresh = searchParams.get("fresh") === "1";
+  const urlEditId = searchParams.get("editId") || "";
 
   const [symbol, setSymbol] = useState("");
   //This state is to capture symbol only when search button is pressed
@@ -84,6 +85,10 @@ function FCFFPageContent() {
 
   const [valuationModelLabel, setValuationModelLabel] = useState("");
   const [savePopup, setSavePopup] = useState(false);
+  // Persisted save-popout state (survives open/close)
+  const [saveDescription, setSaveDescription] = useState("");
+  const [saveTags, setSaveTags] = useState<string[]>([]);
+  const [saveGroupIds, setSaveGroupIds] = useState<Set<number>>(new Set());
 
   // Track whether user has manually edited sales to capital fields
   const [salesToCapManuallyEdited, setSalesToCapManuallyEdited] = useState({
@@ -196,6 +201,8 @@ function FCFFPageContent() {
       await queryFn.fetchRiskFreeRate(handleInputChange);
       return null;
     },
+    // Don't auto-fetch in edit mode — values are restored from the saved record
+    enabled: !urlEditId,
   });
 
   //GET ERP and marginal tax rate
@@ -251,9 +258,51 @@ function FCFFPageContent() {
 
   const saveValuationMutation = useMutation({
     mutationFn: async (data: any) => {
-      queryFn.postValuation(data);
+      return queryFn.postValuation(data);
     },
   });
+
+  const updateValuationMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return queryFn.putValuation(urlEditId, data);
+    },
+  });
+
+  // Fetch valuation for editing
+  const { data: editValuation } = useQuery({
+    queryKey: ["editValuation", urlEditId],
+    queryFn: () => queryFn.fetchValuationById(urlEditId),
+    enabled: !!urlEditId,
+  });
+
+  // Apply edit valuation data to page state
+  const editAppliedRef = useRef(false);
+  useEffect(() => {
+    if (!editValuation || editAppliedRef.current) return;
+    editAppliedRef.current = true;
+
+    // Prevent the symbolBtn effect from resetting inputs when symbol changes
+    restoredFromStorageRef.current = true;
+
+    setSymbol(editValuation.symbol);
+    setSearchedSymbol(editValuation.symbol);
+    setInputs(editValuation.inputs);
+    setFetchedInputs(editValuation.fetched_inputs);
+    setStockInfo(editValuation.stock_info);
+
+    // Do NOT set countryOptions/industryOptions from stock_info — those are raw
+    // Yahoo Finance values that don't match the Damodaran DB lookup keys, and
+    // changing them would trigger ERP refetches that corrupt the loaded values.
+
+    // Mark all editable fields as manually set so auto-fill won't overwrite them
+    setSalesToCapManuallyEdited({ salesToCapYr1: true, salesToCapYr2to5: true, salesToCapYr6to10: true });
+    setRoicTerminalYearManuallyEdited(true);
+    setInitialWaccManuallyEdited(true);
+
+    setSaveDescription(editValuation.description || "");
+    setSaveTags(editValuation.tags || []);
+    setHasRestoredState(true);
+  }, [editValuation]);
 
   // Initialize/restore from URL search params (runs on mount and on back/forward navigation)
   const prevUrlSymbolRef = useRef<string | null>(null);
@@ -401,8 +450,10 @@ function FCFFPageContent() {
   ]);
 
   useEffect(() => {
+    // In edit mode, skip the auto-fetch on mount until the saved values have been applied
+    if (urlEditId && !editAppliedRef.current) return;
     equityRiskPremiumRefectch();
-  }, [countryOptions, equityRiskPremiumRefectch]);
+  }, [countryOptions, equityRiskPremiumRefectch, urlEditId]);
 
   // Save state to sessionStorage (debounced)
   useEffect(() => {
@@ -672,6 +723,11 @@ function FCFFPageContent() {
           <Image src="/error.svg" alt="Error icon" height={500} width={500} className="object-contain mb-4" />
           <p className="text-red-700 dark:text-red-400 font-medium text-lg text-center mt-5">No such symbol. Please enter valid symbol</p>
         </div>
+      ) : urlEditId && !hasRestoredState ? (
+        <div className="flex flex-col justify-center items-center h-screen">
+          <Image src="/loading.svg" alt="Loading icon" height={400} width={400} className="object-contain mb-4" />
+          <p className="font-semibold text-lg text-center mt-5">Loading...</p>
+        </div>
       ) : !hasRestoredState && (incomeStatementIsFetching || status === "loading") ? (
         <div className="flex flex-col justify-center items-center h-screen">
           <Image src="/loading.svg" alt="Loading icon" height={400} width={400} className="object-contain mb-4" />
@@ -923,6 +979,14 @@ function FCFFPageContent() {
               industryOptions={industryOptions}
               roicData={roicData}
               mutation={saveValuationMutation}
+              updateMutation={updateValuationMutation}
+              editId={urlEditId || undefined}
+              description={saveDescription}
+              setDescription={setSaveDescription}
+              tags={saveTags}
+              setTags={setSaveTags}
+              selectedGroupIds={saveGroupIds}
+              setSelectedGroupIds={setSaveGroupIds}
             />
           )}
           {monteCarloPopup && (

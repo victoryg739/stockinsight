@@ -251,6 +251,27 @@ model xl_synthetic_rating_large_firm {
   spread       String? @db.VarChar(255)
 }
 
+model xl_synthetic_rating_small_firm {
+  min_coverage String? @db.VarChar(255)
+  max_coverage String? @db.VarChar(255)
+  rating       String  @id @db.VarChar(255)
+  spread       String? @db.VarChar(255)
+}
+
+model xl_rd_amortizable_lives {
+  business_type          String @id @db.VarChar(255)
+  amortizable_life_years Float? @db.Real
+}
+
+model xl_cost_of_capital_histogram {
+  region          String @id @db.VarChar(100)
+  first_decile    Float? @db.Real
+  first_quartile  Float? @db.Real
+  median          Float? @db.Real
+  third_quartile  Float? @db.Real
+  ninth_decile    Float? @db.Real
+}
+
 model valuation {
   id                  Int      @id @default(autoincrement())
   symbol              String?  @db.VarChar(50)
@@ -265,6 +286,26 @@ model valuation {
   description         String?
   valued_date         Int?
   tags                Json?
+}
+
+model valuation_group {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(100)
+  color   String @default("blue") @db.VarChar(20)
+  email   String @db.VarChar(50)
+
+  members valuation_group_member[]
+
+  @@index([email])
+}
+
+model valuation_group_member {
+  group_id     Int
+  valuation_id Int
+
+  group valuation_group @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  @@id([group_id, valuation_id])
 }
 
 model user_preferences {

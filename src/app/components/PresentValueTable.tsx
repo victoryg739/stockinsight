@@ -33,13 +33,13 @@ const PresentValueTable = ({ data, setIsPopoutOpen, setValuationModelLabel }: an
                 />
               </th>
               {(Array.isArray(row.value) ? row.value : [row.value]).map((col: any, colIndex: number) => (
-                <>
+                <React.Fragment key={colIndex}>
                   {(row.value.length === 11 || row.value.length === 10) && colIndex === 0 && (
-                    <td key={`empty-${colIndex}`} className="px-3 py-3">
+                    <td className="px-3 py-3">
                       {" "}
                     </td>
                   )}
-                  <td key={colIndex} className="px-3 py-3">
+                  <td className="px-3 py-3">
                     {row.id === "revenue" ||
                     row.id === "ebit" ||
                     row.id === "ebitAfterTax" ||
@@ -53,7 +53,7 @@ const PresentValueTable = ({ data, setIsPopoutOpen, setValuationModelLabel }: an
                       ? conv.convRound2Dp(col) + "%"
                       : col}
                   </td>
-                </>
+                </React.Fragment>
               ))}
             </tr>
           ))}

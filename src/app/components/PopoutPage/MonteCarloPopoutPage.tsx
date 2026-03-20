@@ -19,6 +19,7 @@ import {
   type MinExtremeParams,
 } from "../../utils/distributionTypes";
 import StockLogo from "../StockLogo";
+import { useTheme } from "../../providers/ThemeProvider";
 const DISTRIBUTION_TYPES: DistributionType[] = [
   "Normal",
   "Uniform",
@@ -210,7 +211,9 @@ const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, o
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Standard Deviation (σ)</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Standard Deviation (σ)
+            </label>
             <input
               type="number"
               value={params.stdDev}
@@ -323,7 +326,9 @@ const DistributionParams: React.FC<DistributionParamsProps> = ({ type, params, o
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Standard Deviation</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Standard Deviation
+            </label>
             <input
               type="number"
               value={params.displayStdDev !== undefined ? params.displayStdDev : variable.value * 0.2}
@@ -373,7 +378,9 @@ const InputVariableCard: React.FC<InputVariableCardProps> = ({
   return (
     <div
       className={`border rounded-lg p-4 mb-4 transition-colors ${
-        variable.enabled ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700" : "border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+        variable.enabled
+          ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700"
+          : "border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50"
       }`}
     >
       <div className="flex justify-between items-center cursor-pointer" onClick={() => onToggle()}>
@@ -465,6 +472,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
   stockInfo,
 }) => {
   const popoutRef = useRef<HTMLDivElement>(null);
+  const { isDark } = useTheme();
   const [numIterations, setNumIterations] = useState<number>(1000000);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [results, setResults] = useState<SimulationResults | null>(null);
@@ -648,7 +656,10 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
 
             <h2 className="text-2xl font-bold dark:text-white">Monte Carlo Simulation - {shortName}</h2>
           </div>
-          <button onClick={() => setIsPopoutOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+          <button
+            onClick={() => setIsPopoutOpen(false)}
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          >
             <RxCross1 size={24} />
           </button>
         </div>
@@ -659,7 +670,9 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
               <h3 className="text-lg font-semibold mb-4 dark:text-white">Simulation Settings</h3>
               <div className="flex items-center gap-4">
                 <div className="w-full">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Number of Iterations</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Number of Iterations
+                  </label>
                   <input
                     type="number"
                     min="100"
@@ -711,7 +724,9 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
 
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold mb-4 dark:text-white">Variables to Simulate</h3>
-              <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Select variables to vary in simulation:</div>
+              <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                Select variables to vary in simulation:
+              </div>
               <div className="max-h-[600px] overflow-y-auto pr-2">
                 {Object.values(inputVars).map((variable) => (
                   <InputVariableCard
@@ -776,10 +791,10 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                           <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Percentile
                           </th>
-                          <th className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Value
                           </th>
-                          <th className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             % Diff from Market
                           </th>
                         </tr>
@@ -792,9 +807,10 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                           // Determine row background color based on percentile range
                           let rowClass = "";
                           if (percentile >= 30 && percentile <= 70) {
-                            rowClass = "bg-amber-50 border-l-4 border-amber-400";
+                            rowClass =
+                              "bg-amber-50 dark:bg-red-500/30 border-l-4 border-amber-400 dark:border-amber-500";
                           } else if (percentile === 50) {
-                            rowClass = "bg-blue-50"; // Keep existing special case for median if desired
+                            rowClass = "bg-blue-50 dark:bg-blue-900/20";
                           }
 
                           return (
@@ -815,8 +831,8 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                         })}
                       </tbody>
                     </table>
-                    <div className="mb-2 flex items-center text-xs text-gray-600">
-                      <div className="w-3 h-3 bg-amber-50 border border-amber-400 mr-1"></div>
+                    <div className="mb-2 flex items-center text-xs text-gray-600 dark:text-gray-400">
+                      <div className="w-3 h-3 bg-amber-50 dark:bg-red-500/30 border border-red-400 dark:border-red-500 mr-1"></div>
                       <span>30-70 percentile range highlights the most probable outcomes</span>
                     </div>
                   </div>
@@ -867,7 +883,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                     dy: 30,
                     style: {
                       fontWeight: "bold",
-                      fill: "black",
+                      fill: isDark ? "#d1d5db" : "black",
                     },
                   }}
                   // Keep internal padding or remove/reduce it if you want bars closer to edges
@@ -884,7 +900,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                     style: {
                       textAnchor: "middle",
                       fontWeight: "bold",
-                      fill: "black",
+                      fill: isDark ? "#d1d5db" : "black",
                     },
                   }}
                   padding={{ top: 10, bottom: 10 }}
@@ -896,12 +912,21 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
                   width={38}
                 />
                 <Tooltip
-                  formatter={(value: number) => [`${value}`, "Frequency"]}
-                  labelFormatter={(labelValue, payload) => {
-                    if (payload && payload.length > 0 && payload[0].payload.binStart !== undefined) {
-                      return `${payload[0].payload.binStart.toFixed(2)} - ${payload[0].payload.binEnd.toFixed(2)}`;
-                    }
-                    return `Value: ${parseFloat(labelValue.toString()).toFixed(2)}`;
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload || !payload.length) return null;
+                    const bin = payload[0].payload;
+                    const rangeLabel =
+                      bin.binStart !== undefined
+                        ? `${bin.binStart.toFixed(2)} – ${bin.binEnd.toFixed(2)}`
+                        : `Value: ${parseFloat(label?.toString() ?? "0").toFixed(2)}`;
+                    return (
+                      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 p-2 rounded shadow text-sm text-gray-900 dark:text-gray-100">
+                        <p className="font-medium mb-1">{rangeLabel}</p>
+                        <p>
+                          Frequency: <span className="font-semibold">{payload[0].value}</span>
+                        </p>
+                      </div>
+                    );
                   }}
                 />
                 <Legend verticalAlign="top" align="right" wrapperStyle={{ top: 0, right: 0 }} />

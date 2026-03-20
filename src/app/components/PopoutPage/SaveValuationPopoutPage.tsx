@@ -1,10 +1,47 @@
 import React, { useState, useRef, useEffect } from "react";
 import { RxCross1 } from "react-icons/rx";
 import * as conv from "../../utils/helper";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as queryFn from "../../utils/queryAPIFunctions";
 import * as finCalc from "../../utils/financialCalculations";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { MdCheckBox, MdCheckBoxOutlineBlank, MdAdd } from "react-icons/md";
+import { useMutation } from "@tanstack/react-query";
+import CreateGroupPopout from "./CreateGroupPopout";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+const DOT_COLOR: Record<string, string> = {
+  blue: "bg-blue-500", green: "bg-green-500", red: "bg-red-500",
+  amber: "bg-amber-500", purple: "bg-purple-500", pink: "bg-pink-500",
+  teal: "bg-teal-500", gray: "bg-gray-400",
+};
+
+const MD_COMPONENTS = {
+  h1: ({ children }: any) => <h1 className="text-2xl font-bold mb-3 mt-4">{children}</h1>,
+  h2: ({ children }: any) => <h2 className="text-xl font-semibold mb-2 mt-4">{children}</h2>,
+  h3: ({ children }: any) => <h3 className="text-lg font-medium mb-2 mt-3">{children}</h3>,
+  h4: ({ children }: any) => <h4 className="text-base font-medium mb-1 mt-2">{children}</h4>,
+  p: ({ children }: any) => <p className="mb-3">{children}</p>,
+  ul: ({ children }: any) => <ul className="list-disc pl-6 mb-3 space-y-1">{children}</ul>,
+  ol: ({ children }: any) => <ol className="list-decimal pl-6 mb-3 space-y-1">{children}</ol>,
+  li: ({ children }: any) => <li>{children}</li>,
+  strong: ({ children }: any) => <strong className="font-semibold">{children}</strong>,
+  em: ({ children }: any) => <em className="italic">{children}</em>,
+  table: ({ children }: any) => (
+    <div className="overflow-x-auto mb-4">
+      <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600 text-sm">{children}</table>
+    </div>
+  ),
+  thead: ({ children }: any) => <thead className="bg-gray-50 dark:bg-gray-700">{children}</thead>,
+  tbody: ({ children }: any) => <tbody>{children}</tbody>,
+  tr: ({ children }: any) => <tr className="border-b border-gray-200 dark:border-gray-600">{children}</tr>,
+  th: ({ children }: any) => <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left font-semibold">{children}</th>,
+  td: ({ children }: any) => <td className="border border-gray-300 dark:border-gray-600 px-3 py-2">{children}</td>,
+  blockquote: ({ children }: any) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-3 text-gray-600 dark:text-gray-400">{children}</blockquote>,
+  code: ({ children }: any) => <code className="bg-gray-100 dark:bg-gray-700 rounded px-1 py-0.5 text-sm font-mono">{children}</code>,
+  hr: () => <hr className="my-4 border-gray-200 dark:border-gray-600" />,
+};
 
 export default function SaveValuationPopoutPage({
   setIsPopoutOpen,
@@ -19,12 +56,34 @@ export default function SaveValuationPopoutPage({
   industryOptions,
   roicData,
   mutation,
+  updateMutation,
+  editId,
+  description,
+  setDescription,
+  tags,
+  setTags,
+  selectedGroupIds,
+  setSelectedGroupIds,
 }: any) {
-  const [description, setDescription] = useState("");
+  const queryClient = useQueryClient();
+  const popoutRef = useRef<HTMLDivElement>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
   const [customTagInput, setCustomTagInput] = useState("");
   const [customTagColor, setCustomTagColor] = useState("blue");
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  // Track whether we've initialized group selection for edit mode
+  const groupsInitializedRef = useRef(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isCreatingGroup) return;
+      if (popoutRef.current && !popoutRef.current.contains(event.target as Node)) {
+        setIsPopoutOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [setIsPopoutOpen, isCreatingGroup]);
 
   const PRESET_TAGS = [
     { label: "Base Case",    style: "bg-blue-100 text-blue-700 border-blue-300" },
@@ -55,19 +114,61 @@ export default function SaveValuationPopoutPage({
   };
 
   const togglePresetTag = (label: string) => {
-    setTags((prev) => prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]);
+    setTags((prev: string[]) => prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]);
   };
 
   const addCustomTag = () => {
     const trimmed = customTagInput.trim();
     if (!trimmed) return;
-    const alreadyExists = tags.some((t) => t.split("|")[0] === trimmed);
+    const alreadyExists = tags.some((t: string) => t.split("|")[0] === trimmed);
     if (!alreadyExists) {
-      setTags((prev) => [...prev, trimmed + "|" + customTagColor]);
+      setTags((prev: string[]) => [...prev, trimmed + "|" + customTagColor]);
     }
     setCustomTagInput("");
   };
-  const popoutRef = useRef<HTMLDivElement>(null);
+
+  const { data: groups = [] } = useQuery<any[]>({
+    queryKey: ["valuationGroups"],
+    queryFn: () => fetch("/api/valuation-groups").then((r) => r.json()),
+  });
+
+  // In edit mode, initialize selectedGroupIds from current membership
+  useEffect(() => {
+    if (!editId || groupsInitializedRef.current || groups.length === 0) return;
+    groupsInitializedRef.current = true;
+    const current = new Set<number>(
+      groups
+        .filter((g: any) => g.memberIds?.includes(Number(editId)))
+        .map((g: any) => g.id as number)
+    );
+    setSelectedGroupIds(current);
+  }, [editId, groups, setSelectedGroupIds]);
+
+  const createGroupMutation = useMutation({
+    mutationFn: async ({ name, color }: { name: string; color: string }) => {
+      const res = await fetch("/api/valuation-groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, color }),
+      });
+      if (!res.ok) throw new Error("Failed to create group");
+      return res.json();
+    },
+    onSuccess: (newGroup) => {
+      queryClient.invalidateQueries({ queryKey: ["valuationGroups"] });
+      // Auto-select the newly created group
+      setSelectedGroupIds((prev: Set<number>) => new Set([...prev, newGroup.id]));
+      setIsCreatingGroup(false);
+    },
+  });
+
+  const toggleGroup = (id: number) => {
+    setSelectedGroupIds((prev: Set<number>) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
 
   // Get industry from stockInfo for API calls
   const { data: roicStats } = useQuery({
@@ -126,30 +227,24 @@ export default function SaveValuationPopoutPage({
   // Calculate sum of PV of EBIT After Tax for years 1-10
   let sumOfEbitAfterTax = 0;
   if (ebitAfterTaxValues.length > 1 && cumulatedDiscountFactorValues.length > 0) {
-    // Skip base year (index 0) and take next 10 years
     for (let i = 1; i < Math.min(ebitAfterTaxValues.length, 11); i++) {
-      // For each year, multiply EBIT After Tax by the corresponding discount factor
       const yearEbitAfterTax = ebitAfterTaxValues[i] || 0;
       const discountFactor = cumulatedDiscountFactorValues[i - 1] || 0;
       sumOfEbitAfterTax += yearEbitAfterTax * discountFactor;
     }
   }
 
-  // Calculate reinvestment effect
   const reinvestmentEffect = sumOfEbitAfterTax - sumOfPVFCFF;
   const reinvestmentPercentage = sumOfEbitAfterTax !== 0 ? (reinvestmentEffect / sumOfEbitAfterTax) * 100 : 0;
 
-  //Calculate
   const marginalRoic = finCalc.calcMarginalRoic(
     valuationModel.find((m: any) => m.id === "ebitAfterTax")?.value,
     roicData.investedCapital
   );
 
-  // Get terminal WACC for ROIC comparison
   const terminalWACC = getModelValue("wacc", 10);
 
   const generateTemplate = () => {
-    // Get key values for the framework
     const revGrowthYr1 = getInputValue("revGrowthYr1", inputs);
     const revGrowthYr2to5 = getInputValue("revGrowthYr2to5", inputs);
     const termGrowthRate = getInputValue("revGrowthPerpetuity", inputs);
@@ -160,7 +255,6 @@ export default function SaveValuationPopoutPage({
     const currentPrice = getInputValue("currentSharePrice", fetchedInputs);
     const shareCount = getInputValue("impliedSharesOutstanding", fetchedInputs);
 
-    // Calculate values
     const impliedSharePrice = equityValue / shareCount;
     const valGap = (impliedSharePrice / currentPrice - 1) * 100;
 
@@ -190,7 +284,7 @@ The company's Sales to Capital ratio indicates how efficiently it converts inves
 The company's Terminal ROIC of ${formatValue(
       roicData.roic[roicData.roic.length - 1],
       "percentage"
-    )} and ROIC (Yr 10) of ${formatValue(roicData.roic[roicData.roic.length - 2], "percentage")} 
+    )} and ROIC (Yr 10) of ${formatValue(roicData.roic[roicData.roic.length - 2], "percentage")}
 
 The Marginal ROIC of ${formatValue(marginalRoic, "percentage")} is ${
       marginalRoic > terminalWACC ? "greater than" : "less than"
@@ -221,206 +315,91 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
 [Explain what catalysts might help the market recognize this value gap]`;
 
     setDescription(framework);
-    // Switch to preview mode after generating framework
     setShowPreview(true);
   };
 
-  const handleSave = () => {
-    const nowEpochSeconds = Math.floor(Date.now() / 1000);
-    const data = {
-      symbol: symbol.toUpperCase(),
-      email,
-      inputs,
-      fetchedInputs,
-      stockInfo,
-      valuationModel,
-      valuationOutput,
-      impliedSharePrice,
-      roic_data: roicData,
-      description,
-      tags,
-      valuedDate: nowEpochSeconds,
-    };
+  const buildPayload = (nowEpochSeconds: number) => ({
+    symbol: symbol.toUpperCase(),
+    email,
+    inputs,
+    fetchedInputs,
+    stockInfo,
+    valuationModel,
+    valuationOutput,
+    impliedSharePrice,
+    roic_data: roicData,
+    description,
+    tags,
+    valuedDate: nowEpochSeconds,
+  });
 
-    mutation.mutate(data);
+  const handleSave = async () => {
+    const nowEpochSeconds = Math.floor(Date.now() / 1000);
+    try {
+      const saved = await mutation.mutateAsync(buildPayload(nowEpochSeconds));
+      if (saved?.id && selectedGroupIds.size > 0) {
+        await Promise.all(
+          Array.from(selectedGroupIds).map((groupId) =>
+            fetch(`/api/valuation-groups/${groupId}/members`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ valuationId: saved.id }),
+            })
+          )
+        );
+        queryClient.invalidateQueries({ queryKey: ["valuationGroups"] });
+      }
+    } catch (_) {}
     setIsPopoutOpen(false);
   };
 
-  // Close when clicking outside the popout
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popoutRef.current && !popoutRef.current.contains(event.target as Node)) {
-        setIsPopoutOpen(false);
+  const handleUpdate = async () => {
+    const nowEpochSeconds = Math.floor(Date.now() / 1000);
+    try {
+      await updateMutation.mutateAsync(buildPayload(nowEpochSeconds));
+
+      // Compute group membership diff
+      const currentGroupIds = new Set<number>(
+        groups
+          .filter((g: any) => g.memberIds?.includes(Number(editId)))
+          .map((g: any) => g.id as number)
+      );
+      const toAdd = Array.from(selectedGroupIds as Set<number>).filter((id) => !currentGroupIds.has(id));
+      const toRemove = Array.from(currentGroupIds).filter((id) => !(selectedGroupIds as Set<number>).has(id));
+
+      await Promise.all([
+        ...toAdd.map((groupId) =>
+          fetch(`/api/valuation-groups/${groupId}/members`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ valuationId: Number(editId) }),
+          })
+        ),
+        ...toRemove.map((groupId) =>
+          fetch(`/api/valuation-groups/${groupId}/members`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ valuationId: Number(editId) }),
+          })
+        ),
+      ]);
+
+      if (toAdd.length > 0 || toRemove.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ["valuationGroups"] });
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [setIsPopoutOpen]);
-
-  const renderMarkdown = (markdown: string) => {
-    if (!markdown) return null;
-
-    // Split the content into lines
-    const lines = markdown.split("\n");
-    const result: React.ReactElement[] = [];
-
-    let currentList: string[] = [];
-    let currentListType: "ordered" | "unordered" | null = null;
-
-    // Process each line and convert to JSX
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
-      // Check if the line is part of a list
-      const orderedListMatch = line.match(/^\s*(\d+)\.\s(.+)$/);
-      const unorderedListMatch = line.match(/^\s*[-*]\s(.+)$/);
-
-      // Handle ordered list items
-      if (orderedListMatch) {
-        if (currentListType !== "ordered" && currentList.length) {
-          // We were in a different type of list, so finalize the previous list
-          if (currentListType === "unordered") {
-            result.push(
-              <ul key={`ul-${result.length}`} className="list-disc pl-6 mb-4">
-                {currentList.map((item, idx) => (
-                  <li key={idx} className="mb-1">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            );
-          }
-          currentList = [];
-        }
-
-        currentListType = "ordered";
-        currentList.push(orderedListMatch[2]);
-      }
-      // Handle unordered list items
-      else if (unorderedListMatch) {
-        if (currentListType !== "unordered" && currentList.length) {
-          // We were in a different type of list, so finalize the previous list
-          if (currentListType === "ordered") {
-            result.push(
-              <ol key={`ol-${result.length}`} className="list-decimal pl-6 mb-4">
-                {currentList.map((item, idx) => (
-                  <li key={idx} className="mb-1">
-                    {item}
-                  </li>
-                ))}
-              </ol>
-            );
-          }
-          currentList = [];
-        }
-
-        currentListType = "unordered";
-        currentList.push(unorderedListMatch[1]);
-      }
-      // Handle non-list content
-      else {
-        // If we were in a list, finalize it
-        if (currentList.length) {
-          if (currentListType === "ordered") {
-            result.push(
-              <ol key={`ol-${result.length}`} className="list-decimal pl-6 mb-4">
-                {currentList.map((item, idx) => (
-                  <li key={idx} className="mb-1">
-                    {item}
-                  </li>
-                ))}
-              </ol>
-            );
-          } else {
-            result.push(
-              <ul key={`ul-${result.length}`} className="list-disc pl-6 mb-4">
-                {currentList.map((item, idx) => (
-                  <li key={idx} className="mb-1">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            );
-          }
-          currentList = [];
-          currentListType = null;
-        }
-
-        // Handle headers - check for each header style
-        if (line.trim().startsWith("# ")) {
-          result.push(
-            <h1 key={`h1-${i}`} className="text-2xl font-bold mb-3">
-              {line.trim().substring(2)}
-            </h1>
-          );
-        } else if (line.trim().startsWith("## ")) {
-          result.push(
-            <h2 key={`h2-${i}`} className="text-xl font-semibold mt-4 mb-2">
-              {line.trim().substring(3)}
-            </h2>
-          );
-        } else if (line.trim().startsWith("### ")) {
-          result.push(
-            <h3 key={`h3-${i}`} className="text-lg font-medium mt-4 mb-2">
-              {line.trim().substring(4)}
-            </h3>
-          );
-        }
-        // Handle empty lines
-        else if (line.trim() === "") {
-          result.push(<br key={`br-${i}`} />);
-        }
-        // Regular paragraph
-        else {
-          result.push(
-            <p key={`p-${i}`} className="mb-2">
-              {line}
-            </p>
-          );
-        }
-      }
-    }
-
-    // If we have any remaining list items at the end, finalize that list
-    if (currentList.length) {
-      if (currentListType === "ordered") {
-        result.push(
-          <ol key={`ol-${result.length}`} className="list-decimal pl-6 mb-4">
-            {currentList.map((item, idx) => (
-              <li key={idx} className="mb-1">
-                {item}
-              </li>
-            ))}
-          </ol>
-        );
-      } else {
-        result.push(
-          <ul key={`ul-${result.length}`} className="list-disc pl-6 mb-4">
-            {currentList.map((item, idx) => (
-              <li key={idx} className="mb-1">
-                {item}
-              </li>
-            ))}
-          </ul>
-        );
-      }
-    }
-
-    return result;
+    } catch (_) {}
+    setIsPopoutOpen(false);
   };
 
   return (
+    <>
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div ref={popoutRef} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-[880px] h-[950px] overflow-auto relative">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold dark:text-white">Valuation Review & Save</h2>
+          <h2 className="text-2xl font-bold dark:text-white">{editId ? "Edit Valuation" : "Valuation Review & Save"}</h2>
 
           <button
-            onClick={() => {
-              setIsPopoutOpen(false);
-            }}
+            onClick={() => setIsPopoutOpen(false)}
             className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
             <RxCross1 size={24} />
@@ -596,21 +575,18 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
                   <div className="text-sm text-gray-600 dark:text-gray-400">Marginal ROIC (Yr 1-10)</div>
                   <div className="text-md font-semibold">{formatValue(marginalRoic, "percentage")}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1"></div>
                 </div>
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
                   <div className="text-sm text-gray-600 dark:text-gray-400">ROIC (Yr 10)</div>
                   <div className="text-md font-semibold">
                     {formatValue(roicData.roic[roicData.roic.length - 2], "percentage")}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1"></div>
                 </div>
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
                   <div className="text-sm text-gray-600 dark:text-gray-400">Terminal Year ROIC</div>
                   <div className="text-md font-semibold">
                     {formatValue(roicData.roic[roicData.roic.length - 1], "percentage")}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1"></div>
                 </div>
 
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
@@ -644,7 +620,6 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
                   </div>
                 </div>
 
-                {/* Explanation */}
                 <div className="mt-4 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
                   <p>
                     <strong>What is Marginal ROIC?</strong> Marginal ROIC measures the return generated specifically by
@@ -700,7 +675,7 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
             </div>
           </section>
 
-          {/* Tag Your Valuation */}
+          {/* 6. Tag Your Valuation */}
           <section>
             <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">6. Tag Your Valuation</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -758,14 +733,14 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
             {/* Selected tags */}
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
+                {tags.map((tag: string) => (
                   <span
                     key={tag}
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getTagColorStyle(tag)}`}
                   >
                     {getTagDisplayLabel(tag)}
                     <button
-                      onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                      onClick={() => setTags((prev: string[]) => prev.filter((t: string) => t !== tag))}
                       className="ml-0.5 hover:opacity-70 font-bold"
                     >
                       ×
@@ -776,9 +751,47 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
             )}
           </section>
 
-          {/* 7. Add Your Analysis */}
+          {/* 7. Add to Groups */}
           <section>
-            <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">7. Add Your Analysis</h3>
+            <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">7. Add to Groups</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Organise this valuation into one or more groups.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {groups.map((g: any) => {
+                const selected = selectedGroupIds.has(g.id);
+                return (
+                  <button
+                    key={g.id}
+                    onClick={() => toggleGroup(g.id)}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                      selected
+                        ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 ring-2 ring-indigo-400 ring-offset-1"
+                        : "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400"
+                    }`}
+                  >
+                    <span className={`h-2 w-2 rounded-full flex-shrink-0 ${DOT_COLOR[g.color] || "bg-gray-400"}`} />
+                    {g.name}
+                    {selected
+                      ? <MdCheckBox className="h-4 w-4 text-indigo-500" />
+                      : <MdCheckBoxOutlineBlank className="h-4 w-4 text-gray-300 dark:text-gray-500" />
+                    }
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setIsCreatingGroup(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-500 transition-colors"
+              >
+                <MdAdd className="h-4 w-4" />
+                New Group
+              </button>
+            </div>
+          </section>
+
+          {/* 8. Add Your Analysis */}
+          <section>
+            <h3 className="text-lg font-semibold mb-3 border-b dark:border-gray-600 pb-2 dark:text-white">8. Add Your Analysis</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Describe your investment thesis. A well-structured valuation should be backed with a good story.
             </p>
@@ -813,13 +826,15 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
               </div>
 
               {showPreview ? (
-                <div className="w-full h-64 p-4 border dark:border-gray-600 rounded-lg overflow-auto bg-white dark:bg-gray-900 dark:text-gray-200">
-                  <div className="prose max-w-none">{renderMarkdown(description)}</div>
+                <div className="w-full min-h-64 p-4 border dark:border-gray-600 rounded-lg overflow-auto bg-white dark:bg-gray-900 dark:text-gray-200 text-sm">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
+                    {description}
+                  </ReactMarkdown>
                 </div>
               ) : (
                 <textarea
                   className="w-full h-64 p-4 border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                  placeholder="Your complete valuation story will appear here. Click 'Generate Template ' to start, then edit as needed."
+                  placeholder="Your complete valuation story will appear here. Click 'Generate Template' to start, then edit as needed."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -828,15 +843,49 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
           </section>
         </div>
 
-        <div className="flex justify-center p-4 bg-white dark:bg-gray-800 border-t dark:border-gray-600 mt-6">
-          <button
-            onClick={handleSave}
-            className="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors"
-          >
-            Save Valuation
-          </button>
+        <div className="flex justify-center gap-3 p-4 bg-white dark:bg-gray-800 border-t dark:border-gray-600 mt-6">
+          {editId ? (
+            <>
+              <button
+                onClick={handleUpdate}
+                disabled={updateMutation?.isPending}
+                className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-60"
+              >
+                {updateMutation?.isPending ? "Updating..." : "Update Valuation"}
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={mutation.isPending}
+                className="bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-60"
+              >
+                {mutation.isPending ? "Saving..." : "Save as New"}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleSave}
+              disabled={mutation.isPending}
+              className="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-60"
+            >
+              {mutation.isPending ? "Saving..." : "Save Valuation"}
+            </button>
+          )}
         </div>
       </div>
     </div>
+
+    {isCreatingGroup && (
+      <CreateGroupPopout
+        onClose={() => setIsCreatingGroup(false)}
+        onSave={async (name, color) => {
+          await createGroupMutation.mutateAsync({ name, color });
+        }}
+        isLoading={createGroupMutation.isPending}
+        error={createGroupMutation.error?.message}
+        mode="create"
+        existingNames={groups.map((g: any) => g.name)}
+      />
+    )}
+    </>
   );
 }

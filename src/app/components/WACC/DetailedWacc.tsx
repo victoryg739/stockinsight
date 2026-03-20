@@ -148,7 +148,7 @@ export default function DetailedWacc({
       <div className="grid grid-cols-3 place-items-center gap-y-10">
         {waccEquityRef.current.map((item, index) => (
           //old logic can change next time
-          <>
+          <React.Fragment key={item.id ?? index}>
             {item.id === "riskFreeRate" || item.id === "equityRiskPremium" ? (
               <div
                 className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 col-start-1
@@ -173,7 +173,7 @@ export default function DetailedWacc({
                 <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             )}
-          </>
+          </React.Fragment>
         ))}
 
         <div className="flex flex-col items-center justify-center bg-blue-200 dark:bg-blue-900/30 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
@@ -200,7 +200,7 @@ export default function DetailedWacc({
           label="Synthetic Rating"
         />
         {waccDebtRef.current.map((item, index) => (
-          <>
+          <React.Fragment key={item.id ?? index}>
             {index === 0 ? (
               <div className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
                 <div className="text-2xl font-semibold dark:text-white">{conv.convRound2Dp(item.value) + "%"}</div>
@@ -227,7 +227,7 @@ export default function DetailedWacc({
                 <div className="text-xs tracking-wide mt-1 border-b border-dotted border-gray-700 dark:border-gray-400 dark:text-gray-300">{item.label}</div>
               </div>
             )}
-          </>
+          </React.Fragment>
         ))}
         <div className="flex flex-col items-center justify-center bg-blue-200 dark:bg-blue-900/30 rounded-2xl p-4 w-48 h-20 col-start-1 transform transition-all duration-200 hover:scale-[1.1] hover:shadow-xl">
           <div className="text-2xl font-semibold dark:text-white">{conv.convToMillion(marketDebtRef.current)}</div>

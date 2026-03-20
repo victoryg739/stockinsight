@@ -83,19 +83,19 @@ const CustomSensitivityTooltip: React.FC<CustomSensitivityTooltipProps> = ({
     const primaryValue = label;
 
     return (
-      <div className="bg-white/90 border border-gray-300 p-3 rounded shadow-lg text-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-3 rounded shadow-lg text-sm text-gray-900 dark:text-gray-100">
         {/* Label (X-axis value) */}
-        <p className="font-semibold mb-1 border-b pb-1">
+        <p className="font-semibold mb-1 border-b border-gray-200 dark:border-gray-600 pb-1">
           {`${primaryVariableInfo.label}: ${conv.convRound2Dp(primaryValue)}${primaryVariableInfo.unit || ""}`}
         </p>
         {/* Intrinsic Value */}
-        <p className="text-blue-600">
+        <p className="text-blue-600 dark:text-blue-400">
           Intrinsic Value:
           <span className="font-medium ml-1">{`$${conv.convRound2Dp(intrinsicValue)}`}</span>
         </p>
         {/* Current Price */}
         {currentPrice > 0 && (
-          <p className="text-red-600">
+          <p className="text-red-600 dark:text-red-400">
             Current Price:
             <span className="font-medium ml-1">{`$${conv.convRound2Dp(currentPrice)}`}</span>
           </p>

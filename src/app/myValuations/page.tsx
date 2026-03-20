@@ -4,15 +4,16 @@ import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/rea
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import StockLogo from "../components/StockLogo";
-import { HiOutlineCollection } from "react-icons/hi";
 // Icons
-import { MdDeleteOutline, MdSearch, MdFilterAlt, MdOutlineSort, MdAdd, MdGridView, MdViewList } from "react-icons/md";
+import { MdDeleteOutline, MdSearch, MdOutlineSort, MdAdd, MdGridView, MdViewList, MdFolderOpen, MdEdit, MdClose } from "react-icons/md";
 import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaExclamationCircle } from "react-icons/fa";
 import { FiClock } from "react-icons/fi";
 
 // Components
 import Navbar from "../components/Navbar";
 import DeletePopoutPage from "../components/PopoutPage/DeletePopoutPage";
+import CreateGroupPopout from "../components/PopoutPage/CreateGroupPopout";
+import GroupPicker from "../components/GroupPicker";
 
 // Utils
 import { fetchValuations, deleteValuationById, fetchMarketPrice } from "../utils/queryAPIFunctions";
@@ -31,6 +32,14 @@ export default function MyValuationsPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
+  // Group states
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<{ id: number; name: string; color: string } | null>(null);
+  const [confirmDeleteGroupId, setConfirmDeleteGroupId] = useState<number | null>(null);
+  const [isAddingToGroup, setIsAddingToGroup] = useState(false);
+  const [addGroupSearch, setAddGroupSearch] = useState("");
+  const [addGroupSelected, setAddGroupSelected] = useState<Set<number>>(new Set());
 
   // Queries
   const { data: valuationQuery, isFetching: valuationIsFetching } = useQuery({
@@ -55,6 +64,70 @@ export default function MyValuationsPage() {
       queryClient.invalidateQueries({ queryKey: ["valuations"] });
       setSelectedItems([]);
       setIsDeleteMode(false);
+    },
+  });
+
+  // Group queries and mutations
+  const { data: groups = [] } = useQuery<any[]>({
+    queryKey: ["valuationGroups"],
+    queryFn: () => fetch("/api/valuation-groups").then((r) => r.json()),
+    enabled: !!session?.user?.email && status === "authenticated",
+  });
+
+  const createGroupMutation = useMutation({
+    mutationFn: async ({ name, color }: { name: string; color: string }) => {
+      const res = await fetch("/api/valuation-groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, color }),
+      });
+      if (!res.ok) throw new Error("Failed to create group");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["valuationGroups"] });
+      setIsCreateGroupOpen(false);
+    },
+  });
+
+  const updateGroupMutation = useMutation({
+    mutationFn: async ({ id, name, color }: { id: number; name: string; color: string }) => {
+      const res = await fetch(`/api/valuation-groups/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, color }),
+      });
+      if (!res.ok) throw new Error("Failed to update group");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["valuationGroups"] });
+      setEditingGroup(null);
+    },
+  });
+
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/valuation-groups/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete group");
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ["valuationGroups"] });
+      if (selectedGroupId === id) setSelectedGroupId(null);
+    },
+  });
+
+  const toggleMembershipMutation = useMutation({
+    mutationFn: async ({ groupId, valuationId, add }: { groupId: number; valuationId: number; add: boolean }) => {
+      const res = await fetch(`/api/valuation-groups/${groupId}/members`, {
+        method: add ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ valuationId }),
+      });
+      if (!res.ok) throw new Error("Failed to update membership");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["valuationGroups"] });
     },
   });
 
@@ -235,37 +308,34 @@ export default function MyValuationsPage() {
     });
   }, [valuationQuery, sortField, sortDirection, marketPriceQueries]);
 
-  // Stats calculation
-  const stats = React.useMemo(() => {
-    if (!valuationQuery || valuationQuery.length === 0 || !marketPriceQueries) {
-      return {
-        totalValuations: 0,
-        undervaluedCount: 0,
-        overvaluedCount: 0,
-      };
-    }
-
-    let undervaluedCount = 0;
-    let overvaluedCount = 0;
-
-    valuationQuery.forEach((item: any, index: any) => {
-      const marketPrice = marketPriceQueries[index]?.data || 0;
-      if (marketPrice) {
-        const diff = calculateValuationDiff(Number(marketPrice), Number(item.implied_share_price));
-        if (diff > 0) {
-          undervaluedCount++;
-        } else {
-          overvaluedCount++;
-        }
-      }
+  // Membership map: valuationId -> Set of groupIds
+  const membershipMap = React.useMemo(() => {
+    const map: Record<number, Set<number>> = {};
+    groups.forEach((g: any) => {
+      (g.memberIds as number[]).forEach((vid) => {
+        if (!map[vid]) map[vid] = new Set();
+        map[vid].add(g.id);
+      });
     });
+    return map;
+  }, [groups]);
 
-    return {
-      totalValuations: valuationQuery.length,
-      undervaluedCount,
-      overvaluedCount,
-    };
-  }, [valuationQuery, marketPriceQueries]);
+  // Filter to group members only
+  const displayedValuations = React.useMemo(() => {
+    if (selectedGroupId === null) return sortedValuations;
+    const selectedGroup = groups.find((g: any) => g.id === selectedGroupId);
+    if (!selectedGroup) return sortedValuations;
+    const memberIds = new Set(selectedGroup.memberIds as number[]);
+    return sortedValuations.filter((v: any) => memberIds.has(v.id));
+  }, [sortedValuations, selectedGroupId, groups]);
+
+  // Valuations not yet in the selected group (for the add modal)
+  const addableValuations = React.useMemo(() => {
+    if (selectedGroupId === null) return [];
+    const selectedGroup = groups.find((g: any) => g.id === selectedGroupId);
+    const memberIds = new Set((selectedGroup?.memberIds as number[]) || []);
+    return sortedValuations.filter((v: any) => !memberIds.has(v.id));
+  }, [sortedValuations, selectedGroupId, groups]);
 
   // Authentication check
   if (status === "unauthenticated") {
@@ -275,12 +345,8 @@ export default function MyValuationsPage() {
 
   // Loading State Component
   const LoadingState = () => (
-    <div className="mt-10 animate-pulse space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-28 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
-        ))}
-      </div>
+    <div className="mt-6 animate-pulse space-y-6">
+      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl w-2/3"></div>
       <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl mb-6"></div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -344,49 +410,91 @@ export default function MyValuationsPage() {
           </button>
         </div>
 
-        {/* Stats Cards */}
-        {!valuationIsFetching && valuationQuery && valuationQuery.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Total Valuations Card */}
-            <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mr-4">
-                  <HiOutlineCollection className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Valuations</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalValuations}</p>
-                </div>
-              </div>
-            </div>
+        {/* Group chips bar */}
+        {(() => {
+          const GROUP_COLOR = {
+            blue:   { dot: "bg-blue-500",   active: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-300 dark:border-blue-600" },
+            green:  { dot: "bg-green-500",  active: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border-green-300 dark:border-green-600" },
+            red:    { dot: "bg-red-500",    active: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border-red-300 dark:border-red-600" },
+            amber:  { dot: "bg-amber-500",  active: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-300 dark:border-amber-600" },
+            purple: { dot: "bg-purple-500", active: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border-purple-300 dark:border-purple-600" },
+            pink:   { dot: "bg-pink-500",   active: "bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300 border-pink-300 dark:border-pink-600" },
+            teal:   { dot: "bg-teal-500",   active: "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300 border-teal-300 dark:border-teal-600" },
+            gray:   { dot: "bg-gray-400",   active: "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-300 border-gray-300 dark:border-gray-600" },
+          } as Record<string, { dot: string; active: string }>;
+          const inactiveChip = "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700";
 
-            {/* Undervalued Card */}
-            <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 mr-4">
-                  <FaArrowUp className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Undervalued</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.undervaluedCount}</p>
-                </div>
-              </div>
-            </div>
+          return (
+            <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1 scroll-smooth">
+              {/* All chip */}
+              <button
+                onClick={() => setSelectedGroupId(null)}
+                className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors whitespace-nowrap ${
+                  selectedGroupId === null
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : inactiveChip
+                }`}
+              >
+                All
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedGroupId === null ? "bg-white/20 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"}`}>
+                  {(valuationQuery || []).length}
+                </span>
+              </button>
 
-            {/* Overvalued Card */}
-            <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 mr-4">
-                  <FaArrowDown className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Overvalued</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.overvaluedCount}</p>
-                </div>
-              </div>
+              {/* Group chips */}
+              {groups.map((g: any) => {
+                const colors = GROUP_COLOR[g.color] || GROUP_COLOR.gray;
+                const isActive = selectedGroupId === g.id;
+                return (
+                  <div key={g.id} className="group relative flex-shrink-0 flex items-center">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedGroupId(isActive ? null : g.id)}
+                      onKeyDown={(e) => e.key === "Enter" && setSelectedGroupId(isActive ? null : g.id)}
+                      className={`flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full border text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                        isActive ? colors.active : inactiveChip
+                      }`}
+                    >
+                      <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${colors.dot}`} />
+                      {g.name}
+                      <span className="text-xs opacity-70">{g.memberCount}</span>
+                      {/* Edit / Delete — shown on chip hover */}
+                      <span
+                        className="hidden group-hover:flex items-center gap-0.5 border-l border-current border-opacity-30 pl-1.5 ml-0.5"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          title="Rename"
+                          onClick={() => setEditingGroup({ id: g.id, name: g.name, color: g.color })}
+                          className="hover:opacity-60 transition-opacity"
+                        >
+                          <MdEdit size={12} />
+                        </button>
+                        <button
+                          title="Delete"
+                          onClick={() => setConfirmDeleteGroupId(g.id)}
+                          className="hover:opacity-60 transition-opacity"
+                        >
+                          <MdClose size={12} />
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* New Group button */}
+              <button
+                onClick={() => setIsCreateGroupOpen(true)}
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors whitespace-nowrap"
+              >
+                <MdAdd className="h-4 w-4" />
+                New Group
+              </button>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Filter Bar */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex flex-wrap gap-4 items-center justify-between mb-8">
@@ -451,6 +559,33 @@ export default function MyValuationsPage() {
           </div>
         </div>
 
+        {/* Group action bar */}
+        {selectedGroupId !== null && (() => {
+          const g = groups.find((g: any) => g.id === selectedGroupId);
+          if (!g) return null;
+          return (
+            <div className="flex items-center justify-between mb-5 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
+                  { blue:"bg-blue-500", green:"bg-green-500", red:"bg-red-500", amber:"bg-amber-500", purple:"bg-purple-500", pink:"bg-pink-500", teal:"bg-teal-500", gray:"bg-gray-400" }[g.color as string] || "bg-gray-400"
+                }`} />
+                <span className="font-semibold text-gray-800 dark:text-white">{g.name}</span>
+                <span className="text-gray-400 dark:text-gray-500">·</span>
+                <span>{displayedValuations.length} valuation{displayedValuations.length !== 1 ? "s" : ""}</span>
+              </div>
+              {addableValuations.length > 0 && (
+                <button
+                  onClick={() => { setIsAddingToGroup(true); setAddGroupSelected(new Set()); setAddGroupSearch(""); }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors"
+                >
+                  <MdAdd className="h-4 w-4" />
+                  Add Valuations
+                </button>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Sort info */}
         <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
           Sorting by:{" "}
@@ -473,10 +608,35 @@ export default function MyValuationsPage() {
           <LoadingState />
         ) : !valuationQuery || valuationQuery.length === 0 ? (
           <EmptyState searchTerm={symbol} />
+        ) : displayedValuations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-full mb-5">
+              <MdFolderOpen className="h-14 w-14 text-indigo-400 dark:text-indigo-500" />
+            </div>
+            {selectedGroupId !== null ? (
+              <>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">This group is empty</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mb-6">Add your saved valuations to start organising them into this group.</p>
+                <button
+                  onClick={() => { setIsAddingToGroup(true); setAddGroupSelected(new Set()); setAddGroupSearch(""); }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors"
+                >
+                  <MdAdd className="h-5 w-5" />
+                  Add Valuations
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">No matching valuations</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">Try a different search term or clear your filter.</p>
+              </>
+            )}
+          </div>
         ) : view === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedValuations.map((item, index) => {
+            {displayedValuations.map((item: any) => {
               const marketPrice = marketPriceQueries[valuationQuery.findIndex((v: any) => v.id === item.id)]?.data || 0;
+
               const valuationDiff = calculateValuationDiff(Number(marketPrice), Number(item.implied_share_price));
               const isUndervalued = valuationDiff > 0;
               const stockName = item.stock_info.find((si: any) => si.id === "shortName")?.value || item.symbol;
@@ -486,7 +646,9 @@ export default function MyValuationsPage() {
                 <div
                   key={item.id}
                   className={`rounded-xl overflow-hidden shadow-sm bg-white dark:bg-gray-800 border hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
-                    selectedItems.includes(item.id) ? "border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-800" : "border-gray-200 dark:border-gray-700"
+                    selectedItems.includes(item.id)
+                      ? "border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-800"
+                      : "border-gray-200 dark:border-gray-700"
                   } cursor-pointer`}
                   onClick={isDeleteMode ? () => handleCheckboxChange(item.id) : () => handleViewDetails(item.id)}
                 >
@@ -506,16 +668,24 @@ export default function MyValuationsPage() {
                         </div>
                       </div>
 
-                      {isDeleteMode && (
-                        <div onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        {!isDeleteMode && (
+                          <GroupPicker
+                            groups={groups}
+                            membershipSet={new Set<number>(membershipMap[item.id] || [])}
+                            onToggle={(groupId, add) => toggleMembershipMutation.mutate({ groupId, valuationId: item.id, add })}
+                            size="sm"
+                          />
+                        )}
+                        {isDeleteMode && (
                           <input
                             type="checkbox"
                             checked={selectedItems.includes(item.id)}
                             onChange={(e) => handleCheckboxChange(item.id, e)}
                             className="h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
                           />
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex flex-col gap-1.5 mt-4">
@@ -537,7 +707,7 @@ export default function MyValuationsPage() {
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center flex-wrap gap-1.5">
+                    <div className="flex items-center flex-wrap gap-1.5">
                         <FiClock className="text-gray-400 dark:text-gray-500 text-xs" />
                         <span className="text-xs text-gray-500 dark:text-gray-400">Last Qtr: {getQuarterLabel(mrq)}</span>
                         {(() => {
@@ -676,6 +846,12 @@ export default function MyValuationsPage() {
                   </th>
                   <th
                     scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-24"
+                  >
+                    Groups
+                  </th>
+                  <th
+                    scope="col"
                     className="px-5 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer w-40"
                     onClick={() => toggleSort("valued_date")}
                   >
@@ -689,9 +865,10 @@ export default function MyValuationsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {sortedValuations.map((item, index) => {
+                {displayedValuations.map((item: any) => {
                   const marketPrice =
                     marketPriceQueries[valuationQuery.findIndex((v: any) => v.id === item.id)]?.data || 0;
+    
                   const valuationDiff = calculateValuationDiff(Number(marketPrice), Number(item.implied_share_price));
                   const isUndervalued = valuationDiff > 0;
                   const stockName = item.stock_info.find((si: any) => si.id === "shortName")?.value || item.symbol;
@@ -788,6 +965,16 @@ export default function MyValuationsPage() {
                         )}
                       </td>
 
+
+                      <td className="px-3 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <GroupPicker
+                          groups={groups}
+                          membershipSet={new Set<number>(membershipMap[item.id] || [])}
+                          onToggle={(groupId, add) => toggleMembershipMutation.mutate({ groupId, valuationId: item.id, add })}
+                          size="sm"
+                        />
+                      </td>
+
                       <td className="px-5 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400" title={formatValuationDate(item.valued_date)}>
                         {getRelativeTime(item.valued_date)}
                       </td>
@@ -802,6 +989,168 @@ export default function MyValuationsPage() {
 
       {/* Delete confirmation popup */}
       {deletePage && <DeletePopoutPage setIsPopoutOpen={setDeletePage} handleDelete={handleDelete} />}
+
+      {/* Create Group popout */}
+      {isCreateGroupOpen && (
+        <CreateGroupPopout
+          onClose={() => setIsCreateGroupOpen(false)}
+          onSave={async (name, color) => {
+            await createGroupMutation.mutateAsync({ name, color });
+          }}
+          isLoading={createGroupMutation.isPending}
+          error={createGroupMutation.error?.message}
+          mode="create"
+          existingNames={groups.map((g: any) => g.name)}
+        />
+      )}
+
+      {/* Rename Group popout */}
+      {editingGroup && (
+        <CreateGroupPopout
+          onClose={() => setEditingGroup(null)}
+          onSave={async (name, color) => {
+            await updateGroupMutation.mutateAsync({ id: editingGroup.id, name, color });
+          }}
+          isLoading={updateGroupMutation.isPending}
+          error={updateGroupMutation.error?.message}
+          initialName={editingGroup.name}
+          initialColor={editingGroup.color}
+          mode="rename"
+          existingNames={groups.filter((g: any) => g.id !== editingGroup.id).map((g: any) => g.name)}
+        />
+      )}
+
+      {/* Delete Group confirmation */}
+      {confirmDeleteGroupId !== null && (
+        <DeletePopoutPage
+          setIsPopoutOpen={() => setConfirmDeleteGroupId(null)}
+          handleDelete={() => {
+            deleteGroupMutation.mutate(confirmDeleteGroupId);
+            setConfirmDeleteGroupId(null);
+          }}
+        />
+      )}
+
+      {/* Add Valuations to Group modal */}
+      {isAddingToGroup && selectedGroupId !== null && (() => {
+        const g = groups.find((g: any) => g.id === selectedGroupId);
+        const DOT: Record<string, string> = { blue:"bg-blue-500", green:"bg-green-500", red:"bg-red-500", amber:"bg-amber-500", purple:"bg-purple-500", pink:"bg-pink-500", teal:"bg-teal-500", gray:"bg-gray-400" };
+        const filtered = addableValuations.filter((v: any) => {
+          if (!addGroupSearch) return true;
+          const name = v.stock_info.find((s: any) => s.id === "shortName")?.value || "";
+          return v.symbol.toLowerCase().includes(addGroupSearch.toLowerCase()) || name.toLowerCase().includes(addGroupSearch.toLowerCase());
+        });
+        const handleConfirm = async () => {
+          await Promise.all(
+            Array.from(addGroupSelected).map((vid) =>
+              toggleMembershipMutation.mutateAsync({ groupId: selectedGroupId, valuationId: vid, add: true })
+            )
+          );
+          setIsAddingToGroup(false);
+        };
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh] border border-gray-200 dark:border-gray-700">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-2.5">
+                  {g && <span className={`h-3 w-3 rounded-full flex-shrink-0 ${DOT[g.color] || "bg-gray-400"}`} />}
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Add to <span className="text-indigo-600 dark:text-indigo-400">{g?.name}</span>
+                  </h2>
+                </div>
+                <button onClick={() => setIsAddingToGroup(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                  <MdClose size={22} />
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="px-6 py-3 border-b border-gray-100 dark:border-gray-800">
+                <div className="relative">
+                  <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by ticker or name..."
+                    value={addGroupSearch}
+                    onChange={(e) => setAddGroupSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* List */}
+              <div className="overflow-y-auto flex-1 px-3 py-2">
+                {filtered.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-gray-400 dark:text-gray-500">No valuations found</div>
+                ) : (
+                  <div className="space-y-1">
+                    {filtered.map((v: any) => {
+                      const mktIdx = valuationQuery.findIndex((q: any) => q.id === v.id);
+                      const mkt = marketPriceQueries[mktIdx]?.data || 0;
+                      const diff = mkt ? calculateValuationDiff(Number(mkt), Number(v.implied_share_price)) : null;
+                      const name = v.stock_info.find((s: any) => s.id === "shortName")?.value || v.symbol;
+                      const checked = addGroupSelected.has(v.id);
+                      return (
+                        <button
+                          key={v.id}
+                          onClick={() => setAddGroupSelected((prev) => {
+                            const next = new Set(prev);
+                            next.has(v.id) ? next.delete(v.id) : next.add(v.id);
+                            return next;
+                          })}
+                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all ${
+                            checked
+                              ? "bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700"
+                              : "hover:bg-gray-50 dark:hover:bg-gray-800 border border-transparent"
+                          }`}
+                        >
+                          <div className={`h-5 w-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            checked ? "bg-indigo-600 border-indigo-600" : "border-gray-300 dark:border-gray-600"
+                          }`}>
+                            {checked && <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                          </div>
+                          <StockLogo symbol={v.symbol} height={36} width={36} alt="logo" className="flex-shrink-0 rounded-lg" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-900 dark:text-white text-sm">{v.symbol}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{name}</div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="text-sm font-semibold text-gray-900 dark:text-white">${convRound2Dp(Number(v.implied_share_price))}</div>
+                            {diff !== null && (
+                              <div className={`text-xs font-medium ${diff >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
+                                {diff >= 0 ? "▲" : "▼"} {Math.abs(diff).toFixed(1)}%
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between gap-3">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {addGroupSelected.size > 0 ? `${addGroupSelected.size} selected` : "Select valuations to add"}
+                </span>
+                <div className="flex gap-2">
+                  <button onClick={() => setIsAddingToGroup(false)} className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirm}
+                    disabled={addGroupSelected.size === 0 || toggleMembershipMutation.isPending}
+                    className="px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 transition-colors"
+                  >
+                    {toggleMembershipMutation.isPending ? "Adding…" : `Add ${addGroupSelected.size > 0 ? addGroupSelected.size : ""} Valuation${addGroupSelected.size !== 1 ? "s" : ""}`}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </>
   );
 }

@@ -16,6 +16,9 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import PresentValuePopoutPage from "@/app/components/PopoutPage/PresentValuePopoutPage";
 import ROICTable from "@/app/components/ROICTable";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { MdEdit } from "react-icons/md";
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -23,9 +26,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
 
   const [presentValuePopup, setPresentValuePopup] = useState(false);
-
   const [valuationModelLabel, setValuationModelLabel] = useState("");
-
   const [showMoreInputs, setShowMoreInputs] = useState(false);
 
   const {
@@ -47,157 +48,6 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     enabled: !!valuationQuery?.symbol,
   });
 
-  const renderMarkdown = (markdown: string) => {
-    if (!markdown) return null;
-
-    // Split the content into lines
-    const lines = markdown.split("\n");
-    const result: React.ReactElement[] = [];
-
-    let currentList: string[] = [];
-    let currentListType: "ordered" | "unordered" | null = null;
-
-    // Process each line and convert to JSX
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
-      // Check if the line is part of a list
-      const orderedListMatch = line.match(/^\s*(\d+)\.\s(.+)$/);
-      const unorderedListMatch = line.match(/^\s*[-*]\s(.+)$/);
-
-      // Handle ordered list items
-      if (orderedListMatch) {
-        if (currentListType !== "ordered" && currentList.length) {
-          // We were in a different type of list, so finalize the previous list
-          if (currentListType === "unordered") {
-            result.push(
-              <ul key={`ul-${result.length}`} className="list-disc pl-6 mb-4">
-                {currentList.map((item, idx) => (
-                  <li key={idx} className="mb-1">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            );
-          }
-          currentList = [];
-        }
-
-        currentListType = "ordered";
-        currentList.push(orderedListMatch[2]);
-      }
-      // Handle unordered list items
-      else if (unorderedListMatch) {
-        if (currentListType !== "unordered" && currentList.length) {
-          // We were in a different type of list, so finalize the previous list
-          if (currentListType === "ordered") {
-            result.push(
-              <ol key={`ol-${result.length}`} className="list-decimal pl-6 mb-4">
-                {currentList.map((item, idx) => (
-                  <li key={idx} className="mb-1">
-                    {item}
-                  </li>
-                ))}
-              </ol>
-            );
-          }
-          currentList = [];
-        }
-
-        currentListType = "unordered";
-        currentList.push(unorderedListMatch[1]);
-      }
-      // Handle non-list content
-      else {
-        // If we were in a list, finalize it
-        if (currentList.length) {
-          if (currentListType === "ordered") {
-            result.push(
-              <ol key={`ol-${result.length}`} className="list-decimal pl-6 mb-4">
-                {currentList.map((item, idx) => (
-                  <li key={idx} className="mb-1">
-                    {item}
-                  </li>
-                ))}
-              </ol>
-            );
-          } else {
-            result.push(
-              <ul key={`ul-${result.length}`} className="list-disc pl-6 mb-4">
-                {currentList.map((item, idx) => (
-                  <li key={idx} className="mb-1">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            );
-          }
-          currentList = [];
-          currentListType = null;
-        }
-
-        // Handle headers - check for each header style
-        if (line.trim().startsWith("# ")) {
-          result.push(
-            <h1 key={`h1-${i}`} className="text-2xl font-bold mb-3">
-              {line.trim().substring(2)}
-            </h1>
-          );
-        } else if (line.trim().startsWith("## ")) {
-          result.push(
-            <h2 key={`h2-${i}`} className="text-xl font-semibold mt-4 mb-2">
-              {line.trim().substring(3)}
-            </h2>
-          );
-        } else if (line.trim().startsWith("### ")) {
-          result.push(
-            <h3 key={`h3-${i}`} className="text-lg font-medium mt-4 mb-2">
-              {line.trim().substring(4)}
-            </h3>
-          );
-        }
-        // Handle empty lines
-        else if (line.trim() === "") {
-          result.push(<br key={`br-${i}`} />);
-        }
-        // Regular paragraph
-        else {
-          result.push(
-            <p key={`p-${i}`} className="mb-2">
-              {line}
-            </p>
-          );
-        }
-      }
-    }
-
-    // If we have any remaining list items at the end, finalize that list
-    if (currentList.length) {
-      if (currentListType === "ordered") {
-        result.push(
-          <ol key={`ol-${result.length}`} className="list-decimal pl-6 mb-4">
-            {currentList.map((item, idx) => (
-              <li key={idx} className="mb-1">
-                {item}
-              </li>
-            ))}
-          </ol>
-        );
-      } else {
-        result.push(
-          <ul key={`ul-${result.length}`} className="list-disc pl-6 mb-4">
-            {currentList.map((item, idx) => (
-              <li key={idx} className="mb-1">
-                {item}
-              </li>
-            ))}
-          </ul>
-        );
-      }
-    }
-
-    return result;
-  };
 
   if (status === "unauthenticated") {
     return router.push("/"); // Redirect to homepage
@@ -235,29 +85,36 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       <Navbar />
       <div className="grid grid-cols-3 gap-4 p-4 mt-5">
         <div className="col-span-3 text-center">
+          <div className="flex justify-center mb-3">
+            <button
+              onClick={() => router.push(`/fcff?editId=${id}`)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors"
+            >
+              <MdEdit className="h-4 w-4" />
+              Edit Valuation
+            </button>
+          </div>
           <span className="font-bold mr-2">Valued Date: </span>
           {epochToDateTime(valuationQuery.valued_date)}
-          {valuationQuery.tags && valuationQuery.tags.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2 mt-3">
-              {valuationQuery.tags.map((tag: string) => {
-                const styleMap: Record<string, string> = {
-                  "Base Case":    "bg-blue-100 text-blue-700 border-blue-200",
-                  "Bull Case":    "bg-green-100 text-green-700 border-green-200",
-                  "Bear Case":    "bg-red-100 text-red-700 border-red-200",
-                  "Conservative": "bg-amber-100 text-amber-700 border-amber-200",
-                  "Aggressive":   "bg-purple-100 text-purple-700 border-purple-200",
-                };
-                return (
-                  <span
-                    key={tag}
-                    className={`px-3 py-1 rounded-full text-sm font-medium border ${styleMap[tag] ?? "bg-gray-100 text-gray-600 border-gray-200"}`}
-                  >
-                    {tag}
-                  </span>
-                );
-              })}
-            </div>
-          )}
+          <div className="flex flex-wrap justify-center items-center gap-2 mt-3">
+            {valuationQuery.tags?.map((tag: string) => {
+              const styleMap: Record<string, string> = {
+                "Base Case":    "bg-blue-100 text-blue-700 border-blue-200",
+                "Bull Case":    "bg-green-100 text-green-700 border-green-200",
+                "Bear Case":    "bg-red-100 text-red-700 border-red-200",
+                "Conservative": "bg-amber-100 text-amber-700 border-amber-200",
+                "Aggressive":   "bg-purple-100 text-purple-700 border-purple-200",
+              };
+              return (
+                <span
+                  key={tag}
+                  className={`px-3 py-1 rounded-full text-sm font-medium border ${styleMap[tag] ?? "bg-gray-100 text-gray-600 border-gray-200"}`}
+                >
+                  {tag.split("|")[0]}
+                </span>
+              );
+            })}
+          </div>
         </div>
 
         <div className="col-span-3 row-start-2 text-sm text-gray-500 dark:text-gray-400 italic text-right">
@@ -357,7 +214,38 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             <div
               className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
             >
-              <div className="markdown-content dark:text-gray-200">{renderMarkdown(valuationQuery.description)}</div>{" "}
+              <div className="dark:text-gray-200 text-sm">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({ children }) => <h1 className="text-2xl font-bold mb-3 mt-4">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-xl font-semibold mb-2 mt-4">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-lg font-medium mb-2 mt-3">{children}</h3>,
+                    h4: ({ children }) => <h4 className="text-base font-medium mb-1 mt-2">{children}</h4>,
+                    p: ({ children }) => <p className="mb-3">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-6 mb-3 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal pl-6 mb-3 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li>{children}</li>,
+                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                    em: ({ children }) => <em className="italic">{children}</em>,
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto mb-4">
+                        <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">{children}</table>
+                      </div>
+                    ),
+                    thead: ({ children }) => <thead className="bg-gray-50 dark:bg-gray-700">{children}</thead>,
+                    tbody: ({ children }) => <tbody>{children}</tbody>,
+                    tr: ({ children }) => <tr className="border-b border-gray-200 dark:border-gray-600">{children}</tr>,
+                    th: ({ children }) => <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left font-semibold">{children}</th>,
+                    td: ({ children }) => <td className="border border-gray-300 dark:border-gray-600 px-3 py-2">{children}</td>,
+                    blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-3 text-gray-600 dark:text-gray-400">{children}</blockquote>,
+                    code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-700 rounded px-1 py-0.5 font-mono">{children}</code>,
+                    hr: () => <hr className="my-4 border-gray-200 dark:border-gray-600" />,
+                  }}
+                >
+                  {valuationQuery.description}
+                </ReactMarkdown>
+              </div>
             </div>
           </>
         )}

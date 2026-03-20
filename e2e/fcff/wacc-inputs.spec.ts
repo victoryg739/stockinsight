@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { mockAuth } from '../helpers/auth';
 import { mockFcffApis } from '../helpers/mock-apis';
-import { seedFcffState, AAPL_STATE } from '../helpers/seed-state';
+import { seedFcffState } from '../helpers/seed-state';
 
 /**
  * WACC Dropdown Sensitivity Tests — AAPL base case
@@ -29,14 +29,17 @@ test.describe('FCFF WACC Dropdown Sensitivity (AAPL base case)', () => {
     await mockFcffApis(page);
     await seedFcffState(page);
     await page.goto('/fcff?symbol=AAPL');
-    // Wait for WACC to be computed and rendered (non-zero, non-empty)
-    await expect(page.getByTestId('wacc-value')).not.toBeEmpty();
+    // Wait for WACC to stabilise above 7%. The intermediate ~4.17% state (unleveredBeta=0
+    // before the beta query resolves) is skipped by requiring > 7. Timeout is 15 s to
+    // handle cold-start parallel-worker load without relying on the shorter default
+    // assertion timeout that `.not.toBeEmpty()` would impose.
     await page.waitForFunction(() => {
       const el = document.querySelector('[data-testid="wacc-value"]');
-      // Require > 7 to skip the intermediate ~4.17% WACC state (default unleveredBeta=0)
-      // before the beta query resolves. Correct AAPL WACC is ~9–10%.
       return el && parseFloat(el.textContent ?? '0') > 7;
-    }, { timeout: 10_000 });
+    }, { timeout: 15_000 });
+    // Allow cascading React state updates (ERP refetch → matureMarketErp →
+    // terminalWacc → roicTerminalYear auto-set) to settle before the test reads values.
+    await page.waitForTimeout(600);
   });
 
   // ── REGRESSION GUARD ─────────────────────────────────────────────────────
