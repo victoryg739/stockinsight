@@ -292,10 +292,6 @@ function FCFFPageContent() {
     setFetchedInputs(editValuation.fetched_inputs);
     setStockInfo(editValuation.stock_info);
 
-    // Do NOT set countryOptions/industryOptions from stock_info — those are raw
-    // Yahoo Finance values that don't match the Damodaran DB lookup keys, and
-    // changing them would trigger ERP refetches that corrupt the loaded values.
-
     // Mark all editable fields as manually set so auto-fill won't overwrite them
     setSalesToCapManuallyEdited({ salesToCapYr1: true, salesToCapYr2to5: true, salesToCapYr6to10: true });
     setRoicTerminalYearManuallyEdited(true);
@@ -305,8 +301,10 @@ function FCFFPageContent() {
     setSaveTags(editValuation.tags || []);
 
     // Restore override flags from saved record
-    const flags = editValuation.override_flags;
+    const flags = editValuation.override_flags as any;
     if (flags) {
+      if (flags.savedCountryOptions) setCountryOptions(flags.savedCountryOptions);
+      if (flags.savedIndustryOptions) setIndustryOptions(flags.savedIndustryOptions);
       setOverrideTerminalWacc(flags.overrideTerminalWacc ?? false);
       setOverrideTerminalRoic(flags.overrideTerminalRoic ?? false);
       setOverrideRevGrowthPerpetuity(flags.overrideRevGrowthPerpetuity ?? false);
@@ -798,14 +796,14 @@ function FCFFPageContent() {
                 <Dropdown
                   options={countries}
                   value={countryOptions}
-                  onChange={setCountryOptions}
+                  onChange={(v: string) => { setCountryOptions(v); setInitialWaccManuallyEdited(false); }}
                   defaultOption="United States"
                   label="Country"
                 />
                 <Dropdown
                   options={industries}
                   value={industryOptions}
-                  onChange={setIndustryOptions}
+                  onChange={(v: string) => { setIndustryOptions(v); setInitialWaccManuallyEdited(false); }}
                   defaultOption="Software (Internet)"
                   label="Industry"
                 />
@@ -1010,6 +1008,7 @@ function FCFFPageContent() {
               valuationOutput={valuationOutputRef.current}
               impliedSharePrice={impliedSharePriceRef.current}
               industryOptions={industryOptions}
+              countryOptions={countryOptions}
               roicData={roicData}
               mutation={saveValuationMutation}
               updateMutation={updateValuationMutation}
