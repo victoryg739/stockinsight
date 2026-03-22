@@ -56,6 +56,7 @@ export default function SaveValuationPopoutPage({
   impliedSharePrice,
   industryOptions,
   countryOptions,
+  syntheticRatingOptions,
   roicData,
   mutation,
   updateMutation,
@@ -352,6 +353,7 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
       roicTerminalYearCustom: roicTerminalYear ?? 0,
       savedCountryOptions: countryOptions,
       savedIndustryOptions: industryOptions,
+      savedSyntheticRatingOptions: syntheticRatingOptions,
     },
   });
 

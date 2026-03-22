@@ -75,6 +75,7 @@ function FCFFPageContent() {
   const impliedSharePriceRef = useRef(0);
   const [countryOptions, setCountryOptions] = useState("United States");
   const [industryOptions, setIndustryOptions] = useState("Software (Internet)");
+  const [syntheticRatingOptions, setSyntheticRatingOptions] = useState("Aaa/AAA");
   const [marketPopup, setMarketPopup] = useState(false);
   const [presentValuePopup, setPresentValuePopup] = useState(false);
   const [monteCarloPopup, setMonteCarloPopup] = useState(false);
@@ -305,6 +306,7 @@ function FCFFPageContent() {
     if (flags) {
       if (flags.savedCountryOptions) setCountryOptions(flags.savedCountryOptions);
       if (flags.savedIndustryOptions) setIndustryOptions(flags.savedIndustryOptions);
+      if (flags.savedSyntheticRatingOptions) setSyntheticRatingOptions(flags.savedSyntheticRatingOptions);
       setOverrideTerminalWacc(flags.overrideTerminalWacc ?? false);
       setOverrideTerminalRoic(flags.overrideTerminalRoic ?? false);
       setOverrideRevGrowthPerpetuity(flags.overrideRevGrowthPerpetuity ?? false);
@@ -357,6 +359,7 @@ function FCFFPageContent() {
       setStockInfo(saved.stockInfo);
       setCountryOptions(saved.countryOptions);
       setIndustryOptions(saved.industryOptions);
+      if (saved.syntheticRatingOptions) setSyntheticRatingOptions(saved.syntheticRatingOptions);
       setSalesToCapManuallyEdited(saved.salesToCapManuallyEdited);
       setRoicTerminalYearManuallyEdited(saved.roicTerminalYearManuallyEdited);
       setInitialWaccManuallyEdited(saved.initialWaccManuallyEdited);
@@ -494,6 +497,7 @@ function FCFFPageContent() {
         stockInfo,
         countryOptions,
         industryOptions,
+        syntheticRatingOptions,
         salesToCapManuallyEdited,
         roicTerminalYearManuallyEdited,
         initialWaccManuallyEdited,
@@ -518,6 +522,7 @@ function FCFFPageContent() {
     stockInfo,
     countryOptions,
     industryOptions,
+    syntheticRatingOptions,
     salesToCapManuallyEdited,
     roicTerminalYearManuallyEdited,
     initialWaccManuallyEdited,
@@ -938,6 +943,8 @@ function FCFFPageContent() {
               industryOptions={industryOptions}
               initialWaccManuallyEdited={initialWaccManuallyEdited}
               erpIsFetching={erpIsFetching}
+              syntheticRatingOptions={syntheticRatingOptions}
+              setSyntheticRatingOptions={(v: string) => { setSyntheticRatingOptions(v); setInitialWaccManuallyEdited(false); }}
             />
           </div>
           {/*Valuation Header */}
@@ -1009,6 +1016,7 @@ function FCFFPageContent() {
               impliedSharePrice={impliedSharePriceRef.current}
               industryOptions={industryOptions}
               countryOptions={countryOptions}
+              syntheticRatingOptions={syntheticRatingOptions}
               roicData={roicData}
               mutation={saveValuationMutation}
               updateMutation={updateValuationMutation}

@@ -7,6 +7,7 @@ export interface ValuationStoredState {
   stockInfo: any[];
   countryOptions: string;
   industryOptions: string;
+  syntheticRatingOptions: string;
   salesToCapManuallyEdited: {
     salesToCapYr1: boolean;
     salesToCapYr2to5: boolean;

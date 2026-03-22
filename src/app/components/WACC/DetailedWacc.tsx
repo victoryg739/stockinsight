@@ -17,8 +17,9 @@ export default function DetailedWacc({
   countryOptions,
   initialWaccManuallyEdited,
   erpIsFetching,
+  syntheticRatingOptions,
+  setSyntheticRatingOptions,
 }: any) {
-  const [syntheticRatingOptions, setSyntheticRatingOptions] = useState("Aaa/AAA");
   const spread = useRef(0.59);
 
   const waccEquityRef = useRef(States.WACC_EQUITY);
