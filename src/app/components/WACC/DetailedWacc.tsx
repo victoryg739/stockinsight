@@ -16,6 +16,7 @@ export default function DetailedWacc({
   industryOptions,
   countryOptions,
   initialWaccManuallyEdited,
+  erpIsFetching,
 }: any) {
   const [syntheticRatingOptions, setSyntheticRatingOptions] = useState("Aaa/AAA");
   const spread = useRef(0.59);
@@ -46,7 +47,7 @@ export default function DetailedWacc({
   };
 
   //GET unlevered beta — include industryOptions in queryKey so React Query re-fetches on industry change
-  const { data: betaQuery } = useQuery({
+  const { data: betaQuery, isFetching: betaIsFetching } = useQuery({
     queryKey: ["beta", industryOptions],
     queryFn: async () => {
       const data = queryFn.fetchBeta(encodeParams(industryOptions));
@@ -58,7 +59,7 @@ export default function DetailedWacc({
   }
 
   //GET synthetic ratings spread — include syntheticRatingOptions in queryKey so React Query re-fetches on rating change
-  const { data: syntheticRatingQuery } = useQuery({
+  const { data: syntheticRatingQuery, isFetching: syntheticRatingIsFetching } = useQuery({
     queryKey: ["syntheticRatingSpread", syntheticRatingOptions],
     queryFn: async () => {
       return queryFn.fetchSyntheticRatingSpread(syntheticRatingOptions);
@@ -139,8 +140,20 @@ export default function DetailedWacc({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [computedInitialWacc, initialWaccManuallyEdited]);
 
+  const waccIsLoading = betaIsFetching || syntheticRatingIsFetching || erpIsFetching;
+
   return (
     <div>
+      {waccIsLoading && (
+        <div className="flex items-center gap-2 mb-6 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl text-blue-600 dark:text-blue-300 text-sm">
+          <svg className="w-4 h-4 shrink-0 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span>Fetching market data, recalculating WACC&hellip;</span>
+        </div>
+      )}
+      <div className={`transition-opacity duration-300 ${waccIsLoading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
       <div className="flex flex-col items-center mb-14">
         <h2 className="font-medium text-xl mb-4 text-gray-700 dark:text-gray-200">Equity</h2>
         <div className="w-full max-w h-0.5 bg-gray-200 dark:bg-gray-600"></div>
@@ -250,6 +263,7 @@ export default function DetailedWacc({
         costOfDebt={costOfDebtRef.current}
         debtWeight={debtWeightRef.current}
       />
+      </div>
     </div>
   );
 }

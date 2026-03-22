@@ -206,8 +206,8 @@ function FCFFPageContent() {
   });
 
   //GET ERP and marginal tax rate
-  const { refetch: equityRiskPremiumRefectch } = useQuery({
-    queryKey: ["equityRiskPremium"],
+  const { refetch: equityRiskPremiumRefectch, isFetching: erpIsFetching } = useQuery({
+    queryKey: ["equityRiskPremium", countryOptions],
     queryFn: async () => {
       if (isTestTickerRef.current && !testErpInitialFetchedRef.current) {
         // Initial TEST load: only fetch matureMarketErp — keep hardcoded ERP and marginalTaxRate
@@ -939,6 +939,7 @@ function FCFFPageContent() {
               countryOptions={countryOptions}
               industryOptions={industryOptions}
               initialWaccManuallyEdited={initialWaccManuallyEdited}
+              erpIsFetching={erpIsFetching}
             />
           </div>
           {/*Valuation Header */}
