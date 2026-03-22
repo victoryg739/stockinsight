@@ -4,14 +4,14 @@ import React, { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useQueryClient, useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { MdAdd, MdDelete, MdEdit, MdViewList, MdDynamicFeed, MdExpandMore, MdExpandLess } from "react-icons/md";
+import { MdAdd, MdDelete, MdEdit } from "react-icons/md";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import NewAlertPopout from "../components/PopoutPage/NewAlertPopout";
 import EditAlertPopout from "../components/PopoutPage/EditAlertPopout";
 import DeletePopoutPage from "../components/PopoutPage/DeletePopoutPage";
 import Navbar from "../components/Navbar";
 import StockLogo from "../components/StockLogo";
-import { fetchMarketPrice } from "../utils/queryAPIFunctions";
+import { fetchMarketPrice, fetchValuations } from "../utils/queryAPIFunctions";
 
 interface PriceAlert {
   id: number;
@@ -103,9 +103,8 @@ export default function AlertsPage() {
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [selectedAlerts, setSelectedAlerts] = useState<Set<number>>(new Set());
   const [isMassDeletePopupOpen, setIsMassDeletePopupOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'all' | 'grouped'>('all');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'TRIGGERED' | 'CANCELLED'>('ALL');
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "TRIGGERED" | "CANCELLED">("ALL");
+  const [groupFilter, setGroupFilter] = useState<number | null>(null);
 
   // Debug logging (remove in production)
   React.useEffect(() => {
@@ -128,6 +127,18 @@ export default function AlertsPage() {
       }
       return failureCount < 3;
     },
+  });
+
+  const { data: groups } = useQuery({
+    queryKey: ["valuationGroups"],
+    queryFn: () => fetch("/api/valuation-groups").then((r) => r.json()),
+    enabled: !!session?.user?.email && status === "authenticated",
+  });
+
+  const { data: allValuations } = useQuery({
+    queryKey: ["allValuations"],
+    queryFn: () => fetchValuations(""),
+    enabled: !!session?.user?.email && status === "authenticated",
   });
 
   // Fetch market prices for all alerts
@@ -218,24 +229,23 @@ export default function AlertsPage() {
     if (price !== undefined) marketPriceBySymbol[alert.symbol] = price;
   });
 
-  const filteredAlerts = (alerts || []).filter(
-    (a) => statusFilter === 'ALL' || a.status === statusFilter
-  );
-
-  const groupedAlerts = filteredAlerts.reduce((acc, alert) => {
-    if (!acc[alert.symbol]) acc[alert.symbol] = [];
-    acc[alert.symbol].push(alert);
-    return acc;
-  }, {} as Record<string, PriceAlert[]>);
-  const sortedSymbols = Object.keys(groupedAlerts).sort();
-
-  const toggleGroup = (symbol: string) => {
-    setCollapsedGroups((prev) => {
-      const next = new Set(prev);
-      next.has(symbol) ? next.delete(symbol) : next.add(symbol);
-      return next;
+  // Build a set of symbols in the selected group
+  const groupFilterSymbols: Set<string> | null = (() => {
+    if (groupFilter === null || !groups || !allValuations) return null;
+    const group = (groups as any[]).find((g) => g.id === groupFilter);
+    if (!group) return null;
+    const idToSymbol: Record<number, string> = {};
+    (allValuations as any[]).forEach((v) => {
+      idToSymbol[v.id] = v.symbol;
     });
-  };
+    return new Set<string>(group.memberIds.map((id: number) => idToSymbol[id]).filter(Boolean));
+  })();
+
+  const filteredAlerts = (alerts || []).filter((a) => {
+    if (statusFilter !== "ALL" && a.status !== statusFilter) return false;
+    if (groupFilterSymbols !== null && !groupFilterSymbols.has(a.symbol)) return false;
+    return true;
+  });
 
   const toggleSelectAll = () => {
     if (selectedAlerts.size === filteredAlerts.length) {
@@ -381,10 +391,10 @@ export default function AlertsPage() {
         {/* Error State */}
         {alertsError && !alertsLoading && <ErrorState error={alertsError} />}
 
-        {/* Status filter pills + view toggle */}
+        {/* Status filter pills + group filter */}
         {!alertsLoading && !alertsError && status === "authenticated" && (
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-col gap-4 mb-4">
+            <div className="flex items-center gap-3 flex-wrap">
               {(["ALL", "ACTIVE", "TRIGGERED", "CANCELLED"] as const).map((s) => {
                 const count = s === "ALL" ? (alerts || []).length : (alerts || []).filter((a) => a.status === s).length;
                 const active = statusFilter === s;
@@ -399,44 +409,96 @@ export default function AlertsPage() {
                     }`}
                   >
                     {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()}
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${active ? "bg-white/20 text-white" : "bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400"}`}>
+                    <span
+                      className={`text-xs px-1.5 py-0.5 rounded-full ${active ? "bg-white/20 text-white" : "bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400"}`}
+                    >
                       {count}
                     </span>
                   </button>
                 );
               })}
             </div>
-            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("all")}
-                title="All view"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === "all"
-                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                }`}
-              >
-                <MdViewList className="h-4 w-4" />
-                All
-              </button>
-              <button
-                onClick={() => setViewMode("grouped")}
-                title="Group by symbol"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === "grouped"
-                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                }`}
-              >
-                <MdDynamicFeed className="h-4 w-4" />
-                By Symbol
-              </button>
-            </div>
+            {(groups as any[] | undefined)?.length
+              ? (() => {
+                  const GROUP_COLOR = {
+                    blue: {
+                      dot: "bg-blue-500",
+                      active:
+                        "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-300 dark:border-blue-600",
+                    },
+                    green: {
+                      dot: "bg-green-500",
+                      active:
+                        "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border-green-300 dark:border-green-600",
+                    },
+                    red: {
+                      dot: "bg-red-500",
+                      active:
+                        "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border-red-300 dark:border-red-600",
+                    },
+                    amber: {
+                      dot: "bg-amber-500",
+                      active:
+                        "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-300 dark:border-amber-600",
+                    },
+                    purple: {
+                      dot: "bg-purple-500",
+                      active:
+                        "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border-purple-300 dark:border-purple-600",
+                    },
+                    pink: {
+                      dot: "bg-pink-500",
+                      active:
+                        "bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300 border-pink-300 dark:border-pink-600",
+                    },
+                    teal: {
+                      dot: "bg-teal-500",
+                      active:
+                        "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300 border-teal-300 dark:border-teal-600",
+                    },
+                    gray: {
+                      dot: "bg-gray-400",
+                      active:
+                        "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-300 border-gray-300 dark:border-gray-600",
+                    },
+                  } as Record<string, { dot: string; active: string }>;
+                  const inactiveChip =
+                    "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700";
+                  return (
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1 scroll-smooth flex-wrap">
+                      <button
+                        onClick={() => setGroupFilter(null)}
+                        className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors whitespace-nowrap ${
+                          groupFilter === null ? "bg-indigo-600 text-white border-indigo-600" : inactiveChip
+                        }`}
+                      >
+                        All Groups
+                      </button>
+                      {(groups as any[]).map((group) => {
+                        const colors = GROUP_COLOR[group.color] || GROUP_COLOR.gray;
+                        const isActive = groupFilter === group.id;
+                        return (
+                          <button
+                            key={group.id}
+                            onClick={() => setGroupFilter(isActive ? null : group.id)}
+                            className={`flex-shrink-0 flex items-center gap-2 pl-3 pr-3 py-1.5 rounded-full border text-sm font-medium transition-colors whitespace-nowrap ${
+                              isActive ? colors.active : inactiveChip
+                            }`}
+                          >
+                            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${colors.dot}`} />
+                            {group.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()
+              : null}
           </div>
         )}
 
         {/* Main Content */}
-        {!alertsLoading && !alertsError && status === "authenticated" && viewMode === "all" && (
+        {!alertsLoading && !alertsError && status === "authenticated" && (
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -481,7 +543,10 @@ export default function AlertsPage() {
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {filteredAlerts.length === 0 ? (
                     <tr>
-                      <td colSpan={isDeleteMode ? 9 : 8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                      <td
+                        colSpan={isDeleteMode ? 9 : 8}
+                        className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
+                      >
                         <div className="flex flex-col items-center">
                           <div className="bg-indigo-100 dark:bg-indigo-900/30 p-6 rounded-full mb-6">
                             <MdAdd className="h-16 w-16 text-indigo-600 dark:text-indigo-400" />
@@ -592,173 +657,6 @@ export default function AlertsPage() {
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
-
-        {/* Grouped By Symbol View */}
-        {!alertsLoading && !alertsError && status === "authenticated" && viewMode === "grouped" && (
-          <div className="space-y-3">
-            {filteredAlerts.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                <div className="flex flex-col items-center">
-                  <div className="bg-indigo-100 dark:bg-indigo-900/30 p-6 rounded-full mb-6">
-                    <MdAdd className="h-16 w-16 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  {statusFilter !== "ALL" ? (
-                    <>
-                      <p className="text-lg font-medium">No {statusFilter.toLowerCase()} alerts</p>
-                      <p className="text-sm">Try a different filter or create a new alert</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-lg font-medium">No alerts yet</p>
-                      <p className="text-sm">Create your first price alert to get started</p>
-                    </>
-                  )}
-                </div>
-              </div>
-            ) : (
-              sortedSymbols.map((symbol) => {
-                const symbolAlerts = groupedAlerts[symbol];
-                const marketPrice = marketPriceBySymbol[symbol];
-                const isCollapsed = collapsedGroups.has(symbol);
-                const activeCount = symbolAlerts.filter((a) => a.status === "ACTIVE").length;
-                const triggeredCount = symbolAlerts.filter((a) => a.status === "TRIGGERED").length;
-                const cancelledCount = symbolAlerts.filter((a) => a.status === "CANCELLED").length;
-
-                return (
-                  <div key={symbol} className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-                    {/* Group Header */}
-                    <button
-                      onClick={() => toggleGroup(symbol)}
-                      className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0 h-10 w-10 relative">
-                          <StockLogo
-                            symbol={symbol}
-                            height={40}
-                            width={40}
-                            className="rounded-lg"
-                            alt={`${symbol} logo`}
-                          />
-                        </div>
-                        <div>
-                          <span className="text-base font-semibold text-gray-900 dark:text-white">{symbol}</span>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            {marketPrice ? (
-                              <span className="text-sm text-gray-500 dark:text-gray-400">{formatPrice(marketPrice)}</span>
-                            ) : (
-                              <div className="animate-pulse h-3.5 w-14 bg-gray-200 dark:bg-gray-600 rounded" />
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 ml-2">
-                          {activeCount > 0 && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                              {activeCount} Active
-                            </span>
-                          )}
-                          {triggeredCount > 0 && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                              {triggeredCount} Triggered
-                            </span>
-                          )}
-                          {cancelledCount > 0 && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                              {cancelledCount} Cancelled
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {isCollapsed ? (
-                        <MdExpandMore className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                      ) : (
-                        <MdExpandLess className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                      )}
-                    </button>
-
-                    {/* Expanded Alert Rows */}
-                    {!isCollapsed && (
-                      <div className="border-t border-gray-200 dark:border-gray-700 overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                          <thead className="bg-gray-50 dark:bg-gray-700/50">
-                            <tr>
-                              {isDeleteMode && <th className="px-4 py-2 w-10" />}
-                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Target Price</th>
-                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Alert Type</th>
-                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
-                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expires</th>
-                              <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {symbolAlerts.map((alert) => (
-                              <tr
-                                key={alert.id}
-                                onClick={isDeleteMode ? () => toggleSelectAlert(alert.id) : undefined}
-                                className={`${isDeleteMode ? "cursor-pointer select-none" : ""} hover:bg-gray-50 dark:hover:bg-gray-700/50 ${isDeleteMode && selectedAlerts.has(alert.id) ? "bg-red-50 dark:bg-red-900/10" : ""}`}
-                              >
-                                {isDeleteMode && (
-                                  <td className="px-4 py-3 w-10">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedAlerts.has(alert.id)}
-                                      onChange={() => toggleSelectAlert(alert.id)}
-                                      className="h-4 w-4 text-red-600 border-gray-300 dark:border-gray-600 rounded"
-                                    />
-                                  </td>
-                                )}
-                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                  {formatPrice(Number(alert.target_price))}
-                                </td>
-                                <td className="px-6 py-3 whitespace-nowrap">
-                                  <div className="flex items-center">
-                                    {getConditionIcon(alert.condition)}
-                                    <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
-                                      {alert.condition === "ABOVE" ? "Above" : "Below"}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-3 whitespace-nowrap">
-                                  <span className={getStatusBadge(alert.status)}>{alert.status}</span>
-                                </td>
-                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                  {formatDate(alert.created_at)}
-                                </td>
-                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                  {formatDate(alert.expires_at)}
-                                </td>
-                                <td className="px-6 py-3 whitespace-nowrap text-sm font-medium">
-                                  <div className="flex space-x-2">
-                                    <button
-                                      onClick={() => handleEditAlert(alert)}
-                                      className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
-                                      title="Edit alert"
-                                    >
-                                      <MdEdit className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteAlert(alert)}
-                                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-                                      title="Delete alert"
-                                      disabled={deleteAlertMutation.isPending}
-                                    >
-                                      <MdDelete className="h-4 w-4" />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
           </div>
         )}
       </div>

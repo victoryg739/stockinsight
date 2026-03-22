@@ -84,18 +84,21 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     <div>
       <Navbar />
       <div className="grid grid-cols-3 gap-4 p-4 mt-5">
-        <div className="col-span-3 text-center">
-          <div className="flex justify-center mb-3">
+        <div className="col-span-3">
+          <div className="flex items-center justify-between px-2 mb-3">
+            <div className="w-36" />
+            <div className="text-center">
+              <span className="font-bold mr-2">Valued Date: </span>
+              {epochToDateTime(valuationQuery.valued_date)}
+            </div>
             <button
               onClick={() => router.push(`/fcff?editId=${id}`)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white textsm font-medium transition-colors"
             >
               <MdEdit className="h-4 w-4" />
               Edit Valuation
             </button>
           </div>
-          <span className="font-bold mr-2">Valued Date: </span>
-          {epochToDateTime(valuationQuery.valued_date)}
           <div className="flex flex-wrap justify-center items-center gap-2 mt-3">
             {valuationQuery.tags?.map((tag: string) => {
               const styleMap: Record<string, string> = {
@@ -140,8 +143,8 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
               value={input.value}
               question={input.question}
               unit={input.unit}
-              // onChange={(e) => handleInputChange(input.id, e.target.value, "inputs")}
               firstElement={index === 0}
+              readOnly
             />
           ))}
         </div>
@@ -169,7 +172,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                 value={input.value}
                 question={input.question}
                 unit={input.unit}
-                // onChange={(e) => handleInputChange(input.id, e.target.value, "fetchedInputs")}
+                readOnly
               />
             ))}
           </div>

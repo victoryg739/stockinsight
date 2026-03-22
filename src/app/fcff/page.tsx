@@ -269,17 +269,19 @@ function FCFFPageContent() {
   });
 
   // Fetch valuation for editing
-  const { data: editValuation } = useQuery({
+  const { data: editValuation, isError: editValuationIsError } = useQuery({
     queryKey: ["editValuation", urlEditId],
     queryFn: () => queryFn.fetchValuationById(urlEditId),
     enabled: !!urlEditId,
+    retry: 2,
   });
 
-  // Apply edit valuation data to page state
-  const editAppliedRef = useRef(false);
+  // Apply edit valuation data to page state.
+  // Uses hasRestoredState as the guard (not a ref) so that when the URL effect
+  // resets hasRestoredState→false (back-nav re-edit), this effect re-fires even
+  // if editValuation is already cached and unchanged.
   useEffect(() => {
-    if (!editValuation || editAppliedRef.current) return;
-    editAppliedRef.current = true;
+    if (!editValuation || !urlEditId || hasRestoredState) return;
 
     // Prevent the symbolBtn effect from resetting inputs when symbol changes
     restoredFromStorageRef.current = true;
@@ -301,8 +303,31 @@ function FCFFPageContent() {
 
     setSaveDescription(editValuation.description || "");
     setSaveTags(editValuation.tags || []);
+
+    // Restore override flags from saved record
+    const flags = editValuation.override_flags;
+    if (flags) {
+      setOverrideTerminalWacc(flags.overrideTerminalWacc ?? false);
+      setOverrideTerminalRoic(flags.overrideTerminalRoic ?? false);
+      setOverrideRevGrowthPerpetuity(flags.overrideRevGrowthPerpetuity ?? false);
+      setOverrideTerminalRfr(flags.overrideTerminalRfr ?? false);
+      setTerminalWaccCustom(flags.terminalWaccCustom ?? 0);
+      setTerminalRfrCustom(flags.terminalRfrCustom ?? 0);
+      // Explicitly restore ROIC custom value from override_flags so the
+      // auto-reset effect (which fires with terminalWacc=0 before data loads)
+      // cannot overwrite the saved value.
+      if (flags.overrideTerminalRoic && flags.roicTerminalYearCustom !== undefined) {
+        setFetchedInputs((prev: any) =>
+          prev.map((input: any) =>
+            input.id === "roicTerminalYear" ? { ...input, value: flags.roicTerminalYearCustom } : input
+          )
+        );
+      }
+    }
+
     setHasRestoredState(true);
-  }, [editValuation]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editValuation, urlEditId, hasRestoredState]);
 
   // Initialize/restore from URL search params (runs on mount and on back/forward navigation)
   const prevUrlSymbolRef = useRef<string | null>(null);
@@ -451,7 +476,7 @@ function FCFFPageContent() {
 
   useEffect(() => {
     // In edit mode, skip the auto-fetch on mount until the saved values have been applied
-    if (urlEditId && !editAppliedRef.current) return;
+    if (urlEditId && !hasRestoredState) return;
     equityRiskPremiumRefectch();
   }, [countryOptions, equityRiskPremiumRefectch, urlEditId]);
 
@@ -713,7 +738,19 @@ function FCFFPageContent() {
         incomeStatementIsFetching={incomeStatementIsFetching}
       />
 
-      {searchedSymbol === "" ? (
+      {urlEditId && !hasRestoredState && !editValuationIsError ? (
+        <div className="flex flex-col justify-center items-center h-screen">
+          <Image src="/loading.svg" alt="Loading icon" height={400} width={400} className="object-contain mb-4" />
+          <p className="font-semibold text-lg text-center mt-5">Loading...</p>
+        </div>
+      ) : urlEditId && editValuationIsError ? (
+        <div className="flex flex-col justify-center items-center h-screen">
+          <Image src="/error.svg" alt="Error icon" height={500} width={500} className="object-contain mb-4" />
+          <p className="text-red-700 dark:text-red-400 font-medium text-lg text-center mt-5">
+            Failed to load valuation. Please try again.
+          </p>
+        </div>
+      ) : searchedSymbol === "" ? (
         <div className="flex flex-col justify-center items-center h-screen">
           <Image src="/growth.svg" alt="growth icon" height={500} width={500} className="object-contain mb-4" />
           <p className=" font-medium text-lg text-center mt-5"> Search for the stock ticker you want to view</p>
@@ -722,11 +759,6 @@ function FCFFPageContent() {
         <div className="flex flex-col justify-center items-center h-screen">
           <Image src="/error.svg" alt="Error icon" height={500} width={500} className="object-contain mb-4" />
           <p className="text-red-700 dark:text-red-400 font-medium text-lg text-center mt-5">No such symbol. Please enter valid symbol</p>
-        </div>
-      ) : urlEditId && !hasRestoredState ? (
-        <div className="flex flex-col justify-center items-center h-screen">
-          <Image src="/loading.svg" alt="Loading icon" height={400} width={400} className="object-contain mb-4" />
-          <p className="font-semibold text-lg text-center mt-5">Loading...</p>
         </div>
       ) : !hasRestoredState && (incomeStatementIsFetching || status === "loading") ? (
         <div className="flex flex-col justify-center items-center h-screen">
@@ -987,6 +1019,13 @@ function FCFFPageContent() {
               setTags={setSaveTags}
               selectedGroupIds={saveGroupIds}
               setSelectedGroupIds={setSaveGroupIds}
+              overrideTerminalWacc={overrideTerminalWacc}
+              overrideTerminalRoic={overrideTerminalRoic}
+              overrideRevGrowthPerpetuity={overrideRevGrowthPerpetuity}
+              overrideTerminalRfr={overrideTerminalRfr}
+              terminalWaccCustom={terminalWaccCustom}
+              terminalRfrCustom={terminalRfrCustom}
+              roicTerminalYear={roicTerminalYear}
             />
           )}
           {monteCarloPopup && (

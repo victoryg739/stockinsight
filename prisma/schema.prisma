@@ -286,6 +286,7 @@ model valuation {
   description         String?
   valued_date         Int?
   tags                Json?
+  override_flags      Json?
 }
 
 model valuation_group {

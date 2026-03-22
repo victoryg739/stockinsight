@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     if (req.method === 'POST') {
         const body = await req.json();
-        const { symbol, email, inputs, fetchedInputs, stockInfo, valuationModel, valuationOutput, impliedSharePrice, roic_data, description, tags, valuedDate } = body;
+        const { symbol, email, inputs, fetchedInputs, stockInfo, valuationModel, valuationOutput, impliedSharePrice, roic_data, description, tags, valuedDate, overrideFlags } = body;
 
         // SECURITY FIX: Validate user can only create valuations for themselves
         if (email !== session.user.email) {
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
                     description,
                     tags,
                     valued_date: valuedDate,
+                    override_flags: overrideFlags ?? null,
                 },
             });
             return NextResponse.json(newValuation, { status: 200 });

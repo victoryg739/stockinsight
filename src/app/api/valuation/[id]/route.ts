@@ -49,7 +49,7 @@ export async function PUT(
         }
 
         const body = await request.json();
-        const { inputs, fetchedInputs, stockInfo, valuationModel, valuationOutput, impliedSharePrice, roic_data, description, tags, valuedDate } = body;
+        const { inputs, fetchedInputs, stockInfo, valuationModel, valuationOutput, impliedSharePrice, roic_data, description, tags, valuedDate, overrideFlags } = body;
 
         const updated = await prisma.valuation.update({
             where: { id },
@@ -64,6 +64,7 @@ export async function PUT(
                 description,
                 tags,
                 valued_date: valuedDate,
+                override_flags: overrideFlags ?? null,
             },
         });
 

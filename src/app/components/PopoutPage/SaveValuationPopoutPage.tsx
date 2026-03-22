@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { RxCross1 } from "react-icons/rx";
 import * as conv from "../../utils/helper";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -64,10 +65,19 @@ export default function SaveValuationPopoutPage({
   setTags,
   selectedGroupIds,
   setSelectedGroupIds,
+  overrideTerminalWacc,
+  overrideTerminalRoic,
+  overrideRevGrowthPerpetuity,
+  overrideTerminalRfr,
+  terminalWaccCustom,
+  terminalRfrCustom,
+  roicTerminalYear,
 }: any) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const popoutRef = useRef<HTMLDivElement>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
   const [customTagInput, setCustomTagInput] = useState("");
   const [customTagColor, setCustomTagColor] = useState("blue");
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
@@ -331,6 +341,15 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
     description,
     tags,
     valuedDate: nowEpochSeconds,
+    overrideFlags: {
+      overrideTerminalWacc: overrideTerminalWacc ?? false,
+      overrideTerminalRoic: overrideTerminalRoic ?? false,
+      overrideRevGrowthPerpetuity: overrideRevGrowthPerpetuity ?? false,
+      overrideTerminalRfr: overrideTerminalRfr ?? false,
+      terminalWaccCustom: terminalWaccCustom ?? 0,
+      terminalRfrCustom: terminalRfrCustom ?? 0,
+      roicTerminalYearCustom: roicTerminalYear ?? 0,
+    },
   });
 
   const handleSave = async () => {
@@ -387,9 +406,25 @@ The valuation suggests the stock is ${valGap > 0 ? "undervalued" : "overvalued"}
       if (toAdd.length > 0 || toRemove.length > 0) {
         queryClient.invalidateQueries({ queryKey: ["valuationGroups"] });
       }
+
+      setUpdateSuccess(true);
+      setTimeout(() => {
+        router.push(`/myValuations/${editId}`);
+      }, 3000);
     } catch (_) {}
-    setIsPopoutOpen(false);
   };
+
+  if (updateSuccess) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-10 flex flex-col items-center gap-4 max-w-sm w-full mx-4">
+          <FaCheckCircle className="text-green-500 text-6xl" />
+          <p className="text-xl font-semibold text-gray-800 dark:text-white">Valuation Updated!</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center">Redirecting to your valuation in 3 seconds...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
