@@ -1,3 +1,7 @@
+// Cron job is managed externally via cron-job.org (not Vercel Cron).
+// Schedule: every 2 minutes, Mon–Fri, 9PM – 4AM  SGT
+// Manage at: https://console.cron-job.org/jobs
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
