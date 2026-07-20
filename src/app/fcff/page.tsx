@@ -34,6 +34,7 @@ import AnalysisToolsCarousel from "../components/AnalysisToolsCarousel"; // Impo
 import FundamentalDataPopoutPage from "../components/PopoutPage/FundamentalDataPopoutPage";
 import { saveValuationState, loadValuationState } from "../hooks/useValuationStateStorage";
 import AssumptionOverrides from "../components/AssumptionOverrides";
+import CopyLlmPromptButton from "../components/CopyLlmPromptButton";
 
 interface InputField {
   id: string;
@@ -579,13 +580,21 @@ function FCFFPageContent() {
   // Placeholder values for missing inputs
   const matureMarketErp = getInputValue("matureMarketErp", "fetchedInputs");
 
-  const terminalRfr = overrideTerminalRfr
-    ? terminalRfrCustom
-    : getInputValue("riskFreeRate", "fetchedInputs");
-  const terminalWacc = overrideTerminalWacc
-    ? terminalWaccCustom
-    : FinCalc.calcTerminalWACC(matureMarketErp, terminalRfr);
-  const effectiveGrowthTerminal = overrideRevGrowthPerpetuity ? growthTerminal : terminalRfr;
+  const terminalOverrides: FinCalc.TerminalOverrides = {
+    overrideTerminalWacc,
+    terminalWaccCustom,
+    overrideTerminalRoic,
+    overrideRevGrowthPerpetuity,
+    overrideTerminalRfr,
+    terminalRfrCustom,
+  };
+  const { terminalRfr, terminalWacc, effectiveGrowthTerminal } = FinCalc.resolveTerminalAssumptions(
+    matureMarketErp,
+    getInputValue("riskFreeRate", "fetchedInputs"),
+    growthTerminal,
+    getInputValue("roicTerminalYear", "fetchedInputs"),
+    terminalOverrides,
+  );
 
   const growthRates = FinCalc.calcRevenueGrowth(growthY1, growthY2to5, effectiveGrowthTerminal);
   const revenue = FinCalc.calcRevenue(getInputValue("baseRevenue", "fetchedInputs"), growthRates);
@@ -795,6 +804,16 @@ function FCFFPageContent() {
           <div
             className="mt-10 mx-5 px-5 py-10 bg-white dark:bg-gray-800 rounded-2xl drop-shadow-md border dark:border-gray-700"
           >
+            <div className="flex justify-center mb-10">
+              <CopyLlmPromptButton
+                symbol={searchedSymbol}
+                stockInfo={stockInfo}
+                fetchedInputs={fetchedInputs}
+                inputs={inputs}
+                countryOptions={countryOptions}
+                industryOptions={industryOptions}
+              />
+            </div>
             <div className="flex flex-col gap-y-10">
               {/* Country + Industry */}
               <div className="grid lg:grid-cols-3 grid-cols-2 place-items-center gap-y-10">
@@ -1043,6 +1062,7 @@ function FCFFPageContent() {
               fetchedInputs={fetchedInputs}
               searchedSymbol={searchedSymbol}
               stockInfo={stockInfo}
+              terminalOverrides={terminalOverrides}
             />
           )}
           {sensitivityPopup && (
@@ -1052,6 +1072,7 @@ function FCFFPageContent() {
               fetchedInputs={fetchedInputs}
               searchedSymbol={searchedSymbol}
               stockInfo={stockInfo}
+              terminalOverrides={terminalOverrides}
             />
           )}
           {currencyConverterPopup && (

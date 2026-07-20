@@ -92,6 +92,35 @@ export function calcTerminalWACC(matureMarketErp: number, riskFreeRate: number) 
     return matureMarketErp + riskFreeRate;
 }
 
+// Single source of truth for the four "Assumption Overrides" toggles (Terminal WACC,
+// Terminal ROIC, Perpetuity Growth, Terminal Risk-Free Rate). fcff/page.tsx, the
+// Monte Carlo simulation, and the Sensitivity analysis must all resolve these the
+// same way, or the three tools silently disagree with the headline valuation.
+export interface TerminalOverrides {
+    overrideTerminalWacc: boolean;
+    terminalWaccCustom: number;
+    overrideTerminalRoic: boolean;
+    overrideRevGrowthPerpetuity: boolean;
+    overrideTerminalRfr: boolean;
+    terminalRfrCustom: number;
+}
+
+export function resolveTerminalAssumptions(
+    matureMarketErp: number,
+    riskFreeRate: number,
+    revGrowthPerpetuityInput: number,
+    roicTerminalYearInput: number,
+    overrides: TerminalOverrides,
+): { terminalRfr: number; terminalWacc: number; effectiveGrowthTerminal: number; roicTerminalYear: number } {
+    const terminalRfr = overrides.overrideTerminalRfr ? overrides.terminalRfrCustom : riskFreeRate;
+    const terminalWacc = overrides.overrideTerminalWacc
+        ? overrides.terminalWaccCustom
+        : calcTerminalWACC(matureMarketErp, terminalRfr);
+    const effectiveGrowthTerminal = overrides.overrideRevGrowthPerpetuity ? revGrowthPerpetuityInput : terminalRfr;
+    const roicTerminalYear = overrides.overrideTerminalRoic ? roicTerminalYearInput : terminalWacc;
+    return { terminalRfr, terminalWacc, effectiveGrowthTerminal, roicTerminalYear };
+}
+
 //NOTE: Reinvestment in year k funds NEXT year's growth (lead convention), matching Damodaran's spreadsheet.
 // revenue[] has 12 elements: [base, yr1, yr2, ..., yr10, terminal]
 export function calcReinvestment(revenue: number[], salesToCapY1: number, salesToCapY2To5: number, salesToCapY6To10: number, revGrowthTerminalYr: number, roicTerminalYear: number, ebitAfterTaxTerminalYr: number): number[] {

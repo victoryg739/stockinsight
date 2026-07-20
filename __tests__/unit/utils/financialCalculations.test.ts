@@ -25,6 +25,8 @@ import {
   calcWaccEquityWeight,
   calcWaccDebtWeight,
   calcInitialWacc,
+  resolveTerminalAssumptions,
+  type TerminalOverrides,
 } from '@/app/utils/financialCalculations';
 
 describe('Financial Calculations', () => {
@@ -778,6 +780,88 @@ describe('Financial Calculations', () => {
       const wacc_software = calcInitialWacc(eqWt, dtWt, coe_software, AFTER_TAX_COD);
 
       expect(wacc_software).toBeGreaterThan(wacc_banking);
+    });
+  });
+
+  describe('resolveTerminalAssumptions (single source of truth for the 4 override toggles)', () => {
+    const NO_OVERRIDES: TerminalOverrides = {
+      overrideTerminalWacc: false,
+      terminalWaccCustom: 0,
+      overrideTerminalRoic: false,
+      overrideRevGrowthPerpetuity: false,
+      overrideTerminalRfr: false,
+      terminalRfrCustom: 0,
+    };
+    const MATURE_ERP = 4.23;
+    const RISK_FREE_RATE = 4.0;
+    const RAW_REV_GROWTH_PERPETUITY = 7.5; // deliberately different from riskFreeRate
+    const RAW_ROIC_TERMINAL_YEAR = 12.0;   // deliberately different from terminalWacc
+
+    it('with all overrides off, matches Damodaran defaults: terminal growth = RFR, terminal ROIC = terminal WACC', () => {
+      const r = resolveTerminalAssumptions(
+        MATURE_ERP, RISK_FREE_RATE, RAW_REV_GROWTH_PERPETUITY, RAW_ROIC_TERMINAL_YEAR, NO_OVERRIDES
+      );
+      expect(r.terminalRfr).toBe(RISK_FREE_RATE);
+      expect(r.terminalWacc).toBeCloseTo(MATURE_ERP + RISK_FREE_RATE, 10);
+      // The raw "Rev Growth Perpetuity" box must be IGNORED when the override is off.
+      expect(r.effectiveGrowthTerminal).toBe(RISK_FREE_RATE);
+      expect(r.effectiveGrowthTerminal).not.toBe(RAW_REV_GROWTH_PERPETUITY);
+      // Terminal ROIC defaults to terminal WACC, not the stale/raw fetched value.
+      expect(r.roicTerminalYear).toBeCloseTo(r.terminalWacc, 10);
+      expect(r.roicTerminalYear).not.toBe(RAW_ROIC_TERMINAL_YEAR);
+    });
+
+    it('overrideRevGrowthPerpetuity=true uses the raw input value', () => {
+      const r = resolveTerminalAssumptions(
+        MATURE_ERP, RISK_FREE_RATE, RAW_REV_GROWTH_PERPETUITY, RAW_ROIC_TERMINAL_YEAR,
+        { ...NO_OVERRIDES, overrideRevGrowthPerpetuity: true }
+      );
+      expect(r.effectiveGrowthTerminal).toBe(RAW_REV_GROWTH_PERPETUITY);
+    });
+
+    it('overrideTerminalWacc=true bypasses mature ERP + RFR entirely', () => {
+      const r = resolveTerminalAssumptions(
+        MATURE_ERP, RISK_FREE_RATE, RAW_REV_GROWTH_PERPETUITY, RAW_ROIC_TERMINAL_YEAR,
+        { ...NO_OVERRIDES, overrideTerminalWacc: true, terminalWaccCustom: 15 }
+      );
+      expect(r.terminalWacc).toBe(15);
+      // Terminal ROIC auto-tracks whatever terminal WACC actually resolves to.
+      expect(r.roicTerminalYear).toBe(15);
+    });
+
+    it('overrideTerminalRoic=true keeps the raw ROIC value independent of terminal WACC', () => {
+      const r = resolveTerminalAssumptions(
+        MATURE_ERP, RISK_FREE_RATE, RAW_REV_GROWTH_PERPETUITY, RAW_ROIC_TERMINAL_YEAR,
+        { ...NO_OVERRIDES, overrideTerminalRoic: true }
+      );
+      expect(r.roicTerminalYear).toBe(RAW_ROIC_TERMINAL_YEAR);
+      expect(r.roicTerminalYear).not.toBe(r.terminalWacc);
+    });
+
+    it('overrideTerminalRfr=true changes terminal WACC and the default growth anchor together', () => {
+      const r = resolveTerminalAssumptions(
+        MATURE_ERP, RISK_FREE_RATE, RAW_REV_GROWTH_PERPETUITY, RAW_ROIC_TERMINAL_YEAR,
+        { ...NO_OVERRIDES, overrideTerminalRfr: true, terminalRfrCustom: 2.5 }
+      );
+      expect(r.terminalRfr).toBe(2.5);
+      expect(r.terminalWacc).toBeCloseTo(MATURE_ERP + 2.5, 10);
+      expect(r.effectiveGrowthTerminal).toBe(2.5);
+    });
+
+    it('all four overrides on simultaneously are fully independent', () => {
+      const r = resolveTerminalAssumptions(
+        MATURE_ERP, RISK_FREE_RATE, RAW_REV_GROWTH_PERPETUITY, RAW_ROIC_TERMINAL_YEAR,
+        {
+          overrideTerminalWacc: true, terminalWaccCustom: 11,
+          overrideTerminalRoic: true,
+          overrideRevGrowthPerpetuity: true,
+          overrideTerminalRfr: true, terminalRfrCustom: 3,
+        }
+      );
+      expect(r.terminalRfr).toBe(3);                          // overridden, unused elsewhere since WACC is also overridden
+      expect(r.terminalWacc).toBe(11);                        // overridden directly
+      expect(r.effectiveGrowthTerminal).toBe(RAW_REV_GROWTH_PERPETUITY); // overridden, raw input used
+      expect(r.roicTerminalYear).toBe(RAW_ROIC_TERMINAL_YEAR); // overridden, independent of the WACC override
     });
   });
 });

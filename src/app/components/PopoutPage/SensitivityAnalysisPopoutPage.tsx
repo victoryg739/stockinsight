@@ -3,6 +3,7 @@ import { RxCross1 } from "react-icons/rx";
 import StockLogo from "../StockLogo";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import * as FinCalc from "../../utils/financialCalculations";
+import type { TerminalOverrides } from "../../utils/financialCalculations";
 import * as conv from "../../utils/helper";
 
 // For the tooltip component
@@ -65,6 +66,7 @@ interface SensitivityAnalysisPopoutPageProps {
   fetchedInputs: InputField[];
   searchedSymbol: string;
   stockInfo: StockInfoField[];
+  terminalOverrides: TerminalOverrides;
 }
 
 const CustomSensitivityTooltip: React.FC<CustomSensitivityTooltipProps> = ({
@@ -114,6 +116,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
   fetchedInputs,
   searchedSymbol,
   stockInfo,
+  terminalOverrides,
 }) => {
   const popoutRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -372,14 +375,27 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
       return NaN;
     }
 
+    // Resolve the same Terminal WACC / ROIC / Perpetuity Growth / Terminal RFR
+    // assumptions the main page uses, honoring the same override toggles — otherwise
+    // this popout diverges from the headline valuation whenever an override is on,
+    // or whenever the raw (unused-by-default) "Rev Growth Perpetuity" box differs
+    // from the risk-free rate.
+    const resolved = FinCalc.resolveTerminalAssumptions(
+      matureMarketErp,
+      riskFreeRate,
+      growthTerminal,
+      fetchedInputValues["roicTerminalYear"],
+      terminalOverrides
+    );
+
     // Perform calculations using the financial calculations from the utilities
-    const growthRates = FinCalc.calcRevenueGrowth(growthY1, growthY2to5, growthTerminal);
+    const growthRates = FinCalc.calcRevenueGrowth(growthY1, growthY2to5, resolved.effectiveGrowthTerminal);
     const revenue = FinCalc.calcRevenue(baseRevenue, growthRates);
     const ebitMargin = FinCalc.calcEBITMargin(baseEbitMargin, ebitY1, ebitY10, yearOfConvergence);
     const ebit = FinCalc.calcEbit(revenue, ebitMargin);
     const taxRate = FinCalc.calcTaxRate(effectiveTaxRate, marginalTaxRate);
     const ebitAfterTax = FinCalc.calcEbitAfterTax(ebit, taxRate);
-    const terminalWacc = FinCalc.calcTerminalWACC(matureMarketErp, riskFreeRate);
+    const terminalWacc = resolved.terminalWacc;
 
     // Check for terminal WACC less than or equal to terminal growth
     if (terminalWacc <= growthRates[growthRates.length - 1]) {
@@ -400,7 +416,7 @@ const SensitivityAnalysisPopoutPage: React.FC<SensitivityAnalysisPopoutPageProps
       sCapY2to5,
       sCapY6to10,
       growthRates[growthRates.length - 1],
-      fetchedInputValues["roicTerminalYear"], // Use roicTerminalYear
+      resolved.roicTerminalYear,
       ebitAfterTax[ebitAfterTax.length - 1]
     );
     const fcff = FinCalc.calcFcff(ebitAfterTax, reinvestment);

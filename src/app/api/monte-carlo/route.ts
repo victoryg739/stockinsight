@@ -122,7 +122,18 @@ function calculateHistogram(values: number[], numBins = 20): any[] {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
-        const { numIterations, variables, baseInputs, fetchedInputs } = await req.json();
+        const { numIterations, variables, baseInputs, fetchedInputs, terminalOverrides: rawOverrides } = await req.json();
+
+        // Same four toggles as fcff/page.tsx's Assumption Overrides panel — default to
+        // "off" (Damodaran's standard assumptions) if the caller doesn't send any.
+        const terminalOverrides: FinCalc.TerminalOverrides = {
+            overrideTerminalWacc: !!rawOverrides?.overrideTerminalWacc,
+            terminalWaccCustom: rawOverrides?.terminalWaccCustom ?? 0,
+            overrideTerminalRoic: !!rawOverrides?.overrideTerminalRoic,
+            overrideRevGrowthPerpetuity: !!rawOverrides?.overrideRevGrowthPerpetuity,
+            overrideTerminalRfr: !!rawOverrides?.overrideTerminalRfr,
+            terminalRfrCustom: rawOverrides?.terminalRfrCustom ?? 0,
+        };
 
         // Enforce maximum iteration limit
         const MAX_ITERATIONS = 1000000; // 1 million iterations limit
@@ -156,11 +167,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 }
             });
 
+            // Resolve the same Terminal WACC / ROIC / Perpetuity Growth / Terminal RFR
+            // assumptions the main page uses, honoring the same override toggles.
+            const resolved = FinCalc.resolveTerminalAssumptions(
+                variedFetchedInputs.matureMarketErp,
+                variedFetchedInputs.riskFreeRate,
+                variedBaseInputs.revGrowthPerpetuity,
+                variedFetchedInputs.roicTerminalYear,
+                terminalOverrides
+            );
+
             // Now run the DCF calculation with these varied inputs
             const growthRates = FinCalc.calcRevenueGrowth(
                 variedBaseInputs.revGrowthYr1,
                 variedBaseInputs.revGrowthYr2to5,
-                variedBaseInputs.revGrowthPerpetuity
+                resolved.effectiveGrowthTerminal
             );
 
             const revenue = FinCalc.calcRevenue(variedFetchedInputs.baseRevenue, growthRates);
@@ -181,10 +202,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
             const ebitAfterTax = FinCalc.calcEbitAfterTax(ebit, taxRate);
 
-            const terminalWacc = FinCalc.calcTerminalWACC(
-                variedFetchedInputs.matureMarketErp,
-                variedFetchedInputs.riskFreeRate
-            );
+            const terminalWacc = resolved.terminalWacc;
 
             const reinvestment = FinCalc.calcReinvestment(
                 revenue,
@@ -192,7 +210,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 variedBaseInputs.salesToCapYr2to5,
                 variedBaseInputs.salesToCapYr6to10,
                 growthRates[growthRates.length - 1],
-                variedFetchedInputs.roicTerminalYear, // Use roicTerminalYear instead of terminalWacc
+                resolved.roicTerminalYear,
                 ebitAfterTax[ebitAfterTax.length - 1]
             );
 

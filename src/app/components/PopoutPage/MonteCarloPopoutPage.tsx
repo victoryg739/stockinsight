@@ -20,6 +20,7 @@ import {
 } from "../../utils/distributionTypes";
 import StockLogo from "../StockLogo";
 import { useTheme } from "../../providers/ThemeProvider";
+import type { TerminalOverrides } from "../../utils/financialCalculations";
 const DISTRIBUTION_TYPES: DistributionType[] = [
   "Normal",
   "Uniform",
@@ -112,6 +113,7 @@ interface MonteCarloPopoutPageProps {
   fetchedInputs: InputField[];
   searchedSymbol: string;
   stockInfo: StockInfoField[];
+  terminalOverrides: TerminalOverrides;
 }
 
 // Helper function to convert from our internal params to the specific type expected by DistributionPreviewChart
@@ -470,6 +472,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
   fetchedInputs,
   searchedSymbol,
   stockInfo,
+  terminalOverrides,
 }) => {
   const popoutRef = useRef<HTMLDivElement>(null);
   const { isDark } = useTheme();
@@ -621,6 +624,7 @@ const MonteCarloPopoutPage: React.FC<MonteCarloPopoutPageProps> = ({
         variables: enabledVariables,
         baseInputs: baseInputsMap,
         fetchedInputs: fetchedInputsMap,
+        terminalOverrides,
       };
 
       // Call the API
