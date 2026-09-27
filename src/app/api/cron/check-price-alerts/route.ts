@@ -9,14 +9,23 @@ import { Resend } from "resend";
 
 // Prevent caching for cron jobs
 export const dynamic = 'force-dynamic';
+// cron-job.org aborts after 30s; give the function headroom so it can still finish
+export const maxDuration = 60;
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// A single hung Finnhub request must not stall the whole run past cron-job.org's 30s timeout
+const PRICE_FETCH_TIMEOUT_MS = 5000;
+// Finnhub free tier allows 30 calls/sec
+const PRICE_FETCH_CONCURRENCY = 10;
 
 // Function to fetch current market price
 async function fetchMarketPrice(symbol: string): Promise<number | null> {
   try {
-    // Using the same logic as your existing fetchMarketPrice function
-    const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${process.env.FINNHUB_API_KEY}`);
+    const response = await fetch(
+      `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${process.env.FINNHUB_API_KEY}`,
+      { signal: AbortSignal.timeout(PRICE_FETCH_TIMEOUT_MS), cache: 'no-store' }
+    );
 
     if (!response.ok) {
       console.error(`Failed to fetch price for ${symbol}: ${response.statusText}`);
@@ -31,19 +40,29 @@ async function fetchMarketPrice(symbol: string): Promise<number | null> {
   }
 }
 
-// Function to send email notification
+// Fetch prices for all symbols in parallel batches
+async function fetchMarketPrices(symbols: string[]): Promise<Map<string, number | null>> {
+  const prices = new Map<string, number | null>();
+  for (let i = 0; i < symbols.length; i += PRICE_FETCH_CONCURRENCY) {
+    const batch = symbols.slice(i, i + PRICE_FETCH_CONCURRENCY);
+    const results = await Promise.all(batch.map(fetchMarketPrice));
+    batch.forEach((symbol, j) => prices.set(symbol, results[j]));
+  }
+  return prices;
+}
+
+// Function to send email notification. Throws if the email was not sent.
 async function sendAlertEmail(userEmail: string, alert: any, currentPrice: number) {
   const conditionText = alert.condition === "ABOVE" ? "above" : "below";
   const priceDirection = alert.condition === "ABOVE" ? "📈" : "📉";
 
-  try {
-    await resend.emails.send({
-      from: 'StockInsight Alerts <onboarding@resend.dev>', // Resend's testing domain
-      // Alternative: Use your verified Gmail address
-      // from: 'StockInsight Alerts <qwerty7391999@gmail.com>', // Your verified Gmail
-      to: userEmail,
-      subject: `🚨 Price Alert Triggered: ${alert.symbol}`,
-      html: `
+  const { error } = await resend.emails.send({
+    from: 'StockInsight Alerts <onboarding@resend.dev>', // Resend's testing domain
+    // Alternative: Use your verified Gmail address
+    // from: 'StockInsight Alerts <qwerty7391999@gmail.com>', // Your verified Gmail
+    to: userEmail,
+    subject: `🚨 Price Alert Triggered: ${alert.symbol}`,
+    html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
             <h1 style="color: white; margin: 0; font-size: 28px;">StockInsight Alert ${priceDirection}</h1>
@@ -87,13 +106,14 @@ async function sendAlertEmail(userEmail: string, alert: any, currentPrice: numbe
             </p>
           </div>
         </div>
-      `,
-    });
+    `,
+  });
 
-    console.log(`Alert email sent successfully to ${userEmail} for ${alert.symbol}`);
-  } catch (error) {
-    console.error(`Failed to send email to ${userEmail}:`, error);
+  // Resend reports failures via `error` rather than throwing
+  if (error) {
+    throw new Error(`Resend error: ${error.message}`);
   }
+  console.log(`Alert email sent successfully to ${userEmail} for ${alert.symbol}`);
 }
 
 // Alternative Gmail SMTP function (uncomment to use)
@@ -216,10 +236,12 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, typeof activeAlerts>);
 
+    const prices = await fetchMarketPrices(Object.keys(alertsBySymbol));
+
     // Process each symbol
     for (const [symbol, alerts] of Object.entries(alertsBySymbol)) {
       try {
-        const currentPrice = await fetchMarketPrice(symbol);
+        const currentPrice = prices.get(symbol) ?? null;
 
         if (currentPrice === null) {
           console.log(`Skipping ${symbol} - could not fetch price`);
@@ -261,10 +283,6 @@ export async function GET(request: NextRequest) {
             }
           }
         }
-
-        // Add small delay between API calls to be respectful
-        await new Promise(resolve => setTimeout(resolve, 100));
-
       } catch (error) {
         console.error(`Error processing alerts for ${symbol}:`, error);
       }
