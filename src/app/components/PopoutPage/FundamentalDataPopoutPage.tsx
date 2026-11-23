@@ -139,7 +139,7 @@ const BOLD_BALANCE_FIELDS = [
 ];
 
 // Required fields for data completeness check
-const REQUIRED_INCOME_FIELDS = ["Total Revenue", "Gross Profit", "Operating Income", "Net Income"];
+const REQUIRED_INCOME_FIELDS = ["Total Revenue", "Net Income"];
 const REQUIRED_BALANCE_FIELDS = ["Total Assets", "Total Liabilities Net Minority Interest", "Stockholders Equity"];
 
 const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
@@ -322,7 +322,7 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
         const netDebtToEBITDA = ebitda !== 0 ? netDebt / ebitda : null;
 
         // Calculate Return on Invested Capital (ROIC)
-        const operatingIncome = incomeValues["Operating Income"];
+        const operatingIncome = incomeValues["Operating Income"] ?? incomeValues["EBIT"];
         const taxProvision = incomeValues["Tax Provision"];
         const pretaxIncome = incomeValues["Pretax Income"];
         const taxRate = pretaxIncome !== 0 ? taxProvision / pretaxIncome : 0;
@@ -535,6 +535,13 @@ const FundamentalDataPopoutPage: React.FC<FundamentalDataPopoutPageProps> = ({
           currentData.values["Revenue Growth Rate"] = growthRate;
         } else {
           currentData.values["Revenue Growth Rate"] = null;
+        }
+
+        // Fall back to EBIT where Operating Income is not reported (e.g. insurers)
+        for (const d of [currentData, previousData]) {
+          if (d && d.values["Operating Income"] == null && d.values["EBIT"] != null) {
+            d.values["Operating Income"] = d.values["EBIT"];
+          }
         }
 
         // Operating Income Growth Rate

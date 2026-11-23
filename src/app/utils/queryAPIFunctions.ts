@@ -44,6 +44,10 @@ export const fetchEquityRiskPremium = async (
 //However yahoo finance EBIT is calculated differently from Operating Income 
 //We use yahoo finance Operating Income but call it EBIT for simplicity/shorten form
 //Operating Income  = Revenue - COGS/COR - Operating Expenses 
+// Insurers/some filers have no "Operating Income" in yfinance; fall back to "EBIT".
+const getOperatingIncome = (is: Record<string, any>): number =>
+    Number(is["Operating Income"] ?? is["EBIT"]);
+
 export const fetchIncomeStatement = async (symbol: string,
     handleInputChange: (id: string, newValue: any, type: "inputs" | "fetchedInputs") => void
 ) => {
@@ -56,14 +60,13 @@ export const fetchIncomeStatement = async (symbol: string,
         // Access the inner object using the timestamp key
         const incomeStatement = data[timestampKey];
 
-        const baseEbitMargin = (incomeStatement["Operating Income"] / incomeStatement["Total Revenue"]) * 100;
+        const baseEbitMargin = (getOperatingIncome(incomeStatement) / incomeStatement["Total Revenue"]) * 100;
         let effectiveTaxRate = (incomeStatement["Tax Provision"] / incomeStatement["Pretax Income"]) * 100
         if (effectiveTaxRate < 0) {
             effectiveTaxRate = 0;
         }
         handleInputChange("baseRevenue", incomeStatement["Total Revenue"], "fetchedInputs");
         handleInputChange("baseEbitMargin", baseEbitMargin, "fetchedInputs");
-        handleInputChange("minorityInterest", incomeStatement["Minority Interest"], "fetchedInputs");
         handleInputChange("interestExpense", incomeStatement["Interest Expense"], "fetchedInputs");
         handleInputChange("effectiveTaxRate", effectiveTaxRate, "fetchedInputs");
 
@@ -89,6 +92,8 @@ export const fetchBalanceSheetQuarterly = async (
         handleInputChange("cash", latestQtr["Cash Cash Equivalents And Short Term Investments"], "fetchedInputs");
         handleInputChange("totalEquity", latestQtr["Total Equity Gross Minority Interest"], "fetchedInputs");
         handleInputChange("totalDebt", latestQtr["Total Debt"], "fetchedInputs");
+        // Balance-sheet (book) minority interest, not the P&L share of minority income
+        handleInputChange("minorityInterest", latestQtr["Minority Interest"] ?? 0, "fetchedInputs");
     } catch (error) {
         console.error('Error fetching balance sheet quarterly:', error);
         throw error;
@@ -468,7 +473,7 @@ export const fetchCompAnalysis = async (symbol: string) => {
         const incomeStatement = ttmData[timestampKey];
 
         // Calculate EBIT margin
-        const ebitMargin = (incomeStatement["Operating Income"] / incomeStatement["Total Revenue"]) * 100;
+        const ebitMargin = (getOperatingIncome(incomeStatement) / incomeStatement["Total Revenue"]) * 100;
 
         // Fetch stock info
         const { data: stockInfo } = await axios.get(`/api/stock-info?symbol=${symbol}`);
@@ -492,7 +497,7 @@ export const fetchCompAnalysis = async (symbol: string) => {
                 if (effectiveTaxRate < 0) effectiveTaxRate = 0;
             }
 
-            const ebitAfterTax = incomeStatement["Operating Income"] * (1 - effectiveTaxRate / 100);
+            const ebitAfterTax = getOperatingIncome(incomeStatement) * (1 - effectiveTaxRate / 100);
 
             // Calculate ROIC = (EBIT After Tax / Invested Capital) × 100
             if (investedCapital > 0) {
@@ -504,7 +509,7 @@ export const fetchCompAnalysis = async (symbol: string) => {
             ticker: symbol,
             shortName: stockInfo.shortName || symbol,
             revenue: incomeStatement["Total Revenue"] || 0,
-            ebit: incomeStatement["Operating Income"] || 0,
+            ebit: getOperatingIncome(incomeStatement) || 0,
             ebitMargin: ebitMargin || 0,
             peRatio: stockInfo.trailingPE || 0,
             roic: roic
